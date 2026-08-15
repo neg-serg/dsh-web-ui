@@ -103,13 +103,22 @@ export type PetKey = keyof typeof zh
 export type SettingsCardKey = PetKey
 
 /**
- * Active dictionary, picked by the document language at call time. The pet
- * mounts as a global floating surface (not a session-scoped slot), so it has
- * no framework locale seat and resolves its copy the same tiny way the
- * task-board's DOM-injected surface does.
+ * Active locale, mirrored from the base GUI locale service in `apply`. The
+ * pet mounts as a global floating surface (not a session-scoped slot), so it
+ * has no framework locale seat and resolves its copy through this module-level
+ * mirror. The shell never updates `document.documentElement.lang`, so reading
+ * the document language directly always resolved to zh even in an English GUI.
  */
+let activeLocale: string | undefined
+
+/** Adopt the base GUI locale (called from the plugin apply + subscription). */
+export function syncActiveLocale(locale: string): void {
+  activeLocale = locale
+}
+
+/** Active dictionary, picked by the base GUI locale at call time. */
 export function dictionary(): Record<PetKey, string> {
-  const lang = typeof document !== 'undefined' ? document.documentElement.lang : 'zh'
+  const lang = activeLocale ?? (typeof document !== 'undefined' ? document.documentElement.lang : 'zh')
   return lang.toLowerCase().startsWith('en') ? en : zh
 }
 

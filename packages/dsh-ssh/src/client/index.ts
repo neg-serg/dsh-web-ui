@@ -16,7 +16,7 @@ import type {} from '@deepseek-ai/dsh-client-locale/client'
 // Type-only: pulls the LocaleNamespaceMap merge table.
 import type {} from '@deepseek-ai/dsh-client-ui-slots'
 import { SshApi } from './api.ts'
-import { en, zh, type SshKey } from './locales.ts'
+import { en, syncActiveLocale, zh, type SshKey } from './locales.ts'
 import { mountPanel } from './mount.tsx'
 import { PanelController } from './panel/controller.ts'
 import { mountSidebarEntry } from './sidebar-entry.ts'
@@ -51,6 +51,13 @@ export type { SshKey } from './locales.ts'
  */
 export function apply(ctx: ClientContext): void {
   ctx.effect(() => ctx.locale.register(NS, { zh, en }), 'dsh-ssh: dictionaries')
+
+  // Mirror the base GUI locale into the standalone panel dictionaries. The
+  // shell never updates <html lang>, so reading the document language always
+  // resolved to zh even in an English GUI.
+  const syncLocale = (): void => syncActiveLocale(ctx.locale.getSnapshot().active)
+  syncLocale()
+  ctx.effect(() => ctx.locale.subscribe(syncLocale), 'dsh-ssh: locale sync')
 
   const controller = new PanelController()
   const api = new SshApi()

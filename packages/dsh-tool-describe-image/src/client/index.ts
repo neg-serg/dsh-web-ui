@@ -64,15 +64,12 @@ export const inject = ['slots', 'conversation', 'settingsScope', 'locale']
 export function apply(ctx: ClientContext): void {
   ctx.effect(() => ctx.locale.register(NS, dictionaries), 'dsh-tool-describe-image: dictionaries')
   ctx.effect(() => {
-    // Mirror the shell language into the module-level dictionary switch.
-    const sync = (): void => {
-      const lang = document.documentElement.lang
-      setLanguage(lang === 'zh' || lang.startsWith('zh-') ? 'zh' : 'en')
-    }
+    // Mirror the base GUI locale into the module-level dictionary switch. The
+    // shell never updates <html lang>, so observing it always resolved to zh
+    // even in an English GUI.
+    const sync = (): void => setLanguage(ctx.locale.getSnapshot().active)
     sync()
-    const observer = new MutationObserver(sync)
-    observer.observe(document.documentElement, { attributes: true, attributeFilter: ['lang'] })
-    return () => observer.disconnect()
+    return ctx.locale.subscribe(sync)
   }, 'dsh-tool-describe-image: language mirror')
 
   ctx.inject(['slots', 'conversation'], (scope: ClientContext) => {

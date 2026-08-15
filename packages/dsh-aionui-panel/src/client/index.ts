@@ -135,14 +135,12 @@ export function apply(ctx: ClientContext): void {
     }
     disposers.push(stores.preview.subscribe(mirrorPreviewOpen))
 
-    // Language mirroring (the shell owns <html lang>; the dictionary follows).
-    let langObserver: MutationObserver | undefined
-    const syncLanguage = (): void => {
-      setLanguage(document.documentElement.lang?.startsWith('zh') ? 'zh' : 'en')
-    }
-    langObserver = new MutationObserver(syncLanguage)
-    langObserver.observe(document.documentElement, { attributes: true, attributeFilter: ['lang'] })
+    // Language mirroring: follow the base GUI locale service. The shell owns
+    // <html lang> and never updates it, so observing it always resolved to zh
+    // even in an English GUI.
+    const syncLanguage = (): void => setLanguage(ctx.locale.getSnapshot().active)
     syncLanguage()
+    disposers.push(ctx.locale.subscribe(syncLanguage))
 
     // Mount everything. DOM failures degrade the panels, never the GUI.
     try {
@@ -166,7 +164,6 @@ export function apply(ctx: ClientContext): void {
       window.removeEventListener('pagehide', flushOnHide)
       document.removeEventListener('visibilitychange', onVisibilityChange)
       disposeEvents?.()
-      langObserver?.disconnect()
       for (const dispose of disposers) dispose()
       layout.dispose()
     }

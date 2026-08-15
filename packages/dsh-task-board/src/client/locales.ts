@@ -195,9 +195,22 @@ export type TaskBoardKey = keyof typeof zh
 /** The settings-card slice of the task-board dictionary. */
 export type SettingsCardKey = TaskBoardKey
 
-/** Active dictionary, picked by the document language at call time. */
+/**
+ * Active locale, mirrored from the base GUI locale service in `apply`. The
+ * shell never updates `document.documentElement.lang` (it stays "zh-CN" even
+ * in an English GUI), so the standalone DOM surfaces must follow the locale
+ * service instead of reading the document language.
+ */
+let activeLocale: string | undefined
+
+/** Adopt the base GUI locale (called from the plugin apply + subscription). */
+export function syncActiveLocale(locale: string): void {
+  activeLocale = locale
+}
+
+/** Active dictionary, picked by the base GUI locale at call time. */
 export function dictionary(): Record<TaskBoardKey, string> {
-  const lang = typeof document !== 'undefined' ? document.documentElement.lang : 'zh'
+  const lang = activeLocale ?? (typeof document !== 'undefined' ? document.documentElement.lang : 'zh')
   return lang.toLowerCase().startsWith('en') ? en : zh
 }
 

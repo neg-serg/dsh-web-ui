@@ -27,7 +27,7 @@ import { createRoot } from 'react-dom/client'
 import { createPetStore, type PetStoreInstance } from './pet-store.ts'
 import { PetDockEntry, type PetInjected } from './PetDockEntry.tsx'
 import { PetSettingsCard, PetSettingsCardController, type PetSettings } from './PetSettingsCard.tsx'
-import { NS, en, zh, t } from './locales.ts'
+import { NS, en, syncActiveLocale, zh, t } from './locales.ts'
 
 /** The host pet API as the browser sees it (same-origin JSON endpoints). */
 interface PetHttpApi {
@@ -119,6 +119,13 @@ declare module '@deepseek-ai/cordis' {
  */
 export function apply(ctx: ClientContext): void {
   ctx.effect(() => ctx.locale.register(NS, { zh, en }), 'pet: dictionaries')
+
+  // Mirror the base GUI locale into the standalone dictionaries. The shell
+  // never updates <html lang>, so reading the document language always
+  // resolved to zh even in an English GUI.
+  const syncLocale = (): void => syncActiveLocale(ctx.locale.getSnapshot().active)
+  syncLocale()
+  ctx.effect(() => ctx.locale.subscribe(syncLocale), 'pet: locale sync')
 
   const binder = ctx.get('webUiSettings') ?? ctx.settingsScope
   const settingsScope = binder.bind<PetSettings>({ namespace: PET_SETTINGS_NS })

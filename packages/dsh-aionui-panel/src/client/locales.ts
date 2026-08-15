@@ -152,7 +152,10 @@ export function format(template: string, params: Record<string, string | number>
 /** Simple dictionary access (zh/en by a global flag the client sets). */
 export const dictionaries: Record<'zh' | 'en', Record<AionUiPanelKey, string>> = { zh, en }
 
-let currentLanguage: 'zh' | 'en' = 'zh'
+// Document-language fallback only covers renders before the locale-service
+// sync in apply; the shell never updates <html lang>, so the service is the
+// real source once the plugin is up.
+let currentLanguage: 'zh' | 'en' = typeof document !== 'undefined' && document.documentElement.lang?.toLowerCase().startsWith('en') ? 'en' : 'zh'
 
 /** Set the active language (the client mirrors the locale service). */
 export function setLanguage(language: string): void {

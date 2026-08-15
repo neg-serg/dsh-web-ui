@@ -272,6 +272,23 @@ export const en: Record<keyof typeof zh, string> = {
 /** Locale key union. */
 export type SshKey = keyof typeof zh
 
+/**
+ * Active locale, mirrored from the base GUI locale service in `apply`. The
+ * shell never updates `document.documentElement.lang`, so reading the document
+ * language directly always resolved to zh even in an English GUI.
+ */
+let activeLocale: string | undefined
+
+/** Adopt the base GUI locale (called from the plugin apply + subscription). */
+export function syncActiveLocale(locale: string): void {
+  activeLocale = locale
+}
+
+/** Active locale for the standalone panel dictionaries. */
+export function currentLocale(): string {
+  return activeLocale ?? (typeof document !== 'undefined' ? document.documentElement.lang : 'zh')
+}
+
 /** Tiny interpolation: {name} -> value. */
 export function t(dictionary: Record<string, string>, key: string, values?: Record<string, string | number>): string {
   let text = dictionary[key] ?? key

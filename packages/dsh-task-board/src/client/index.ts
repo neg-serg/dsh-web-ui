@@ -24,7 +24,7 @@ import { claimTaskboardApply, releaseTaskboardApply } from './apply-guard.ts'
 import { mountBoard } from './board-mount.tsx'
 import { mountSidebarEntry } from './sidebar-entry.ts'
 import { TaskBoardSettingsCard, TaskBoardSettingsCardController, type TaskBoardSettings } from './TaskBoardSettingsCard.tsx'
-import { en, zh, type TaskBoardKey } from './locales.ts'
+import { en, syncActiveLocale, zh, type TaskBoardKey } from './locales.ts'
 
 /** Locale namespace this plugin owns. */
 const NS = 'task-board'
@@ -86,6 +86,13 @@ export function apply(ctx: ClientContext): void {
   ctx.effect(() => releaseTaskboardApply, 'task-board: apply claim')
 
   ctx.effect(() => ctx.locale.register(NS, { zh, en }), 'task-board: dictionaries')
+
+  // Mirror the base GUI locale into the standalone dictionaries. The shell
+  // never updates <html lang>, so reading the document language always
+  // resolved to zh even in an English GUI.
+  const syncLocale = (): void => syncActiveLocale(ctx.locale.getSnapshot().active)
+  syncLocale()
+  ctx.effect(() => ctx.locale.subscribe(syncLocale), 'task-board: locale sync')
 
   // Plugin configuration card: one staged form over the `task-board` settings
   // namespace, contributed to the Web UI plugin group.
