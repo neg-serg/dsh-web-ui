@@ -494,7 +494,7 @@ function applyToolCall(state: FoldState, event: WireEvent): void {
       : tool)
   const next: RenderMessage = {
     ...target,
-    ...(isNewName ? { toolSummary: `使用 ${[...names].join(' / ')}` } : {}),
+    ...(isNewName ? { toolSummary: `Using ${[...names].join(' / ')}` } : {}),
     ...(isNewCall || args !== undefined ? { tools: nextTools } : {}),
     seq: event.seq,
     time: event.time,

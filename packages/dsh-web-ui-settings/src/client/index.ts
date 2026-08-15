@@ -81,6 +81,11 @@ export function apply(ctx: ClientContext): void {
     id: 'community-plugins',
     order: 120,
     locale: 'community-plugins',
-    inject: () => ({}),
+    inject: () => ({
+      locale: {
+        getSnapshot: () => ctx.locale.getSnapshot().active,
+        subscribe: (listener: () => void) => ctx.locale.subscribe(() => listener()),
+      },
+    }),
   }, CommunityPluginsCard))
 }

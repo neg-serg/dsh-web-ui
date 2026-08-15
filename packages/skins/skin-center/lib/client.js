@@ -15,7 +15,9 @@ window.__ModuleLoader__.load({
 				"nameEn": "Blue Fantasy",
 				"author": "powerdog996（DreamSkin 社区）· dsh-web-ui 适配",
 				"tagline": "鲸鱼插画背景 · periwinkle 靛蓝调色板 · 半透明面板",
+				"taglineEn": "Whale illustration background · periwinkle indigo palette · translucent panels",
 				"description": "DreamSkin「DeepSeek-鲸鱼娘」Codex 桌面主题的 dsh 适配：鲸鱼插画背景垫在半透明面板之下，遮罩随亮/暗主题实时切换，periwinkle 靛蓝色调重映射到全部 dsh token。",
+				"descriptionEn": "A dsh port of the DreamSkin \"DeepSeek Whale Girl\" Codex desktop theme: the whale illustration sits beneath translucent panels, the scrim switches live with the light/dark theme, and the periwinkle-indigo palette is remapped onto every dsh token.",
 				"tags": [
 					"dreamskin",
 					"whale",
@@ -34,7 +36,9 @@ window.__ModuleLoader__.load({
 				"nameEn": "Whale Song",
 				"author": "dsh-web-ui",
 				"tagline": "深海鲸语女神背景 · 冰蓝海洋调色板 · 金色细线点缀",
+				"taglineEn": "Deep-sea whale-goddess background · ice-blue ocean palette · gold hairline accents",
 				"description": "《鲸吟》— 深海鲸语女神主题：无文字纯氛围背景画（蓝发女神与鲸群居左、冰蓝星座网格与金线点缀、右侧大量留白）垫在半透明面板之下，遮罩随亮/暗主题实时切换，冰蓝/浅青/深海军蓝/钴蓝冷色体系重映射到全部 dsh token，暗色变体为深海夜航调。",
+				"descriptionEn": "\"Whale Song\" — a deep-sea whale-goddess theme: a text-free ambient artwork (a blue-haired goddess with a pod of whales on the left, an ice-blue constellation grid with gold accents, generous whitespace on the right) beneath translucent panels; the scrim follows the light/dark theme; the ice-blue / pale-cyan / deep-navy / cobalt cold palette is remapped onto all dsh tokens, with a deep-sea night-voyage variant for dark mode.",
 				"tags": [
 					"whale",
 					"ocean",
@@ -54,7 +58,9 @@ window.__ModuleLoader__.load({
 				"nameEn": "Harbor",
 				"author": "moeblack",
 				"tagline": "暮光蓝港 · 日落橙辉 · 半透明夜色面板",
+				"taglineEn": "Twilight-blue harbor · sunset orange glow · translucent night panels",
 				"description": "《夕港》黄昏港口主题：动漫少女黄昏港口背景（暮光蓝天空渐入日落橙）垫在半透明面板之下，遮罩随亮/暗主题实时切换，深暮蓝 #141a2e 底与日落橙 #ff9d5c 主色重映射到 dsh token，亮色是薄暮纱、暗色是深海夜航纱，同一幅画两种读法。",
+				"descriptionEn": "\"Harbor\" — a dusk harbor theme: an anime girl at a twilight harbor (twilight-blue sky fading into sunset orange) beneath translucent panels; the scrim follows the light/dark theme; deep dusk blue #141a2e and sunset orange #ff9d5c are remapped onto dsh tokens — a dusk veil in light mode, a deep-sea night veil in dark mode, one artwork read two ways.",
 				"tags": [
 					"harbor",
 					"dusk",
@@ -75,7 +81,9 @@ window.__ModuleLoader__.load({
 				"nameEn": "QQ2008 Retro",
 				"author": "dsh-web-ui",
 				"tagline": "水晶蓝桌面 · 玻璃深蓝标题栏 · 戴围巾企鹅",
+				"taglineEn": "Crystal-blue desktop · glassy deep-blue title bars · a penguin in a scarf",
 				"description": "dsh web ui 家族收录的第一个皮肤：QQ2008 水晶蓝年代。深蓝渐变桌面、玻璃质感标题栏、浅蓝状态栏和圆角高光控件，配一只戴围巾的企鹅。",
+				"descriptionEn": "The first skin in the dsh web ui family: the QQ2008 crystal-blue era — a deep-blue gradient desktop, glassy title bars, light-blue status bars and rounded glossy controls, with a penguin in a scarf.",
 				"tags": [
 					"retro",
 					"qq",
@@ -94,7 +102,9 @@ window.__ModuleLoader__.load({
 				"nameEn": "Tonghuashun Trading",
 				"author": "dsh-web-ui",
 				"tagline": "品牌红标题栏 · 实时行情状态栏 · 灰蓝数据终端",
+				"taglineEn": "Brand-red title bar · live market status bar · grey-blue data terminal",
 				"description": "同花顺风格炒股主题：品牌红标题栏带上证指数行情签，状态栏红涨绿跌，自选股风格的侧边栏和交易终端面板，写代码也像盯盘。",
+				"descriptionEn": "A Tonghuashun-style trading theme: a brand-red title bar with an SSE index ticker, a red-up/green-down status bar, a watchlist-style sidebar and trading-terminal panels — coding feels like watching the market.",
 				"tags": [
 					"stock",
 					"trading",
@@ -112,7 +122,9 @@ window.__ModuleLoader__.load({
 				"nameEn": "Windows XP Luna",
 				"author": "dsh-web-ui",
 				"tagline": "Luna 蓝窗口条 · 绿色开始按钮 · Bliss 蓝天桌面",
+				"taglineEn": "Luna blue window bars · green Start button · Bliss blue-sky desktop",
 				"description": "Windows XP (Luna) 复古主题：蓝色渐变窗口条带窗口按钮、米色状态栏（大写/数字/滚动指示灯）、侧边栏任务栏上的绿色「开始」按钮、资源管理器风格树行和 Bliss 蓝天桌面，全局直角。",
+				"descriptionEn": "A Windows XP (Luna) retro theme: blue gradient window bars with window buttons, beige status bars (caps/num/scroll indicators), a green Start button on the sidebar taskbar, Explorer-style tree rows and the Bliss blue-sky desktop, square corners throughout.",
 				"tags": [
 					"retro",
 					"xp",
@@ -131,7 +143,9 @@ window.__ModuleLoader__.load({
 				"nameEn": "Dragon Heir",
 				"author": "dsh-web-ui",
 				"tagline": "不屈龙魂 · 万里长城双主题 · 朱砂龙印",
+				"taglineEn": "Indomitable dragon spirit · Great Wall dual theme · cinnabar dragon seal",
 				"description": "龙的传人 — 一面是不屈龙魂（墨龙穿云、朱砂印章、不屈锋芒），一面是万里长城（青黛山色、金晖镀墙、苍茫暮色）。亮暗主题各自配一幅画与一枚龙印 favicon，面板半透明磨砂，让画透出来。",
+				"descriptionEn": "\"Descendants of the Dragon\" — one face is the indomitable dragon spirit (an ink dragon through the clouds, a cinnabar seal, an unyielding edge), the other the Great Wall (indigo mountain hues, gold-washed walls, vast dusk). Each light/dark theme pairs an artwork with a dragon-seal favicon; panels are frosted translucent so the art shows through.",
 				"tags": [
 					"dragon",
 					"loong",
@@ -151,7 +165,9 @@ window.__ModuleLoader__.load({
 				"nameEn": "Minecraft Voxel",
 				"author": "dsh-web-ui",
 				"tagline": "动态全景天空盒 · 方块按钮 · 告示牌输入框",
+				"taglineEn": "Dynamic panorama skybox · blocky buttons · signpost input boxes",
 				"description": "复刻《我的世界》主界面氛围的方块皮肤：程序化绘制的像素全景天空盒（方块山、像素云、方块树、草方块地面）在身后缓慢旋转，界面浮在石板上；按钮还原 MC 菜单按钮（灰石板、悬停变黄、按下下沉），输入框做成带钉子的木告示牌。",
+				"descriptionEn": "A voxel skin recreating the Minecraft main-menu vibe: a procedurally drawn pixel panorama skybox (blocky mountains, pixel clouds, block trees, grass-block ground) slowly rotates behind the UI as it floats on a stone slab; buttons mirror the MC menu buttons (grey stone, yellow on hover, pressed-down state), and inputs are wooden signposts with nails.",
 				"tags": [
 					"minecraft",
 					"voxel",
@@ -171,7 +187,9 @@ window.__ModuleLoader__.load({
 				"nameEn": "Trading Terminal",
 				"author": "dsh-web-ui",
 				"tagline": "实时行情跑马灯 · 长桥港美股行情 · 红涨绿跌交易终端",
+				"taglineEn": "Live market ticker · Longbridge HK/US quotes · red-up/green-down trading terminal",
 				"description": "结合 dsh-fun-ticker 行情跑马灯与 dsh-longbridge 港美股行情的炒股皮肤：顶栏滚动 A股/港股/美股/指数/加密/外汇报价（装 fun-ticker 后跟随你的自选列表），状态栏展示长桥行情快照与 A股/港股/美股交易时段，写代码也像盯盘。",
+				"descriptionEn": "A trading skin combining the dsh-fun-ticker marquee with dsh-longbridge HK/US quotes: the top bar scrolls A-share / HK / US / index / crypto / FX quotes (following your watchlist once fun-ticker is installed), the status bar shows Longbridge quote snapshots and A/HK/US trading sessions — coding feels like watching the market.",
 				"tags": [
 					"stock",
 					"trading",
@@ -191,7 +209,9 @@ window.__ModuleLoader__.load({
 				"nameEn": "Hatsune Miku",
 				"author": "涂山苏苏",
 				"tagline": "蓝紫双马尾 · 01 编号 · 音符波形 · 电子歌姬主题",
+				"taglineEn": "Blue-purple twin tails · 01 badge · note waveforms · vocaloid theme",
 				"description": "以世界第一的虚拟歌姬初音未来为灵感的主题皮肤：蓝紫洋红渐变贯穿全局，音符与声波曲线点缀在半透明面板之间，标题栏与状态栏带有 01 编号徽标与音乐波形，半透明毛玻璃面板透出背景图——沉浸式电子歌姬氛围。",
+				"descriptionEn": "A theme skin inspired by Hatsune Miku, the world's first virtual idol: a blue-purple-magenta gradient runs throughout, notes and sound-wave curves decorate the translucent panels, title and status bars carry 01 badge logos and music waveforms, and frosted-glass panels let the background show through — an immersive vocaloid atmosphere.",
 				"tags": [
 					"miku",
 					"vocaloid",
@@ -654,9 +674,10 @@ window.__ModuleLoader__.load({
 		* @param props - card props.
 		* @returns the plugin card.
 		*/
-		function SkinCenter({ t, controller, theme, background }) {
+		function SkinCenter({ t, controller, theme, background, locale }) {
 			const snapshot = (0, react.useSyncExternalStore)(theme.subscribe, theme.getTheme);
 			const opacity = (0, react.useSyncExternalStore)(background.subscribe, background.opacity);
+			const english = (0, react.useSyncExternalStore)(locale.subscribe, locale.getSnapshot).toLowerCase().startsWith("en");
 			const activePackage = activeSkinEntry()?.package;
 			const activeId = activeSkinEntry()?.id;
 			const backdropActive = activeId !== void 0 && BACKDROP_SKIN_IDS.has(activeId);
@@ -1025,8 +1046,8 @@ window.__ModuleLoader__.load({
 										}),
 										/* @__PURE__ */ (0, react_jsx_runtime.jsx)("div", {
 											className: skin_center_module_css_default.cardTagline,
-											title: entry.tagline,
-											children: entry.tagline
+											title: english ? entry.taglineEn ?? entry.tagline : entry.tagline,
+											children: english ? entry.taglineEn ?? entry.tagline : entry.tagline
 										}),
 										actionButtons({
 											key: entry.id,
@@ -1201,6 +1222,10 @@ window.__ModuleLoader__.load({
 					opacity: () => background.opacity(),
 					subscribe: (listener) => background.subscribe(listener),
 					set: (opacity) => background.set(opacity)
+				},
+				locale: {
+					getSnapshot: () => ctx.locale.getSnapshot().active,
+					subscribe: (listener) => ctx.locale.subscribe(() => listener())
 				}
 			});
 			ctx.slots.inject("web-ui.plugin.item", () => ctx.slots.register({

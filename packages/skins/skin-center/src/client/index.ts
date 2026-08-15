@@ -96,6 +96,10 @@ export function apply(ctx: ClientContext): void {
       subscribe: listener => background.subscribe(listener),
       set: opacity => background.set(opacity),
     },
+    locale: {
+      getSnapshot: () => ctx.locale.getSnapshot().active,
+      subscribe: listener => ctx.locale.subscribe(() => listener()),
+    },
   })
 
   ctx.slots.inject('web-ui.plugin.item', () => ctx.slots.register({

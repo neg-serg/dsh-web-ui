@@ -86,7 +86,7 @@ export function attachmentRefById(id: string): ImageAttachmentRef | undefined {
 export function attachmentMarkdown(id: string): string {
   // The `:` of `sha256:…` stays readable and extractable for the model;
   // everything else is escaped for the path segment.
-  return `![图片](/describe-image/raw/${encodeURIComponent(id).replace(/%3A/gi, ':')})`
+  return `![image](/describe-image/raw/${encodeURIComponent(id).replace(/%3A/gi, ':')})`
 }
 
 /** Build the `[image attachment …]` note text for one reference. */

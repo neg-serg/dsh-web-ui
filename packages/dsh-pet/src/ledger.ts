@@ -168,7 +168,7 @@ export class PetLedger {
       const consume = consumeTreat(this.current.treats)
       if (!consume.ok) {
         return {
-          reaction: '没有小鱼干了，多陪我工作一会儿吧～',
+          reaction: 'Out of fish snacks — work with me a bit longer~',
           delta: 0,
           affinity: this.affinityView(nowMs),
         }

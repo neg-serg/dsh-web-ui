@@ -29,7 +29,7 @@ function pageHtml(bundleUrl: string): string {
     '<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">',
     '<meta name="theme-color" content="#f3f5f9">',
     '<meta name="referrer" content="no-referrer">',
-    '<title>移动端远程控制</title>',
+    '<title>Mobile Remote Control</title>',
     '</head>',
     '<body>',
     '<div id="root"></div>',

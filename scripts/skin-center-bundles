@@ -60,7 +60,7 @@ function main() {
 
   const rows = skins.map(({ meta }) => {
     const record = pick(meta, [
-      'id', 'name', 'nameEn', 'author', 'tagline', 'description', 'tags',
+      'id', 'name', 'nameEn', 'author', 'tagline', 'taglineEn', 'description', 'descriptionEn', 'tags',
       'accent', 'bodyAttr', 'package', 'order',
     ])
     return `  ${JSON.stringify(record)},\n`
@@ -88,12 +88,16 @@ function main() {
     '  nameEn: string',
     '  /** One-line tagline. */',
     '  tagline: string',
+    '  /** One-line tagline (en). */',
+    '  taglineEn?: string',
     '  /** Accent color for the swatch. */',
     '  accent: string',
     '  /** Author credit. */',
     '  author?: string',
     '  /** Longer description. */',
     '  description?: string',
+    '  /** Longer description (en). */',
+    '  descriptionEn?: string',
     '  /** Tag list. */',
     '  tags?: string[]',
     '  /** Body attribute that scopes the skin styles. */',

@@ -186,7 +186,7 @@ describe('handleAttach', () => {
     expect(outcome.ok).toBe(true)
     if (outcome.ok) {
       expect(outcome.note.startsWith('[image attachment {')).toBe(true)
-      expect(outcome.markdown).toMatch(/^!\[图片\]\(\/describe-image\/raw\/sha256:/)
+      expect(outcome.markdown).toMatch(/^!\[image\]\(\/describe-image\/raw\/sha256:/)
       expect(outcome.ref.mediaType).toBe('image/png')
       expect(store?.saved).toHaveLength(1)
       expect(store?.saved[0].input.data).toEqual(PNG_BYTES)

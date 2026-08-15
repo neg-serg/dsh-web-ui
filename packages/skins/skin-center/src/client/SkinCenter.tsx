@@ -27,6 +27,11 @@ export interface SkinCenterInjected {
   }
   /** Background occluder over the shared skin-background namespace. */
   background: SkinBackgroundHandle
+  /** Active GUI locale (drives the English skin taglines/descriptions). */
+  locale: {
+    getSnapshot(): string
+    subscribe(listener: () => void): () => void
+  }
 }
 
 /** Plugin-card component props: group-item runtime share + locale seat + injected face. */
@@ -46,9 +51,12 @@ const BACKDROP_SKIN_IDS = new Set(['blue-fantasy', 'whale-song'])
  * @param props - card props.
  * @returns the plugin card.
  */
-export function SkinCenter({ t, controller, theme, background }: SkinCenterComponentProps) {
+export function SkinCenter({ t, controller, theme, background, locale }: SkinCenterComponentProps) {
   const snapshot = useSyncExternalStore(theme.subscribe, theme.getTheme)
   const opacity = useSyncExternalStore(background.subscribe, background.opacity)
+  // Skin entries carry bilingual taglines; follow the GUI locale.
+  const lang = useSyncExternalStore(locale.subscribe, locale.getSnapshot)
+  const english = lang.toLowerCase().startsWith('en')
   const activePackage = activeSkinEntry()?.package
   const activeId = activeSkinEntry()?.id
   const backdropActive = activeId !== undefined && BACKDROP_SKIN_IDS.has(activeId)
@@ -401,7 +409,7 @@ export function SkinCenter({ t, controller, theme, background }: SkinCenterCompo
                         </span>
                       )}
                     </div>
-                    <div className={css.cardTagline} title={entry.tagline}>{entry.tagline}</div>
+                    <div className={css.cardTagline} title={english ? (entry.taglineEn ?? entry.tagline) : entry.tagline}>{english ? (entry.taglineEn ?? entry.tagline) : entry.tagline}</div>
                     {actionButtons({
                       key: entry.id,
                       isActive,

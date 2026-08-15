@@ -38,7 +38,7 @@ export function ThemeToggle() {
     <button
       type="button"
       className="mobile-theme-toggle"
-      aria-label={dark ? '切换到浅色' : '切换到深色'}
+      aria-label={dark ? 'Switch to light' : 'Switch to dark'}
       onClick={() => { toggleMobileTheme() }}
     >
       {dark ? <SunIcon /> : <MoonIcon />}

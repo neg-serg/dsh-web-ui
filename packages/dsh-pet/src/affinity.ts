@@ -31,10 +31,10 @@ export const AFFINITY_MAX = 100
  *  Marker glyphs are plain ASCII (the repo bans all emoji characters);
  *  they read as a growing star trail alongside the rank name. */
 export const AFFINITY_RANKS = [
-  { min: 0, name: '幼鲸', emoji: '*' },
-  { min: 25, name: '伙伴', emoji: '**' },
-  { min: 50, name: '挚友', emoji: '***' },
-  { min: 80, name: '深海羁绊', emoji: '****' },
+  { min: 0, name: 'Calf', emoji: '*' },
+  { min: 25, name: 'Companion', emoji: '**' },
+  { min: 50, name: 'Best friend', emoji: '***' },
+  { min: 80, name: 'Deep-sea bond', emoji: '****' },
 ] as const
 
 /** Interaction tuning (all in points / ms). */
@@ -136,7 +136,7 @@ export function applyInteraction(
   const next = { ...state }
   if (kind === 'pet') {
     if (state.lastPetAt !== 0 && nowMs - state.lastPetAt < config.petCooldownMs) {
-      return { affinity: state, delta: 0, reaction: '摸过头啦，让鲸鱼娘歇口气～', accepted: false }
+      return { affinity: state, delta: 0, reaction: 'Enough head pats — let the whale girl catch her breath~', accepted: false }
     }
     next.lastPetAt = nowMs
     next.pets += 1
@@ -144,13 +144,13 @@ export function applyInteraction(
     return {
       affinity: next,
       delta: config.petReward,
-      reaction: '咕噜咕噜～被摸摸好舒服！',
+      reaction: 'Purr… being petted feels so good!',
       accepted: true,
     }
   }
   if (kind === 'feed') {
     if (state.lastFeedAt !== 0 && nowMs - state.lastFeedAt < config.feedCooldownMs) {
-      return { affinity: state, delta: 0, reaction: '吃饱啦，晚点再喂～', accepted: false }
+      return { affinity: state, delta: 0, reaction: 'Full now, feed me later~', accepted: false }
     }
     next.lastFeedAt = nowMs
     next.feeds += 1
@@ -158,7 +158,7 @@ export function applyInteraction(
     return {
       affinity: next,
       delta: config.feedReward,
-      reaction: '呜哇！小鱼干好好吃！',
+      reaction: 'Yay! Dried fish is delicious!',
       accepted: true,
     }
   }

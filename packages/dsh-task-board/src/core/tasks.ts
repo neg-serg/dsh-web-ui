@@ -75,11 +75,11 @@ export interface NewTaskInput {
 
 /** The five kanban columns, in display order. */
 export const COLUMNS: readonly { status: TaskStatus; label: string }[] = [
-  { status: 'backlog', label: '待规划' },
-  { status: 'todo', label: '待办' },
-  { status: 'running', label: '进行中' },
-  { status: 'done', label: '已完成' },
-  { status: 'failed', label: '已失败' },
+  { status: 'backlog', label: 'Backlog' },
+  { status: 'todo', label: 'To do' },
+  { status: 'running', label: 'In progress' },
+  { status: 'done', label: 'Done' },
+  { status: 'failed', label: 'Failed' },
 ]
 
 /** Statuses a user may move a card to manually (execution states are owned by the runner). */

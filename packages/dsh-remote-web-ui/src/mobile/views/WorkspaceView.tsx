@@ -54,13 +54,13 @@ export function WorkspaceView({ initialWorkspaceId, onPick }: WorkspaceViewProps
     return (
       <div className="mobile">
         <header className="mobile-header">
-          <h1 className="mobile-title">工作区</h1>
+          <h1 className="mobile-title">Workspace</h1>
           <ThemeToggle />
         </header>
         <div className="mobile-empty">
-          <p className="mobile-error">加载失败：{error}</p>
+          <p className="mobile-error">Load failed: {error}</p>
           <button type="button" className="mobile-button" onClick={() => { setError(undefined); setItems(undefined) }}>
-            重试
+            Retry
           </button>
         </div>
       </div>
@@ -71,11 +71,11 @@ export function WorkspaceView({ initialWorkspaceId, onPick }: WorkspaceViewProps
     return (
       <div className="mobile">
         <header className="mobile-header">
-          <h1 className="mobile-title">工作区</h1>
+          <h1 className="mobile-title">Workspace</h1>
           <ThemeToggle />
         </header>
         <div className="mobile-empty">
-          <p className="mobile-muted">加载中…</p>
+          <p className="mobile-muted">Loading…</p>
         </div>
       </div>
     )
@@ -85,11 +85,11 @@ export function WorkspaceView({ initialWorkspaceId, onPick }: WorkspaceViewProps
     return (
       <div className="mobile">
         <header className="mobile-header">
-          <h1 className="mobile-title">工作区</h1>
+          <h1 className="mobile-title">Workspace</h1>
           <ThemeToggle />
         </header>
         <div className="mobile-empty">
-          <p className="mobile-muted">暂无工作区</p>
+          <p className="mobile-muted">No workspaces</p>
         </div>
       </div>
     )
@@ -98,7 +98,7 @@ export function WorkspaceView({ initialWorkspaceId, onPick }: WorkspaceViewProps
   return (
     <div className="mobile">
       <header className="mobile-header">
-        <h1 className="mobile-title">工作区</h1>
+        <h1 className="mobile-title">Workspace</h1>
         <ThemeToggle />
       </header>
       <ul className="mobile-list">

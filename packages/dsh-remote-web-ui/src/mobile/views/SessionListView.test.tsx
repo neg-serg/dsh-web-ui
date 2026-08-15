@@ -75,7 +75,7 @@ describe('SessionListView roster', () => {
 
   it('shows the empty state when the workspace owns no sessions', async () => {
     renderList()
-    expect(await screen.findByText(/还没有会话/)).toBeTruthy()
+    expect(await screen.findByText(/no sessions yet/)).toBeTruthy()
   })
 
   it('refreshes the owned-id set from workspace.list on mount', async () => {
@@ -95,9 +95,9 @@ describe('SessionListView roster', () => {
 describe('SessionListView creation', () => {
   it('creates a blank session in the workspace and opens it immediately', async () => {
     renderList()
-    await screen.findByText(/还没有会话/)
+    await screen.findByText(/no sessions yet/)
 
-    fireEvent.click(screen.getByRole('button', { name: '+ 新建会话' }))
+    fireEvent.click(screen.getByRole('button', { name: '+ New session' }))
 
     await waitFor(() => {
       expect(createSessionMock).toHaveBeenCalledWith({ workspaceId: 'w-1' })
@@ -108,17 +108,17 @@ describe('SessionListView creation', () => {
     expect(picked?.sessionId).toBe('s-new')
     expect(picked?.blank).toBe(true)
     // The fresh row is prepended without waiting for a refetch.
-    expect(await screen.findByText('新会话')).toBeTruthy()
+    expect(await screen.findByText('New session')).toBeTruthy()
   })
 
   it('keeps the button disabled while a creation is in flight', async () => {
     let resolveCreate: (value: { sessionId: string }) => void = () => {}
     createSessionMock.mockReturnValue(new Promise(resolve => { resolveCreate = resolve }))
     renderList()
-    await screen.findByText(/还没有会话/)
+    await screen.findByText(/no sessions yet/)
 
-    fireEvent.click(screen.getByRole('button', { name: '+ 新建会话' }))
-    const button = await screen.findByRole('button', { name: '创建中…' })
+    fireEvent.click(screen.getByRole('button', { name: '+ New session' }))
+    const button = await screen.findByRole('button', { name: 'Creating…' })
     expect(button.hasAttribute('disabled')).toBe(true)
 
     resolveCreate({ sessionId: 's-new' })
@@ -128,12 +128,12 @@ describe('SessionListView creation', () => {
   it('shows the stale-host hint when creation is refused with HTTP 403', async () => {
     createSessionMock.mockRejectedValue(new Error('HTTP 403'))
     renderList()
-    await screen.findByText(/还没有会话/)
+    await screen.findByText(/no sessions yet/)
 
-    fireEvent.click(screen.getByRole('button', { name: '+ 新建会话' }))
+    fireEvent.click(screen.getByRole('button', { name: '+ New session' }))
 
     expect(await screen.findByText(/HTTP 403/)).toBeTruthy()
-    expect(await screen.findByText(/重启 dsh web/)).toBeTruthy()
+    expect(await screen.findByText(/restart dsh web/)).toBeTruthy()
     expect(picked).toBeUndefined()
   })
 })

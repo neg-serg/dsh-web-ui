@@ -4,7 +4,9 @@
   "nameEn": "Minecraft Voxel",
   "author": "dsh-web-ui",
   "tagline": "动态全景天空盒 · 方块按钮 · 告示牌输入框",
+  "taglineEn": "Dynamic panorama skybox · blocky buttons · signpost input boxes",
   "description": "复刻《我的世界》主界面氛围的方块皮肤：程序化绘制的像素全景天空盒（方块山、像素云、方块树、草方块地面）在身后缓慢旋转，界面浮在石板上；按钮还原 MC 菜单按钮（灰石板、悬停变黄、按下下沉），输入框做成带钉子的木告示牌。",
+  "descriptionEn": "A voxel skin recreating the Minecraft main-menu vibe: a procedurally drawn pixel panorama skybox (blocky mountains, pixel clouds, block trees, grass-block ground) slowly rotates behind the UI as it floats on a stone slab; buttons mirror the MC menu buttons (grey stone, yellow on hover, pressed-down state), and inputs are wooden signposts with nails.",
   "tags": [
     "minecraft",
     "voxel",

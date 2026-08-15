@@ -21,7 +21,7 @@ export const CLIENT_MAX_BYTES = 10 * 1024 * 1024
  * Placeholder alt text of the markdown image reference; the model reads the
  * URL and extracts the attachment id. Kept deliberately short.
  */
-export const IMAGE_ALT = '图片'
+export const IMAGE_ALT = 'image'
 
 /**
  * Splice a note into a composer draft at the caret, following the same

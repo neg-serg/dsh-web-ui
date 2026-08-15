@@ -36,7 +36,7 @@ export function emptyProjectionRuntime(): ProjectionRuntime {
 
 /** Keep tool names readable inside the compact status bubble. */
 function displayToolName(name: string): string {
-  const compact = name.replace(/\s+/g, ' ').trim() || '工具'
+  const compact = name.replace(/\s+/g, ' ').trim() || 'Tool'
   return compact.length <= 24 ? compact : `${compact.slice(0, 21)}...`
 }
 
@@ -57,29 +57,29 @@ export function projectOfficialEvent(
     case 'turn/start':
       runtime.activeTools.clear()
       runtime.stepHadFailure = false
-      return { input: { phase: 'waiting', line: '准备开始' } }
+      return { input: { phase: 'waiting', line: 'Getting ready' } }
     case 'step/start':
       runtime.activeTools.clear()
       runtime.stepHadFailure = false
-      return { input: { phase: 'waiting', line: '等待模型响应' } }
+      return { input: { phase: 'waiting', line: 'Waiting for the model' } }
     case 'assistant/chunk': {
       const { chunk } = event.data
       if (chunk.type === 'reasoning-delta' && chunk.text.length > 0) {
-        return { input: { phase: 'thinking', line: '正在思考' } }
+        return { input: { phase: 'thinking', line: 'Thinking' } }
       }
       if (chunk.type === 'text-delta' && chunk.text.length > 0) {
-        return { input: { phase: 'review', line: '整理回复中' } }
+        return { input: { phase: 'review', line: 'Assembling reply' } }
       }
       return undefined
     }
     case 'assistant/message':
-      return { input: { phase: 'review', line: '整理回复中' } }
+      return { input: { phase: 'review', line: 'Assembling reply' } }
     case 'tool/call':
       runtime.activeTools.add(String(event.data.callId))
       return {
         input: {
           phase: 'tool',
-          line: `正在使用 ${displayToolName(event.data.name)}`,
+          line: `Using ${displayToolName(event.data.name)}`,
         },
       }
     case 'tool/result': {
@@ -90,32 +90,32 @@ export function projectOfficialEvent(
         return {
           input: {
             phase: 'tool',
-            line: `还有 ${runtime.activeTools.size} 个工具运行中`,
+            line: `${runtime.activeTools.size} tools still running`,
           },
         }
       }
       return runtime.stepHadFailure
-        ? { input: { phase: 'failed', line: '工具执行失败' } }
-        : { input: { phase: 'thinking', line: '处理工具结果' } }
+        ? { input: { phase: 'failed', line: 'Tool failed' } }
+        : { input: { phase: 'thinking', line: 'Processing tool result' } }
     }
     case 'turn/end': {
       runtime.activeTools.clear()
       switch (event.data.reason.kind) {
         case 'completed':
           return {
-            input: { phase: 'done', line: '完成啦' },
+            input: { phase: 'done', line: 'Done!' },
             completedTurn: event.data.turn,
           }
         case 'error':
-          return { input: { phase: 'failed', line: '执行失败' } }
+          return { input: { phase: 'failed', line: 'Execution failed' } }
         case 'max-tokens':
-          return { input: { phase: 'failed', line: '达到输出上限' } }
+          return { input: { phase: 'failed', line: 'Output limit reached' } }
         case 'interrupted':
-          return { input: { phase: 'failed', line: '执行意外中断' } }
+          return { input: { phase: 'failed', line: 'Execution interrupted' } }
         case 'blocked':
-          return { input: { phase: 'waiting', line: '等待继续' } }
+          return { input: { phase: 'waiting', line: 'Waiting to continue' } }
         case 'aborted':
-          return { input: { phase: 'idle', line: '已停止' } }
+          return { input: { phase: 'idle', line: 'Stopped' } }
         default:
           // TurnEndReasonMap is merge-extensible; a newer ending must not
           // leave the pet showing stale in-progress work.

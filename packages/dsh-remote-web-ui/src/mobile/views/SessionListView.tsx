@@ -107,7 +107,7 @@ export function SessionListView({ workspace, onBack, onPick }: SessionListViewPr
         setCreating(false)
         const view: SessionView = {
           sessionId: created.sessionId,
-          title: '新会话',
+          title: 'New session',
           updatedAt: Date.now(),
           running: false,
           blank: true,
@@ -127,7 +127,7 @@ export function SessionListView({ workspace, onBack, onPick }: SessionListViewPr
   return (
     <div className="mobile">
       <header className="mobile-header">
-        <button type="button" className="mobile-back" aria-label="返回" onClick={onBack}>‹</button>
+        <button type="button" className="mobile-back" aria-label="Back" onClick={onBack}>‹</button>
         <h1 className="mobile-title mobile-titleInline">{workspace.title}</h1>
         <ThemeToggle />
       </header>
@@ -139,7 +139,7 @@ export function SessionListView({ workspace, onBack, onPick }: SessionListViewPr
           disabled={creating}
           onClick={() => { void handleCreate() }}
         >
-          {creating ? '创建中…' : '+ 新建会话'}
+          {creating ? 'Creating…' : '+ New session'}
         </button>
       </div>
       {createError !== undefined && (
@@ -154,7 +154,7 @@ export function SessionListView({ workspace, onBack, onPick }: SessionListViewPr
             <button type="button" className="mobile-row" onClick={() => { onPick(row) }}>
               <span className="mobile-rowMain">
                 <span className="mobile-rowTitle">
-                  {row.blank ? '新会话' : row.title}
+                  {row.blank ? 'New session' : row.title}
                   {row.running ? <span className="mobile-live">●</span> : null}
                 </span>
                 <span className="mobile-rowMeta">{formatTime(row.updatedAt)}</span>
@@ -172,13 +172,13 @@ export function SessionListView({ workspace, onBack, onPick }: SessionListViewPr
             disabled={loading}
             onClick={() => { void loadMore() }}
           >
-            {loading ? '加载中…' : '加载更多会话'}
+            {loading ? 'Loading…' : 'Load more sessions'}
           </button>
         </div>
       )}
       {!hasMore && rows.length === 0 && !loading && (
         <div className="mobile-empty">
-          <p className="mobile-muted">该工作区还没有会话，点上方按钮新建一个</p>
+          <p className="mobile-muted">This workspace has no sessions yet — use the button above to create one</p>
         </div>
       )}
     </div>

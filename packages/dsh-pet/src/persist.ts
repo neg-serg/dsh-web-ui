@@ -54,7 +54,7 @@ export interface PetPersist {
 export const DEFAULT_PET_ID = 'whale-girl'
 
 /** Default pet name (used only when a manifest carries no displayName). */
-export const DEFAULT_PET_NAME = '鲸鱼娘'
+export const DEFAULT_PET_NAME = 'Whale girl'
 
 /** Name constraints. */
 export const PET_NAME_MAX_LENGTH = 20

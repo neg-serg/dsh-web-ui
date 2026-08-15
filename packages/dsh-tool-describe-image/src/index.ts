@@ -135,7 +135,7 @@ export function apply(ctx: Context, config: Config = {}): void {
     description: DESCRIPTION_HEAD
       + 'The image may be a local path, an http(s) URL, the JSON object from an `[image attachment …]` '
       + "note, or — the common case when the user used this plugin's input-box image button — a "
-      + 'short markdown image reference like `![图片](/describe-image/raw/sha256:abc…)` pasted into '
+      + 'short markdown image reference like `![image](/describe-image/raw/sha256:abc…)` pasted into '
       + 'the conversation. In the markdown form, take the attachment id from the URL and pass that id '
       + 'as the `image` value (never the whole markdown, and never a made-up path); the tool resolves '
       + 'the id to the stored image. The image itself never enters the conversation — only the '

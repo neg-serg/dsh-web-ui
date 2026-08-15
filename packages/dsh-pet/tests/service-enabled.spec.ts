@@ -199,35 +199,35 @@ describe('PetService (rc.6 session events)', () => {
       const service = new PetService(ctx, { persistDir: dir })
 
       ctx.emit('session/event', session, turnStart(1, 1))
-      expect(await service.state()).toMatchObject({ animation: 'waiting', bubble: '准备开始' })
+      expect(await service.state()).toMatchObject({ animation: 'waiting', bubble: 'Getting ready' })
 
       ctx.emit('session/event', session, stepStart(1, 1, 2))
-      expect(await service.state()).toMatchObject({ animation: 'waiting', bubble: '等待模型响应' })
+      expect(await service.state()).toMatchObject({ animation: 'waiting', bubble: 'Waiting for the model' })
 
       ctx.emit('session/event', session, assistantChunk(1, 1, {
         type: 'reasoning-delta', index: 0, text: '分析',
       }, 3))
-      expect(await service.state()).toMatchObject({ animation: 'running', bubble: '正在思考' })
+      expect(await service.state()).toMatchObject({ animation: 'running', bubble: 'Thinking' })
 
       ctx.emit('session/event', session, assistantMessage(1, 1, '完整回复', 4))
-      expect(await service.state()).toMatchObject({ animation: 'review', bubble: '整理回复中' })
+      expect(await service.state()).toMatchObject({ animation: 'review', bubble: 'Assembling reply' })
 
       ctx.emit('session/event', session, assistantChunk(1, 1, {
         type: 'text-delta', index: 0, text: '回答',
       }, 5))
-      expect(await service.state()).toMatchObject({ animation: 'review', bubble: '整理回复中' })
+      expect(await service.state()).toMatchObject({ animation: 'review', bubble: 'Assembling reply' })
 
       ctx.emit('session/event', session, toolCall(1, 1, 'call-1', 'shell', 6))
       expect(await service.state()).toMatchObject({
         animation: 'running-right',
-        bubble: '正在使用 shell',
+        bubble: 'Using shell',
       })
 
       ctx.emit('session/event', session, toolResult(1, 1, 'call-1', 7))
-      expect(await service.state()).toMatchObject({ animation: 'running', bubble: '处理工具结果' })
+      expect(await service.state()).toMatchObject({ animation: 'running', bubble: 'Processing tool result' })
 
       ctx.emit('session/event', session, turnEnd(1, { kind: 'completed' }, 8))
-      expect(await service.state()).toMatchObject({ animation: 'jumping', bubble: '完成啦' })
+      expect(await service.state()).toMatchObject({ animation: 'jumping', bubble: 'Done!' })
     } finally {
       rmSync(dir, { recursive: true, force: true })
     }
@@ -245,13 +245,13 @@ describe('PetService (rc.6 session events)', () => {
       ctx.emit('session/event', session, toolResult(1, 1, 'call-1', 3))
       expect(await service.state()).toMatchObject({
         animation: 'running-right',
-        bubble: '还有 1 个工具运行中',
+        bubble: '1 tools still running',
       })
 
       ctx.emit('session/event', session, toolResult(1, 1, 'call-2', 4, true))
       expect(await service.state()).toMatchObject({
         animation: 'failed',
-        bubble: '工具执行失败',
+        bubble: 'Tool failed',
       })
 
       ctx.emit('session/event', session, stepStart(1, 2, 5))
@@ -262,7 +262,7 @@ describe('PetService (rc.6 session events)', () => {
       }))
       expect(await service.state()).toMatchObject({
         animation: 'failed',
-        bubble: '工具执行失败',
+        bubble: 'Tool failed',
       })
     } finally {
       rmSync(dir, { recursive: true, force: true })
@@ -280,21 +280,21 @@ describe('PetService (rc.6 session events)', () => {
       ctx.emit('session/event', sessionA, assistantChunk(1, 1, {
         type: 'reasoning-delta', index: 0, text: 'A',
       }, 1))
-      expect(await service.state()).toMatchObject({ animation: 'running', bubble: '正在思考' })
+      expect(await service.state()).toMatchObject({ animation: 'running', bubble: 'Thinking' })
 
       ctx.emit('session/event', sessionB, toolCall(1, 1, 'call-b', 'search', 1))
       expect(await service.state()).toMatchObject({
         animation: 'running-right',
-        bubble: '正在使用 search',
+        bubble: 'Using search',
       })
 
       ctx.emit('session/event', sessionA, assistantChunk(1, 1, {
         type: 'text-delta', index: 0, text: 'A',
       }, 2))
-      expect(await service.state()).toMatchObject({ animation: 'review', bubble: '整理回复中' })
+      expect(await service.state()).toMatchObject({ animation: 'review', bubble: 'Assembling reply' })
 
       ctx.emit('session/event', sessionB, turnEnd(1, { kind: 'completed' }, 2))
-      expect(await service.state()).toMatchObject({ animation: 'jumping', bubble: '完成啦' })
+      expect(await service.state()).toMatchObject({ animation: 'jumping', bubble: 'Done!' })
       expect((await service.state()).affinity.turns).toBe(1)
 
       ctx.emit('session/event', sessionA, assistantChunk(1, 1, {
@@ -303,7 +303,7 @@ describe('PetService (rc.6 session events)', () => {
       ctx.emit('session/disposed', sessionB)
       expect(await service.state()).toMatchObject({
         animation: 'review',
-        bubble: '整理回复中',
+        bubble: 'Assembling reply',
         sessionActive: true,
       })
 
@@ -327,7 +327,7 @@ describe('PetService (rc.6 session events)', () => {
         kind: 'aborted', reason: { kind: 'user' },
       }, 2))
       const view = await service.state()
-      expect(view).toMatchObject({ animation: 'idle', bubble: '已停止' })
+      expect(view).toMatchObject({ animation: 'idle', bubble: 'Stopped' })
       expect(view.affinity.turns).toBe(0)
       expect(view.treats.stocked).toBe(0)
     } finally {
@@ -347,19 +347,19 @@ describe('PetService (rc.6 session events)', () => {
       }> = [
         {
           reason: { kind: 'error', error: { message: 'boom', code: 'UNKNOWN' } },
-          expected: { animation: 'failed', bubble: '执行失败' },
+          expected: { animation: 'failed', bubble: 'Execution failed' },
         },
         {
           reason: { kind: 'max-tokens' },
-          expected: { animation: 'failed', bubble: '达到输出上限' },
+          expected: { animation: 'failed', bubble: 'Output limit reached' },
         },
         {
           reason: { kind: 'interrupted' },
-          expected: { animation: 'failed', bubble: '执行意外中断' },
+          expected: { animation: 'failed', bubble: 'Execution interrupted' },
         },
         {
           reason: { kind: 'blocked' },
-          expected: { animation: 'waiting', bubble: '等待继续' },
+          expected: { animation: 'waiting', bubble: 'Waiting to continue' },
         },
       ]
       for (const [index, entry] of cases.entries()) {
@@ -399,13 +399,13 @@ describe('PetService (rc.6 session events)', () => {
     const officialSession = makeSession('official')
     try {
       const service = new PetService(ctx, { persistDir: dir })
-      ctx.emit('session/event', legacySession, activity('done', 1, '完成啦'))
-      ctx.emit('session/event', legacySession, activity('done', 2, '完成啦'))
+      ctx.emit('session/event', legacySession, activity('done', 1, 'Done!'))
+      ctx.emit('session/event', legacySession, activity('done', 2, 'Done!'))
       expect((await service.state()).affinity.turns).toBe(1)
 
       ctx.emit('session/event', officialSession, turnStart(1, 1))
       ctx.emit('session/event', officialSession, turnEnd(1, { kind: 'completed' }, 2))
-      ctx.emit('session/event', officialSession, activity('done', 3, '完成啦'))
+      ctx.emit('session/event', officialSession, activity('done', 3, 'Done!'))
       expect((await service.state()).affinity.turns).toBe(2)
     } finally {
       rmSync(dir, { recursive: true, force: true })
@@ -429,7 +429,7 @@ describe('PetService (rc.6 session events)', () => {
       // Inside the feed cooldown the feed is refused and burns nothing.
       const second = await service.interact('feed')
       expect(second.delta).toBe(0)
-      expect(second.reaction).toContain('吃饱啦')
+      expect(second.reaction).toContain('Full now')
     } finally {
       rmSync(dir, { recursive: true, force: true })
     }
@@ -443,7 +443,7 @@ describe('PetService (rc.6 session events)', () => {
       const res = await service.interact('feed')
       expect(res.delta).toBe(0)
       expect(res.affinity.feeds).toBe(0)
-      expect(res.reaction).toContain('没有小鱼干')
+      expect(res.reaction).toContain('Out of fish snacks')
     } finally {
       rmSync(dir, { recursive: true, force: true })
     }

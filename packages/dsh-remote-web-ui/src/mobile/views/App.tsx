@@ -60,7 +60,7 @@ export function toSessionView(item: {
   const titleValue = item.projections?.values?.title
   const title = typeof titleValue === 'string' && titleValue !== ''
     ? titleValue
-    : item.cwd !== undefined ? item.cwd.split('/').filter(Boolean).at(-1) ?? item.cwd : '新会话'
+    : item.cwd !== undefined ? item.cwd.split('/').filter(Boolean).at(-1) ?? item.cwd : 'New session'
   return {
     sessionId: item.sessionId,
     title,
@@ -79,8 +79,8 @@ export function formatTime(epochMs: number): string {
   if (date.toDateString() === today.toDateString()) return clock
   const yesterday = new Date(today)
   yesterday.setDate(today.getDate() - 1)
-  if (date.toDateString() === yesterday.toDateString()) return `昨天 ${clock}`
-  return `${String(date.getMonth() + 1)}月${String(date.getDate())}日 ${clock}`
+  if (date.toDateString() === yesterday.toDateString()) return `Yesterday ${clock}`
+  return `${String(date.getMonth() + 1)}-${String(date.getDate())} ${clock}`
 }
 
 /**
@@ -166,7 +166,7 @@ export function errorText(error: unknown): string {
  */
 export function staleHostHint(message: string): string | undefined {
   return /^HTTP 403/.test(message)
-    ? '宿主端插件可能仍在运行旧版本：请重启 dsh web 后再试。'
+    ? 'The host-side plugin may still be running an old version: restart dsh web and try again.'
     : undefined
 }
 

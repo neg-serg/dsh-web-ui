@@ -328,7 +328,7 @@ export function ChatView({ session, mux, onBack }: ChatViewProps) {
     )
   }, [input, sending, session.sessionId])
 
-  const modelLabel = currentModel?.model ?? '模型'
+  const modelLabel = currentModel?.model ?? 'Model'
   const permissionLabel = permissions === undefined
     ? undefined
     : permissions.options.find(option => option.value === permissions.currentValue)?.name
@@ -337,7 +337,7 @@ export function ChatView({ session, mux, onBack }: ChatViewProps) {
   return (
     <div className="chat">
       <header className="mobile-header">
-        <button type="button" className="mobile-back" aria-label="返回" onClick={onBack}>‹</button>
+        <button type="button" className="mobile-back" aria-label="Back" onClick={onBack}>‹</button>
         <h1 className="mobile-title mobile-titleInline">{session.title}</h1>
         <ThemeToggle />
       </header>
@@ -345,22 +345,22 @@ export function ChatView({ session, mux, onBack }: ChatViewProps) {
       <div className="chat-scroll" ref={ref => { scrollRef.current = ref ?? undefined }}>
         {hasOlder && (
           <button type="button" className="chat-load-older" disabled={loading} onClick={() => { void loadOlder() }}>
-            {loading ? '加载中…' : '加载更早的消息'}
+            {loading ? 'Loading…' : 'Load earlier messages'}
           </button>
         )}
         {messages.map(message => <MessageRow key={message.id} message={message} />)}
-        {loading && messages.length === 0 && <p className="chat-typing">加载中…</p>}
-        {!loading && messages.length === 0 && <p className="chat-typing">还没有消息，发一句话开始吧</p>}
+        {loading && messages.length === 0 && <p className="chat-typing">Loading…</p>}
+        {!loading && messages.length === 0 && <p className="chat-typing">No messages yet — say hi to get started</p>}
       </div>
       <div className="chat-tools">
         <button type="button" className="chat-chip" onClick={() => { setSheet('model') }} aria-haspopup="dialog">
-          <span className="chat-chip-label">模型</span>
+          <span className="chat-chip-label">Model</span>
           <span className="chat-chip-value">{modelLabel}</span>
           <span className="chat-chip-chevron" aria-hidden>›</span>
         </button>
         {permissionLabel !== undefined && (
           <button type="button" className="chat-chip" onClick={() => { setSheet('permission') }} aria-haspopup="dialog">
-            <span className="chat-chip-label">权限</span>
+            <span className="chat-chip-label">Permissions</span>
             <span className="chat-chip-value">{permissionLabel}</span>
             <span className="chat-chip-chevron" aria-hidden>›</span>
           </button>
@@ -371,7 +371,7 @@ export function ChatView({ session, mux, onBack }: ChatViewProps) {
           className="chat-input"
           rows={1}
           value={input}
-          placeholder={mobileEnterToSend ? '输入消息，Enter 发送…' : '输入消息，Enter 换行，点按钮发送…'}
+          placeholder={mobileEnterToSend ? 'Type a message, Enter to send…' : 'Type a message, Enter for a newline, tap the button to send…'}
           enterKeyHint={mobileEnterToSend ? 'send' : 'enter'}
           onChange={(event) => { setInput(event.target.value) }}
           onKeyDown={(event) => {
@@ -382,7 +382,7 @@ export function ChatView({ session, mux, onBack }: ChatViewProps) {
           }}
         />
         <button type="button" className="chat-send" disabled={sending || input.trim() === ''} onClick={() => { void send() }}>
-          {sending ? '发送中…' : '发送'}
+          {sending ? 'Sending…' : 'Send'}
         </button>
       </div>
       {sheet === 'model' && (
@@ -420,7 +420,7 @@ function MessageRow({ message }: { message: RenderMessage }) {
         <ToolDisclosure tools={message.tools} />
       )}
       <CollapsibleText text={message.text} />
-      {message.failed === true && <span className="chat-msg-failtag">本次回复失败</span>}
+      {message.failed === true && <span className="chat-msg-failtag">This reply failed</span>}
       <span className="chat-msg-time">{formatTime(message.time)}</span>
     </div>
   )
@@ -439,7 +439,7 @@ function ReasoningDisclosure({ text, pending }: { text: string; pending: boolean
         onClick={() => { setOpen(value => !value) }}
       >
         <span className="chat-disclosure-caret" aria-hidden>›</span>
-        <span className="chat-disclosure-label">{pending ? '思考中…' : '深度思考'}</span>
+        <span className="chat-disclosure-label">{pending ? 'Thinking…' : 'Deep thinking'}</span>
         {!open && <span className="chat-disclosure-summary">{summary}</span>}
       </button>
       {open && <div className="chat-disclosure-body">{text}</div>}
@@ -460,9 +460,9 @@ function ToolDisclosure({ tools }: { tools: ToolCallInfo[] }) {
         onClick={() => { setOpen(value => !value) }}
       >
         <span className="chat-disclosure-caret" aria-hidden>›</span>
-        <span className="chat-disclosure-label">工具</span>
+        <span className="chat-disclosure-label">Tools</span>
         {!open && <span className="chat-disclosure-summary">{names}</span>}
-        <span className="chat-disclosure-count">{tools.length} 次</span>
+        <span className="chat-disclosure-count">{tools.length} calls</span>
       </button>
       {open && (
         <div className="chat-disclosure-body chat-tools-body">
@@ -489,7 +489,7 @@ function CollapsibleText({ text }: { text: string }) {
     <span className="chat-msg-text">
       {shown}{!open ? '…' : ''}
       <button type="button" className="chat-msg-toggle" onClick={() => { setOpen(value => !value) }}>
-        {open ? '收起' : `展开全文（${text.length} 字）`}
+        {open ? 'Collapse' : `Expand full text (${text.length} chars)`}
       </button>
     </span>
   )
@@ -569,18 +569,18 @@ function ModelSheet({ sessionId, current, onCurrent, onClose }: {
 
   if (state.status === 'loading') {
     return (
-      <Sheet title="模型与思考强度" onClose={onClose}>
-        <div className="sheet-status">正在加载模型目录…</div>
+      <Sheet title="Model & thinking effort" onClose={onClose}>
+        <div className="sheet-status">Loading model catalog…</div>
       </Sheet>
     )
   }
   if (state.status === 'error') {
     return (
-      <Sheet title="模型与思考强度" onClose={onClose}>
+      <Sheet title="Model & thinking effort" onClose={onClose}>
         <div className="sheet-status sheet-status-error">
           <span>{state.message}</span>
           {staleHostHint(state.message) !== undefined && <span className="sheet-hint">{staleHostHint(state.message)}</span>}
-          <button type="button" className="chat-load-older" onClick={load}>重试</button>
+          <button type="button" className="chat-load-older" onClick={load}>Retry</button>
         </div>
       </Sheet>
     )
@@ -596,7 +596,7 @@ function ModelSheet({ sessionId, current, onCurrent, onClose }: {
     ? []
     : [
       ...(reasoning.defaultEffort === undefined
-        ? [{ key: 'provider-default', effort: undefined as string | undefined, label: '跟随模型默认' }]
+        ? [{ key: 'provider-default', effort: undefined as string | undefined, label: 'Follow model default' }]
         : []),
       ...reasoning.efforts.map(effort => ({
         key: `effort:${effort.id}`,
@@ -607,14 +607,14 @@ function ModelSheet({ sessionId, current, onCurrent, onClose }: {
     ]
 
   return (
-    <Sheet title="模型与思考强度" onClose={onClose}>
+    <Sheet title="Model & thinking effort" onClose={onClose}>
       {error !== undefined && <p className="sheet-error">{error}</p>}
       {error !== undefined && staleHostHint(error) !== undefined && <p className="sheet-hint">{staleHostHint(error)}</p>}
       {data.failures.map(failure => (
         <p className="sheet-error" key={failure.id}>{failure.name}: {failure.message}</p>
       ))}
       {data.groups.length === 0 && choices.length === 0 && (
-        <div className="sheet-status">没有可用的模型</div>
+        <div className="sheet-status">No models available</div>
       )}
       {data.groups.map(group => (
         <div className="sheet-section" key={group.id}>
@@ -647,7 +647,7 @@ function ModelSheet({ sessionId, current, onCurrent, onClose }: {
       ))}
       {effortChoices.length > 0 && (
         <div className="sheet-section">
-          <div className="sheet-section-title">思考强度</div>
+          <div className="sheet-section-title">Thinking effort</div>
           {effortChoices.map(choice => {
             const isSelected = effectiveEffort === choice.effort
             return (
@@ -716,16 +716,16 @@ function PermissionSheet({ sessionId, value, onChanged, onClose }: {
 
   if (confirming !== null) {
     return (
-      <Sheet title="确认完全权限" onClose={() => { setConfirming(null) }}>
+      <Sheet title="Confirm full permissions" onClose={() => { setConfirming(null) }}>
         <p className="sheet-confirm-desc">
-          开启完全权限后，远程会话可以在工作区内执行任意操作（包括运行命令、修改所有文件与访问凭证）。
-          仅在您信任当前设备和网络时开启。
+          With full permissions enabled, the remote session can perform any operation in the workspace (running commands, modifying all files, and accessing credentials).
+          Only enable this when you trust the current device and network.
         </p>
         {error !== undefined && <p className="sheet-error">{error}</p>}
         <div className="sheet-confirm-actions">
-          <button type="button" className="mobile-button" disabled={busy} onClick={() => { setConfirming(null) }}>取消</button>
+          <button type="button" className="mobile-button" disabled={busy} onClick={() => { setConfirming(null) }}>Cancel</button>
           <button type="button" className="sheet-confirm-danger" disabled={busy} onClick={() => { submit(confirming) }}>
-            {busy ? '提交中…' : '确认开启'}
+            {busy ? 'Submitting…' : 'Enable'}
           </button>
         </div>
       </Sheet>
@@ -733,7 +733,7 @@ function PermissionSheet({ sessionId, value, onChanged, onClose }: {
   }
 
   return (
-    <Sheet title="权限" onClose={onClose}>
+    <Sheet title="Permissions" onClose={onClose}>
       {error !== undefined && <p className="sheet-error">{error}</p>}
       {value.options.map(option => {
         const isSelected = option.value === value.currentValue

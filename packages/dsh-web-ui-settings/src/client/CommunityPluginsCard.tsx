@@ -5,11 +5,17 @@
  * (no settings form), so the card works without any settings namespace.
  */
 
-import { useState, type ReactNode } from 'react'
+import { useSyncExternalStore, useState, type ReactNode } from 'react'
 import type { CommunityPluginKey } from './locales.ts'
 import { COMMUNITY_PLUGINS, type CommunityPluginEntry } from './generated/community.ts'
 import { isCommunityPluginEntry } from './community-guard.ts'
 import css from './web-ui-settings.module.css'
+
+/** Locale seat: the active GUI locale plus a change subscription. */
+export interface LocaleFace {
+  getSnapshot(): string
+  subscribe(listener: () => void): () => void
+}
 
 /** Props the community plugin card binds. */
 export interface CommunityPluginsCardProps {
@@ -17,6 +23,8 @@ export interface CommunityPluginsCardProps {
   t: (key: CommunityPluginKey) => string
   /** Index entries; defaults to the generated registry (injected for tests). */
   plugins?: readonly CommunityPluginEntry[]
+  /** Active GUI locale (injected; defaults to English for tests). */
+  locale?: LocaleFace
 }
 
 /**
@@ -25,9 +33,14 @@ export interface CommunityPluginsCardProps {
  * @returns the disclosure card with the contributor links inside.
  */
 export function CommunityPluginsCard(props: CommunityPluginsCardProps): ReactNode {
-  const { t } = props
+  const { t, locale } = props
   const plugins = (props.plugins ?? COMMUNITY_PLUGINS).filter(isCommunityPluginEntry)
   const [open, setOpen] = useState(false)
+  // Entries carry bilingual name/description pairs; show the English variant
+  // when the GUI locale is English, the Chinese one otherwise.
+  const english = locale === undefined
+    ? true
+    : useSyncExternalStore(locale.subscribe, locale.getSnapshot).toLowerCase().startsWith('en')
   return (
     <li className={open ? `${css.groupCard} ${css.groupCardOpen}` : css.groupCard}>
       <button
@@ -64,11 +77,12 @@ export function CommunityPluginsCard(props: CommunityPluginsCardProps): ReactNod
                 : plugins.map((plugin) => (
                   <li key={plugin.id} className={css.entry}>
                     <span className={css.entryHead}>
-                      <span className={css.entryName} title={plugin.name}>{plugin.name}</span>
+                      <span className={css.entryName} title={english ? plugin.nameEn : plugin.name}>{english ? plugin.nameEn : plugin.name}</span>
                       <span className={css.entryAuthor} title={plugin.author}>{t('author')}: {plugin.author}</span>
                     </span>
-                    {plugin.description ? <p className={css.entryDescription}>{plugin.description}</p> : null}
-                    {plugin.descriptionEn ? <p className={css.entryDescriptionEn}>{plugin.descriptionEn}</p> : null}
+                    {english
+                      ? (plugin.descriptionEn ? <p className={css.entryDescriptionEn}>{plugin.descriptionEn}</p> : null)
+                      : (plugin.description ? <p className={css.entryDescription}>{plugin.description}</p> : null)}
                     <span className={css.entryLinks}>
                       <a className={css.entryLink} href={plugin.repo} target="_blank" rel="noreferrer">{t('repository')}</a>
                       {plugin.npm ? <code className={css.entryNpm}>{plugin.npm}</code> : null}

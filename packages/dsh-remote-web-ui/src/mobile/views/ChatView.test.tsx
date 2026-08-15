@@ -111,7 +111,7 @@ describe('ChatView message folds', () => {
     // The folded turn renders: user bubble, assistant text, disclosures.
     expect(await screen.findByText('改一下代码')).toBeTruthy()
     expect(await screen.findByText('已完成修改')).toBeTruthy()
-    const head = await screen.findByRole('button', { name: /深度思考/ })
+    const head = await screen.findByRole('button', { name: /Deep thinking/ })
     expect(head.getAttribute('aria-expanded')).toBe('false')
     // Only the one-line summary shows while collapsed; the body stays hidden.
     expect(await screen.findByText('先看结构')).toBeTruthy()
@@ -126,7 +126,7 @@ describe('ChatView message folds', () => {
     loadHistoryMock.mockResolvedValue(historyPage(turnEvents()))
     render(<ChatView session={session} onBack={() => {}} />)
 
-    const head = await screen.findByRole('button', { name: /工具/ })
+    const head = await screen.findByRole('button', { name: /Tools/ })
     expect(head.getAttribute('aria-expanded')).toBe('false')
     expect(screen.queryByText('{"cmd":"ls"}')).toBeNull()
 
@@ -181,12 +181,12 @@ describe('ChatView message folds', () => {
     fireEvent.click(await screen.findByRole('button', { name: /Workspace Write/ }))
     // Picking full access opens the confirmation sheet instead of submitting.
     fireEvent.click(await screen.findByRole('button', { name: /完全权限/ }))
-    expect(await screen.findByText(/确认完全权限/)).toBeTruthy()
+    expect(await screen.findByText(/Confirm full permissions/)).toBeTruthy()
     expect(sendCommandMock).not.toHaveBeenCalled()
     // Cancelling dispatches nothing; opening again and confirming submits.
-    fireEvent.click(screen.getByRole('button', { name: /取消/ }))
+    fireEvent.click(screen.getByRole('button', { name: /Cancel/ }))
     fireEvent.click(screen.getByRole('button', { name: /完全权限/ }))
-    fireEvent.click(await screen.findByRole('button', { name: /确认开启/ }))
+    fireEvent.click(await screen.findByRole('button', { name: /Enable/ }))
     await waitFor(() => {
       expect(sendCommandMock).toHaveBeenCalledWith('s-1', '/permission danger-full-access')
     })
@@ -223,7 +223,7 @@ describe('ChatView initial-load race', () => {
 
     expect(await screen.findByText('实时新消息')).toBeTruthy()
     // The history turn's tool disclosure plus the live one both render.
-    expect((await screen.findAllByRole('button', { name: /工具/ })).length).toBe(2)
+    expect((await screen.findAllByRole('button', { name: /Tools/ })).length).toBe(2)
   })
 
   it('caps the tail-load live buffer and re-pulls the history tail after an overflow', async () => {
@@ -307,7 +307,7 @@ describe('ChatView model sheet', () => {
     loadHistoryMock.mockResolvedValue(historyPage(turnEvents()))
     render(<ChatView session={session} onBack={() => {}} />)
 
-    const chip = await screen.findByRole('button', { name: /模型/ })
+    const chip = await screen.findByRole('button', { name: /Model/ })
     expect(chip.textContent).toContain('fx-1')
 
     fireEvent.click(chip)
@@ -338,7 +338,7 @@ describe('ChatView model sheet', () => {
     } satisfies SessionModels)
     render(<ChatView session={session} onBack={() => {}} />)
 
-    fireEvent.click(await screen.findByRole('button', { name: /模型/ }))
+    fireEvent.click(await screen.findByRole('button', { name: /Model/ }))
     const effort = await screen.findByRole('button', { name: /^高/ })
     fireEvent.click(effort)
     await waitFor(() => {
@@ -350,9 +350,9 @@ describe('ChatView model sheet', () => {
     modelsMock.mockRejectedValue(new Error('HTTP 403'))
     render(<ChatView session={session} onBack={() => {}} />)
 
-    fireEvent.click(await screen.findByRole('button', { name: /模型/ }))
+    fireEvent.click(await screen.findByRole('button', { name: /Model/ }))
     expect(await screen.findByText(/HTTP 403/)).toBeTruthy()
-    expect(await screen.findByText(/重启 dsh web/)).toBeTruthy()
+    expect(await screen.findByText(/restart dsh web/)).toBeTruthy()
   })
 })
 
@@ -373,7 +373,7 @@ describe('ChatView composer', () => {
 
     const input = inputBox()
     expect(input.getAttribute('enterKeyHint')).toBe('send')
-    expect(input.getAttribute('placeholder')).toContain('Enter 发送')
+    expect(input.getAttribute('placeholder')).toContain('Enter to send')
 
     fireEvent.change(input, { target: { value: '第一行' } })
     const enter = pressEnter(input)
@@ -397,7 +397,7 @@ describe('ChatView composer', () => {
 
     const input = inputBox()
     await waitFor(() => { expect(input.getAttribute('enterKeyHint')).toBe('enter') })
-    expect(input.getAttribute('placeholder')).not.toContain('Enter 发送')
+    expect(input.getAttribute('placeholder')).not.toContain('Enter to send')
 
     // The handler no longer prevents Enter, so the browser's default inserts
     // a newline (emulated here through the controlled value) and no send fires.
@@ -410,7 +410,7 @@ describe('ChatView composer', () => {
 
     // The send button still sends the full multi-line draft.
     fireEvent.change(input, { target: { value: '第一行\n第二行' } })
-    fireEvent.click(screen.getByRole('button', { name: '发送' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Send' }))
     await waitFor(() => {
       expect(promptMock).toHaveBeenCalledWith('s-1', '第一行\n第二行')
     })
@@ -514,7 +514,7 @@ describe('ChatView scrolling', () => {
     // Prepend an older page; the last message is untouched, so no re-scroll fires.
     scrollHeightMock = 900
     loadHistoryMock.mockResolvedValueOnce(historyPage(turnEvents(), { hasMore: false }))
-    fireEvent.click(screen.getByRole('button', { name: /加载更早的消息/ }))
+    fireEvent.click(screen.getByRole('button', { name: /Load earlier messages/ }))
     await waitFor(() => { expect(scrollWrites.length).toBe(writesBefore) })
   })
 })

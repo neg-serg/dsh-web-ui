@@ -4,7 +4,9 @@
   "nameEn": "Blue Fantasy",
   "author": "powerdog996（DreamSkin 社区）· dsh-web-ui 适配",
   "tagline": "鲸鱼插画背景 · periwinkle 靛蓝调色板 · 半透明面板",
+  "taglineEn": "Whale illustration background · periwinkle indigo palette · translucent panels",
   "description": "DreamSkin「DeepSeek-鲸鱼娘」Codex 桌面主题的 dsh 适配：鲸鱼插画背景垫在半透明面板之下，遮罩随亮/暗主题实时切换，periwinkle 靛蓝色调重映射到全部 dsh token。",
+  "descriptionEn": "A dsh port of the DreamSkin \"DeepSeek Whale Girl\" Codex desktop theme: the whale illustration sits beneath translucent panels, the scrim switches live with the light/dark theme, and the periwinkle-indigo palette is remapped onto every dsh token.",
   "tags": [
     "dreamskin",
     "whale",

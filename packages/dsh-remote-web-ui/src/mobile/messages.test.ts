@@ -102,7 +102,7 @@ describe('foldEvents', () => {
     ]
     const result = foldEvents(events)
     const assistant = result.find(message => message.kind === 'assistant')
-    expect(assistant?.toolSummary).toBe('使用 bash / read')
+    expect(assistant?.toolSummary).toBe('Using bash / read')
     expect(assistant?.tools).toEqual([
       { callId: 'c1', name: 'bash', arguments: '{}' },
       { callId: 'c2', name: 'read', arguments: '{"path":"a.txt"}' },

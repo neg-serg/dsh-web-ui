@@ -4,7 +4,9 @@
   "nameEn": "Tonghuashun Trading",
   "author": "dsh-web-ui",
   "tagline": "品牌红标题栏 · 实时行情状态栏 · 灰蓝数据终端",
+  "taglineEn": "Brand-red title bar · live market status bar · grey-blue data terminal",
   "description": "同花顺风格炒股主题：品牌红标题栏带上证指数行情签，状态栏红涨绿跌，自选股风格的侧边栏和交易终端面板，写代码也像盯盘。",
+  "descriptionEn": "A Tonghuashun-style trading theme: a brand-red title bar with an SSE index ticker, a red-up/green-down status bar, a watchlist-style sidebar and trading-terminal panels — coding feels like watching the market.",
   "tags": [
     "stock",
     "trading",

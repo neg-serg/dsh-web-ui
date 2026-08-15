@@ -48,7 +48,7 @@ describe('PetLedger', () => {
     const ledger = new PetLedger(emptyPersist())
     const res = ledger.interact('feed', 1_000_000)
     expect(res.delta).toBe(0)
-    expect(res.reaction).toContain('没有小鱼干')
+    expect(res.reaction).toContain('Out of fish snacks')
     expect(ledger.snapshot.affinity.feeds).toBe(0)
     // The empty-stock feed still marks dirty because the first settlement
     // starts the time clock, mirroring the service-level behavior.

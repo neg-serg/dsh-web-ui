@@ -4,7 +4,9 @@
   "nameEn": "Whale Song",
   "author": "dsh-web-ui",
   "tagline": "深海鲸语女神背景 · 冰蓝海洋调色板 · 金色细线点缀",
+  "taglineEn": "Deep-sea whale-goddess background · ice-blue ocean palette · gold hairline accents",
   "description": "《鲸吟》— 深海鲸语女神主题：无文字纯氛围背景画（蓝发女神与鲸群居左、冰蓝星座网格与金线点缀、右侧大量留白）垫在半透明面板之下，遮罩随亮/暗主题实时切换，冰蓝/浅青/深海军蓝/钴蓝冷色体系重映射到全部 dsh token，暗色变体为深海夜航调。",
+  "descriptionEn": "\"Whale Song\" — a deep-sea whale-goddess theme: a text-free ambient artwork (a blue-haired goddess with a pod of whales on the left, an ice-blue constellation grid with gold accents, generous whitespace on the right) beneath translucent panels; the scrim follows the light/dark theme; the ice-blue / pale-cyan / deep-navy / cobalt cold palette is remapped onto all dsh tokens, with a deep-sea night-voyage variant for dark mode.",
   "tags": [
     "whale",
     "ocean",
