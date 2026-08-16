@@ -240,11 +240,11 @@ select {
   box-shadow: none;
 }
 
-/* ---- terminal pass: flat, dense, squared ---- */
+/* ---- terminal pass: flat, dense, squared, 8px grid ---- */
 
 /* message flow: denser, like terminal scrollback */
 .Md3f7G_column {
-  gap: 10px;
+  gap: 8px;
 }
 
 /* all message rows: full-width flat lines (no chat bubbles) */
@@ -255,40 +255,67 @@ select {
   background: transparent;
   border: none;
   border-radius: 0;
-  padding: 2px 0;
+  padding: 8px 0;
   max-width: 100%;
   font-size: 14px;
   line-height: 22px;
 }
-.gdEzaW_bubble::before {
+
+/* prompt markers by message type, in a fixed left gutter:
+   ❯ user · assistant ⚠ error — like terminal prompts */
+.Md3f7G_flowItem {
+  position: relative;
+  padding-left: 1.4em;
+}
+.Md3f7G_flowItem::before {
+  position: absolute;
+  left: 0;
+  top: 4px;
+  font-family: var(--ds-font-family-code);
+  font-weight: 600;
+}
+.Md3f7G_flowItem:has(.gdEzaW_userRow)::before {
+  content: "❯";
+  color: var(--dsw-alias-state-success-primary);
+}
+.Md3f7G_flowItem:has(.Sxvs8a_root)::before {
+  content: "·";
+  color: var(--dsw-alias-label-tertiary);
+  font-weight: 400;
+}
+.Md3f7G_flowItem:has(.gdEzaW_turnErrorRow)::before {
+  content: "⚠";
+  color: var(--dsw-alias-state-error-primary);
+}
+
+/* code blocks: terminal panes (tool panels have a real header with title) */
+.ydkMvW_code {
+  border-radius: 4px;
+  border-left: 3px solid var(--dsw-alias-brand-primary);
+  padding: 8px 16px;
+  font-size: 12px;
+  line-height: 19px;
+}
+.ydkMvW_header {
+  font-family: var(--ds-font-family-code);
+  font-size: 12px;
+}
+.ydkMvW_title::before {
   content: "❯ ";
   color: var(--dsw-alias-state-success-primary);
   font-weight: 600;
 }
-
-/* code blocks: terminal panes with a header strip */
-.ydkMvW_code {
-  position: relative;
+/* assistant-message code blocks (markdown) as terminal panes */
+.Sxvs8a_root pre {
+  background: rgba(0, 0, 0, 0.35);
+  border-left: 3px solid var(--dsw-alias-border-l2);
   border-radius: 4px;
-  border-left: 3px solid var(--dsw-alias-brand-primary);
-  padding: 30px 14px 12px;
+  padding: 8px 16px;
   font-size: 12px;
   line-height: 19px;
 }
-.ydkMvW_code::before {
-  content: "❯";
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 22px;
-  padding: 2px 10px;
-  box-sizing: border-box;
-  background: rgba(0, 0, 0, 0.35);
-  border-bottom: 1px solid var(--dsw-alias-border-l1);
-  color: var(--dsw-alias-state-success-primary);
-  font-size: 12px;
-  line-height: 18px;
+.Sxvs8a_root code {
+  font-family: var(--ds-font-family-code);
 }
 
 /* tool call rows: terminal command echo — $ cmd prefix, hairline frame */
@@ -314,7 +341,7 @@ select {
 /* conversation header: minimal console title line */
 .wSkVaW_header {
   border-bottom: 1px solid var(--dsw-alias-border-l1);
-  padding: 8px 28px 6px 20px;
+  padding: 8px 32px 8px 24px;
 }
 .wSkVaW_header [class$="_title"],
 .wSkVaW_header [class$="_subtitle"] {
@@ -356,13 +383,31 @@ input {
   font-family: var(--ds-font-family-code);
   font-size: 11px;
 }
+.Md3f7G_turnStatusClock::before {
+  content: "· ";
+  color: var(--dsw-alias-label-tertiary);
+}
 ._7rgC5q_anchorDock {
   background: rgba(4, 15, 28, 0.85);
   border-top: 1px solid var(--dsw-alias-border-l1);
   font-family: var(--ds-font-family-code);
   font-size: 12px;
   color: var(--dsw-alias-label-secondary);
-  padding: 2px 12px;
+  padding: 8px 16px;
+}
+
+/* ── strict: remaining round elements squared (avatars, pills, chips) ── */
+[class*="avatar"],
+[class$="_avatar"],
+[class*="Pill"],
+[class$="_pill"],
+[class*="badge"],
+[class$="_badge"],
+[class*="chip"],
+[class$="_chip"],
+[class*="tag"],
+[class$="_tag"] {
+  border-radius: 4px;
 }
 
 /* terminal-style selection */
@@ -376,6 +421,7 @@ input {
 
     function apply(ctx) {
       ctx.effect(() => {
+
 
         const style = document.createElement("style");
         style.setAttribute("data-dsh-terminal-ui", "");
