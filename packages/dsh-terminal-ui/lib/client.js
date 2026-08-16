@@ -238,11 +238,18 @@ body[data-ds-dark-theme] {
   overflow-x: auto;
   white-space: nowrap;
 }
+/* flat squared COST tag — strict, no rounded badge */
 .cm-root::before {
-  content: "cost:";
-  color: var(--dsw-alias-label-primary);
-  font-weight: 600;
+  content: "COST";
+  display: inline-block;
+  color: var(--dsw-alias-state-business-primary);
+  border: 1px solid var(--dsw-alias-state-business-primary);
+  border-radius: 0;
+  padding: 0 5px;
   margin-right: 8px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  line-height: 14px;
 }
 .cm-root .cm-num {
   color: var(--dsw-alias-label-primary);
