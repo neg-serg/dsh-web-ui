@@ -184,6 +184,31 @@ body[data-ds-dark-theme] {
   stroke: currentColor !important;
 }
 
+/* session stats line: console status row with a stats prefix */
+.FJxK0a_root {
+  text-align: left;
+  font-family: var(--ds-font-family-code);
+  font-size: 11px;
+  line-height: 20px;
+  color: var(--dsw-alias-label-secondary);
+  background: rgba(4, 15, 28, 0.5);
+  border-top: 1px solid var(--dsw-alias-border-l1);
+  padding: 6px 16px;
+  overflow-x: auto;
+  white-space: nowrap;
+}
+.FJxK0a_root::before {
+  content: "stats ";
+  color: var(--dsw-alias-label-caption);
+}
+.FJxK0a_root > span:not(.FJxK0a_sep) {
+  color: var(--dsw-alias-label-secondary);
+}
+.FJxK0a_sep {
+  color: var(--dsw-alias-label-tertiary);
+  margin: 0 8px;
+}
+
 /* workspace hover tooltip: theme text instead of hardcoded white */
 .YDXeBa_hoverTitle {
   color: var(--dsw-alias-label-primary);
