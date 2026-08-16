@@ -179,7 +179,9 @@ body[data-ds-dark-theme] {
 
 /* sidebar icons: force theme color — some render with a hardcoded white
    SVG fill/stroke that looks unpainted on the navy glass */
-[data-pane="sidebar"] svg {
+/* sidebar icons: force theme color — but keep the brand logo's own
+   (multicolor) fills intact */
+[data-pane="sidebar"] svg:not(.hHd-Xa_brand svg, .hHd-Xa_logoRow svg) {
   fill: currentColor !important;
   stroke: currentColor !important;
 }
