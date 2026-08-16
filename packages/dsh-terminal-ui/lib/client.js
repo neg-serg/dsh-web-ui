@@ -157,14 +157,19 @@ select {
   border-top: 1px solid var(--dsw-alias-border-l1);
 }
 
-/* terminal input: standard text caret (visible on black), clear field frame.
-   The base theme keys the caret to --dsw-alias-state-business-primary (a muted
-   accent here, nearly invisible on #000) and the composer card border to
-   --dsw-alias-border-l2-darkmode-thin (6% white — invisible on black); both
-   are overridden above. */
+/* terminal input: render text directly in the textarea instead of the
+   base theme's transparent-text + backdrop layer trick (color:#0000 on the
+   input, visible copy drawn by .uV2eYG_backdrop). That trick makes the
+   selection highlight render on the invisible text while the visible copy
+   sits on a second layer (double-shadow look) and the caret lags behind the
+   backdrop repaint. Real text → normal selection and a synced caret. */
 .uV2eYG_input {
   font-size: 14px;
   caret-color: var(--dsw-alias-label-primary);
+  color: var(--dsw-alias-label-primary);
+}
+.uV2eYG_backdrop {
+  display: none;
 }
 textarea,
 input {
