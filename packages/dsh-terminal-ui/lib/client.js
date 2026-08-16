@@ -188,6 +188,7 @@ body[data-ds-dark-theme] {
 
 /* session stats line: console status row with a stats prefix */
 .FJxK0a_root {
+  display: inline-block !important;
   text-align: left;
   font-family: var(--ds-font-family-code);
   font-size: 11px;
@@ -226,20 +227,19 @@ body[data-ds-dark-theme] {
   color: var(--dsw-alias-button-info-fill);
 }
 
-/* ── dsh-cost-meter: session cost line + sidebar footer (console) ── */
-.cm-root {
+/* ── session cost line (self-hosted, replaces dsh-cost-meter) ── */
+.tui-cost-root {
+  display: inline-block;
   text-align: left;
   font-family: var(--ds-font-family-code);
   font-size: 11px;
   line-height: 20px;
   color: var(--dsw-alias-label-secondary);
-  border-top: 1px solid var(--dsw-alias-border-l1);
-  padding: 4px 16px;
-  overflow-x: auto;
+  padding: 6px 16px 6px 0;
   white-space: nowrap;
 }
 /* flat squared COST tag — strict, no rounded badge */
-.cm-root::before {
+.tui-cost-root::before {
   content: "COST";
   display: inline-block;
   color: var(--dsw-alias-state-business-primary);
@@ -251,31 +251,10 @@ body[data-ds-dark-theme] {
   letter-spacing: 0.5px;
   line-height: 14px;
 }
-.cm-root .cm-num {
-  color: var(--dsw-alias-label-primary);
-}
-.cm-foot {
-  font-family: var(--ds-font-family-code);
-  font-size: 11px;
-  border-radius: 3px;
-  color: var(--dsw-alias-label-secondary);
-}
-.cm-foot .cm-num {
+.tui-cost-root .tui-cost-num {
   color: var(--dsw-alias-label-primary);
 }
 
-/* the TPS line that follows the cost line: plain text node, style it in
-   the same console strip */
-.cm-root + * {
-  font-family: var(--ds-font-family-code);
-  font-size: 11px;
-  line-height: 20px;
-  color: var(--dsw-alias-label-tertiary);
-  text-align: left;
-  padding: 0 16px 4px;
-  white-space: nowrap;
-  overflow-x: auto;
-}
 
 /* workspace hover tooltip: theme text instead of hardcoded white */
 .YDXeBa_hoverTitle {
@@ -355,27 +334,27 @@ select {
   max-width: var(--dsh-chat-content-width);
 }
 
-/* ── strict: significantly reduced radii ── */
+/* ── strict: squared (zero radius) ── */
 .uV2eYG_card,
 .bqrRRG_card {
-  border-radius: 4px;
+  border-radius: 0;
 }
 button,
 input,
 textarea,
 select {
-  border-radius: 3px;
+  border-radius: 0;
 }
 [class$="_menu"],
 [class$="_popover"],
 [class$="_tooltip"],
 [class$="_panel"] {
-  border-radius: 4px;
+  border-radius: 0;
 }
 /* dock panel under the composer: console rows */
 ._7yHdaG_header,
 ._7yHdaG_row {
-  border-radius: 3px;
+  border-radius: 0;
   font-family: var(--ds-font-family-code);
   font-size: 12px;
   box-shadow: none;
@@ -476,7 +455,7 @@ select {
 
 /* composer seat: terminal input divider */
 [data-composer-seat] {
-  border-top: 1px solid rgba(54, 123, 191, 0.4);
+  border-top: 1px solid #002c52;
 }
 
 /* conversation header: minimal console title line */
@@ -496,7 +475,9 @@ select {
    sits on a second layer (double-shadow look) and the caret lags behind the
    backdrop repaint. Real text → normal selection and a synced caret. */
 .uV2eYG_input {
-  font-size: 14px;
+  font-size: 15px;
+  font-weight: 500;
+  background: transparent;
   caret-color: var(--dsw-alias-label-primary);
   color: var(--dsw-alias-label-primary);
 }
@@ -506,6 +487,12 @@ select {
 textarea,
 input {
   caret-color: var(--dsw-alias-label-primary);
+}
+/* composer card: fully black input surface with a dark color25 frame */
+.uV2eYG_card,
+.bqrRRG_card {
+  background: #000000;
+  border: 1px solid #002c52;
 }
 /* focused composer: accent frame */
 .uV2eYG_card:focus-within {
@@ -769,9 +756,8 @@ body.tui-resizing {
         document.head.appendChild(style);
         // Feature cleanup registry — each injected feature registers its
         // teardown here (see the tui-* feature blocks below).
+
         const cleanups = [];
-
-
         // ── feature: feat-5.json ──
         {
 {
@@ -1257,6 +1243,77 @@ body.tui-resizing {
   });
 }
         }
+        // ── feature: session cost line (self-hosted, replaces dsh-cost-meter) ──
+        {
+  const fmtTokens = (n) => {
+    const v = Math.max(0, Number(n) || 0);
+    const scaled = (x) => (x >= 100 ? String(Math.round(x)) : String(Math.round(x * 10) / 10));
+    if (v < 1000) return String(Math.round(v));
+    if (v < 1000000) return scaled(v / 1000) + "K";
+    return scaled(v / 1000000) + "M";
+  };
+  const fmtUsd = (v) => {
+    const x = Number(v) || 0;
+    const fixed = x.toFixed(6).replace(/0+$/, "").replace(/\.$/, "");
+    return "$" + (fixed === "" ? "0" : fixed);
+  };
+
+  let costEl = null;
+  let lastText = "";
+
+  const render = (data) => {
+    if (!data) return;
+    const text =
+      "This session " + fmtUsd(data.cost) +
+      " \u00b7 Input " + fmtTokens(data.input) +
+      " \u00b7 Cache " + fmtTokens(data.cache) +
+      " \u00b7 Output " + fmtTokens(data.output);
+    if (!costEl) return;
+    if (costEl.textContent === text) return;
+    costEl.textContent = text;
+    lastText = text;
+  };
+
+  const fetchCost = () => {
+    try {
+      fetch("/terminal-ui/session-cost", { cache: "no-store" })
+        .then((r) => (r.ok ? r.json() : null))
+        .then((data) => render(data))
+        .catch(() => {});
+    } catch (e) { /* fetch failed — retry on next tick */ }
+  };
+
+  // Mount the cost line as a sibling right after the stats line so both sit
+  // on the same console row. The stats line (FJxK0a_root) and this element
+  // are inline-block children of the same container.
+  const mount = () => {
+    const stats = document.querySelector(".FJxK0a_root");
+    if (!stats) return false;
+    const parent = stats.parentElement;
+    if (!parent) return false;
+    if (parent.contains(costEl)) return true;
+    const el = document.createElement("div");
+    el.className = "tui-cost-root";
+    parent.insertBefore(el, stats.nextSibling);
+    costEl = el;
+    fetchCost();
+    return true;
+  };
+
+  if (!mount()) {
+    const mo = new MutationObserver(() => {
+      if (mount()) { fetchCost(); mo.disconnect(); }
+    });
+    mo.observe(document.body, { childList: true, subtree: true });
+    cleanups.push(() => mo.disconnect());
+  }
+
+  const costIv = setInterval(() => {
+    if (costEl && costEl.isConnected) fetchCost();
+    else mount();
+  }, 3000);
+  cleanups.push(() => clearInterval(costIv));
+}
         return () => {
           cleanups.forEach((fn) => fn());
           style.remove();
