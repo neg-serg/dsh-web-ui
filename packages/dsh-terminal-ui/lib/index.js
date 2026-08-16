@@ -111,9 +111,19 @@ function loadLedgerPrices() {
 
 /** Session projection: fold token usage from the event log (same events the
  *  cost-meter projection watched), keyed by the session it is driven for. */
+/** Plain-JSON projection schema. The session-projection registry calls
+ *  `schema.parse(view)` when serving snapshots, so the schema must be
+ *  defined; the view output is already plain JSON, this shim passes it
+ *  through unchanged (no zod dependency). */
+const plainJsonSchema = {
+  parse(value) {
+    return value;
+  },
+};
+
 const costUsageProjection = {
   key: "tui-costUsage",
-  schema: undefined, // plain JSON, no zod dependency
+  schema: plainJsonSchema,
   stateVersion: 1,
   init: () => ({ model: "default", totals: zeroBuckets(), byModel: {}, last: null }),
   apply(state, event) {
