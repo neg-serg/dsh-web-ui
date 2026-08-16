@@ -1,77 +1,18 @@
-// dsh-terminal-ui client half — Neg Dark theme (pure black + neutral gray
-// borders + muted accents, from files/gui/vicinae-theme.toml), Iosevka fonts
-// everywhere, wider chat column. Injects one <style> element for the page
-// lifetime; removed when the plugin unmounts.
+// dsh-terminal-ui client half — keeps the stock dsh dark theme (all tokens
+// covered by the base theme, so no gray/black mismatches), Iosevka fonts
+// everywhere, wider chat column, flat terminal message pass and strict
+// (reduced) border radii. Injects one <style> element for the page lifetime;
+// removed when the plugin unmounts.
 window.__ModuleLoader__.load({
   id: "dsh-terminal-ui",
   factory: (require) => {
     const inject = [];
 
-    // Theme tokens are declared on `body` / `body[data-ds-dark-theme]`
-    // (see dsh-client-ui-theme). Re-declaring them on the same selectors in
-    // a later stylesheet wins the cascade. Both light and dark slots get the
-    // Neg Dark palette, so the GUI keeps the neg look in either mode.
     // `.wSkVaW_root` is the conversation-root class from
     // @deepseek-ai/dsh-client-ui-conversation (CSS module hash) — stable for
     // a pinned dsh release; re-derive from the served client bundle if it
     // stops matching after an upgrade (grep for `--dsh-chat-content-width`).
     const CSS = `
-/* ── base: pure black (Neg Dark) ── */
-html {
-  background: #000000;
-}
-body {
-  background: #000000;
-}
-
-/* ── Neg Dark palette (files/gui/vicinae-theme.toml) ── */
-body,
-body[data-ds-dark-theme] {
-  --dsw-alias-bg-base: #000000;
-  --dsw-alias-bg-layer-1: #080808;
-  --dsw-alias-bg-layer-2: #080808;
-  --dsw-alias-bg-layer-3: #101010;
-  --dsw-alias-bg-overlay: #080808;
-  --dsw-alias-border-l1: #333333;
-  --dsw-alias-border-l2: #262626;
-  --dsw-alias-border-l3: #333333;
-  --dsw-alias-label-primary: #9FABBA;
-  --dsw-alias-label-secondary: #7a8796;
-  --dsw-alias-label-tertiary: #6a7686;
-  --dsw-alias-label-caption: #6a7686;
-  --dsw-alias-brand-primary: #4a4a4a;
-  --dsw-alias-brand-text: #b9c4d2;
-  --dsw-alias-button-primary-fill: #2a2a2a;
-  --dsw-alias-button-primary-hover: #3a3a3a;
-  --dsw-alias-button-primary-dimmed: #101010;
-  --dsw-alias-button-elevated-fill: #101010;
-  --dsw-alias-button-floating-fill: #0a0a0a;
-  --dsw-alias-button-floating-hover: #141414;
-  --dsw-alias-button-info-fill: #2a2a2a;
-  --dsw-alias-button-info-hover: #3a3a3a;
-  --dsw-alias-state-success-primary: #3a6a51;
-  --dsw-alias-state-error-primary: #5a2020;
-  --dsw-alias-state-warn-primary: #8a7a50;
-  --dsw-alias-state-business-primary: #4a5555;
-  --dsw-alias-border-l2-darkmode-thin: #333333;
-  --dsw-specific-sidebar-fill: #000000;
-  --dsw-specific-sidebar-nav-item-active: #141414;
-  --dsw-specific-sidebar-nav-item-hover: #1a1a1a;
-  --dsw-specific-bubble: #080808;
-  --dsw-specific-bubble-highlight: #101010;
-  --dsw-specific-input-major: #080808;
-  --dsw-specific-selector: #101010;
-  --dsw-specific-menu: #080808;
-  --dsw-alias-markdown-code-block: #000000;
-  --dsw-alias-markdown-inline-code: #101010;
-  --dsw-alias-scrollbar-bg-l1: #1a1a1a;
-  --dsw-alias-scrollbar-bg-l2: #222222;
-  --dsw-alias-scrollbar-hover-l1: #333333;
-  --dsw-alias-scrollbar-hover-l2: #3a3a3a;
-  --dsw-alias-interactive-bg-hover: rgba(255, 255, 255, 0.05);
-  --dsw-alias-interactive-bg-active: rgba(255, 255, 255, 0.08);
-}
-
 /* ── fonts: Iosevka family everywhere, uniform width ── */
 :root {
   --dsw-font-family: "Iosevka Proportional", "Iosevka", "Iosevka Medium", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
@@ -94,6 +35,24 @@ select {
 .wSkVaW_root {
   --dsh-chat-content-width: min(1200px, calc(100vw - 240px));
   --dsh-composer-card-max-width: calc(var(--dsh-chat-content-width) + 32px);
+}
+
+/* ── strict: significantly reduced radii ── */
+.uV2eYG_card,
+.bqrRRG_card {
+  border-radius: 6px;
+}
+button,
+input,
+textarea,
+select {
+  border-radius: 4px;
+}
+[class$="_menu"],
+[class$="_popover"],
+[class$="_tooltip"],
+[class$="_panel"] {
+  border-radius: 6px;
 }
 
 /* ---- terminal pass: flat, dense, squared ---- */
@@ -140,7 +99,7 @@ select {
   height: 22px;
   padding: 2px 10px;
   box-sizing: border-box;
-  background: #000000;
+  background: rgba(0, 0, 0, 0.25);
   border-bottom: 1px solid var(--dsw-alias-border-l1);
   color: var(--dsw-alias-state-success-primary);
   font-size: 12px;
@@ -187,18 +146,11 @@ input {
   color: var(--dsw-alias-state-success-primary);
 }
 ._7rgC5q_anchorDock {
-  background: #000000;
   border-top: 1px solid var(--dsw-alias-border-l1);
   font-family: var(--ds-font-family-code);
   font-size: 12px;
   color: var(--dsw-alias-label-secondary);
   padding: 2px 12px;
-}
-
-/* terminal-style selection */
-::selection {
-  background: rgba(74, 85, 85, 0.5);
-  color: #e8ecef;
 }
 `;
 
