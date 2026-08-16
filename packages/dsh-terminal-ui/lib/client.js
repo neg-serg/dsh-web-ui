@@ -177,6 +177,13 @@ body[data-ds-dark-theme] {
   --dsw-static-blue-500: #2f6ca8;
 }
 
+/* sidebar icons: force theme color — some render with a hardcoded white
+   SVG fill/stroke that looks unpainted on the navy glass */
+[data-pane="sidebar"] svg {
+  fill: currentColor !important;
+  stroke: currentColor !important;
+}
+
 /* workspace hover tooltip: theme text instead of hardcoded white */
 .YDXeBa_hoverTitle {
   color: var(--dsw-alias-label-primary);
@@ -462,6 +469,7 @@ input {
 
     function apply(ctx) {
       ctx.effect(() => {
+
 
 
         const style = document.createElement("style");
