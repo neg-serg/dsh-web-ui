@@ -233,22 +233,16 @@ body[data-ds-dark-theme] {
   font-size: 11px;
   line-height: 20px;
   color: var(--dsw-alias-label-secondary);
-  background: rgba(4, 15, 28, 0.5);
   border-top: 1px solid var(--dsw-alias-border-l1);
-  padding: 6px 16px;
+  padding: 4px 16px;
   overflow-x: auto;
   white-space: nowrap;
 }
 .cm-root::before {
-  content: "cost";
-  display: inline-block;
-  color: #d1e5ff;
-  background: rgba(54, 123, 191, 0.35);
-  border: 1px solid var(--dsw-alias-border-l2);
-  border-radius: 3px;
-  padding: 0 6px;
-  margin-right: 8px;
+  content: "cost:";
+  color: var(--dsw-alias-label-primary);
   font-weight: 600;
+  margin-right: 8px;
 }
 .cm-root .cm-num {
   color: var(--dsw-alias-label-primary);
