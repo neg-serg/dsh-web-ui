@@ -211,6 +211,51 @@ body[data-ds-dark-theme] {
   margin: 0 8px;
 }
 
+/* ── neovim-style separators: blue "/" (heirline styles.separator) ── */
+.tui-sl-sep {
+  color: var(--dsw-alias-button-info-fill); /* #005faf — the kitty/heirline separator blue */
+}
+/* turn stats: the "|" separator spans become a blue "/" */
+.FJxK0a_sep {
+  font-size: 0;
+  margin: 0 4px;
+}
+.FJxK0a_sep::before {
+  content: "/";
+  font-size: 11px;
+  color: var(--dsw-alias-button-info-fill);
+}
+
+/* ── dsh-cost-meter: session cost line + sidebar footer (console) ── */
+.cm-root {
+  text-align: left;
+  font-family: var(--ds-font-family-code);
+  font-size: 11px;
+  line-height: 20px;
+  color: var(--dsw-alias-label-secondary);
+  background: rgba(4, 15, 28, 0.5);
+  border-top: 1px solid var(--dsw-alias-border-l1);
+  padding: 6px 16px;
+  overflow-x: auto;
+  white-space: nowrap;
+}
+.cm-root::before {
+  content: "cost ";
+  color: var(--dsw-alias-label-caption);
+}
+.cm-root .cm-num {
+  color: var(--dsw-alias-label-primary);
+}
+.cm-foot {
+  font-family: var(--ds-font-family-code);
+  font-size: 11px;
+  border-radius: 3px;
+  color: var(--dsw-alias-label-secondary);
+}
+.cm-foot .cm-num {
+  color: var(--dsw-alias-label-primary);
+}
+
 /* workspace hover tooltip: theme text instead of hardcoded white */
 .YDXeBa_hoverTitle {
   color: var(--dsw-alias-label-primary);
@@ -704,6 +749,8 @@ body.tui-resizing {
         // Feature cleanup registry — each injected feature registers its
         // teardown here (see the tui-* feature blocks below).
         const cleanups = [];
+
+
         // ── feature: feat-5.json ──
         {
 {
@@ -1163,7 +1210,7 @@ body.tui-resizing {
       if (i > 0) {
         const sep = document.createElement('span');
         sep.className = 'tui-sl-sep';
-        sep.textContent = '·';
+        sep.textContent = '/';
         right.appendChild(sep);
       }
       const s = document.createElement('span');
