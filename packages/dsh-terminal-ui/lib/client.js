@@ -148,6 +148,47 @@ body[data-ds-dark-theme] {
   --dsw-specific-tip: rgba(22, 45, 72, 0.7);
 }
 
+/* ── stock statics → navy family: components that reference the base
+   --dsw-static-* tokens directly (hover tooltips, trajectory accents, …)
+   get the neg palette instead of the stock gray/white ── */
+body,
+body[data-ds-dark-theme] {
+  --dsw-static-neutral-bluish-00: #eaf3ff;
+  --dsw-static-neutral-bluish-50: #d1e5ff;
+  --dsw-static-neutral-bluish-100: #b9c4d2;
+  --dsw-static-neutral-bluish-200: #a4b3c6;
+  --dsw-static-neutral-bluish-300: #8fa3b8;
+  --dsw-static-neutral-bluish-400: #6d839e;
+  --dsw-static-neutral-bluish-550: #36557a;
+  --dsw-static-neutral-bluish-600: #2e4c6e;
+  --dsw-static-neutral-bluish-700: #244060;
+  --dsw-static-neutral-bluish-750: #1c3655;
+  --dsw-static-neutral-bluish-800: #162d48;
+  --dsw-static-neutral-bluish-850: #10233a;
+  --dsw-static-neutral-bluish-875: #0c1c30;
+  --dsw-static-neutral-bluish-900: #081826;
+  --dsw-static-neutral-bluish-950: #040f1c;
+  --dsw-static-deepseek-200: #6d9fd0;
+  --dsw-static-deepseek-400: #367bbf;
+  --dsw-static-deepseek-450: #367bbf;
+  --dsw-static-deepseek-500: #2f6ca8;
+  --dsw-static-deepseek-800: #16375c;
+  --dsw-static-blue-450: #367bbf;
+  --dsw-static-blue-500: #2f6ca8;
+}
+
+/* workspace hover tooltip: theme text instead of hardcoded white */
+.YDXeBa_hoverTitle {
+  color: var(--dsw-alias-label-primary);
+}
+.YDXeBa_hoverPath,
+.YDXeBa_hoverTime {
+  color: var(--dsw-alias-label-secondary);
+}
+.YDXeBa_hoverStatus {
+  color: var(--dsw-alias-label-tertiary);
+}
+
 /* ── glass blur on the columns (data-pane stamped by dsh-web-ui-all) ── */
 [data-pane="conversation"],
 [data-pane="sidebar"],
