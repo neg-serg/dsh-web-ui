@@ -176,28 +176,66 @@ select {
   font-family: var(--dsw-font-family);
 }
 
-/* ── wider chat ── */
+/* ── wider chat + strict alignment: messages, composer and dock share the
+   exact chat-column width and are centered on the same axis, so left/right
+   edges line up everywhere ── */
 .wSkVaW_root {
-  --dsh-chat-content-width: min(1200px, calc(100vw - 240px));
-  --dsh-composer-card-max-width: calc(var(--dsh-chat-content-width) + 32px);
+  --dsh-chat-content-width: min(1184px, 100%);
+  --dsh-composer-card-max-width: var(--dsh-chat-content-width);
+  margin: 0 auto;
+  width: 100%;
+}
+/* every message row (user, assistant, tool calls, compaction) in the column */
+.Md3f7G_column {
+  width: 100% !important;
+  max-width: var(--dsh-chat-content-width) !important;
+  margin-left: auto !important;
+  margin-right: auto !important;
+  padding-left: 0 !important;
+  padding-right: 0 !important;
+}
+.Md3f7G_column > * {
+  width: 100%;
+  max-width: var(--dsh-chat-content-width);
+  margin-left: auto;
+  margin-right: auto;
+}
+/* composer card + its seat + dock: same column */
+.pXSMma_stack,
+[data-composer-seat] {
+  width: 100%;
+  max-width: var(--dsh-chat-content-width);
+  margin-left: auto;
+  margin-right: auto;
+}
+._7yHdaG_dock {
+  max-width: var(--dsh-chat-content-width);
 }
 
 /* ── strict: significantly reduced radii ── */
 .uV2eYG_card,
 .bqrRRG_card {
-  border-radius: 6px;
+  border-radius: 4px;
 }
 button,
 input,
 textarea,
 select {
-  border-radius: 4px;
+  border-radius: 3px;
 }
 [class$="_menu"],
 [class$="_popover"],
 [class$="_tooltip"],
 [class$="_panel"] {
-  border-radius: 6px;
+  border-radius: 4px;
+}
+/* dock panel under the composer: console rows */
+._7yHdaG_header,
+._7yHdaG_row {
+  border-radius: 3px;
+  font-family: var(--ds-font-family-code);
+  font-size: 12px;
+  box-shadow: none;
 }
 
 /* ---- terminal pass: flat, dense, squared ---- */
@@ -251,14 +289,34 @@ select {
   line-height: 18px;
 }
 
-/* tool call rows: flat */
+/* tool call rows: terminal command echo — $ cmd prefix, hairline frame */
 .Md3f7G_callRow {
   border-radius: 2px;
+  border-left: 2px solid var(--dsw-alias-state-business-primary);
+  background: rgba(4, 15, 28, 0.45);
+  padding-left: 8px;
+  font-family: var(--ds-font-family-code);
+  font-size: 12px;
+}
+.Md3f7G_callRow::before {
+  content: "$ ";
+  color: var(--dsw-alias-state-success-primary);
+  font-weight: 600;
 }
 
 /* composer seat: terminal input divider */
 [data-composer-seat] {
   border-top: 1px solid rgba(54, 123, 191, 0.4);
+}
+
+/* conversation header: minimal console title line */
+.wSkVaW_header {
+  border-bottom: 1px solid var(--dsw-alias-border-l1);
+  padding: 8px 28px 6px 20px;
+}
+.wSkVaW_header [class$="_title"],
+.wSkVaW_header [class$="_subtitle"] {
+  font-family: var(--ds-font-family-code);
 }
 
 /* terminal input: render text directly in the textarea instead of the
@@ -284,11 +342,17 @@ input {
   border-color: var(--dsw-alias-brand-primary);
 }
 
-/* terminal status readouts: turn status + dock band under the composer */
+/* terminal status readouts: turn status as a console status line
+   (shimmer text + elapsed clock), dock band under the composer */
 .Md3f7G_turnStatus {
   font-family: var(--ds-font-family-code);
   font-size: 12px;
-  color: var(--dsw-alias-state-success-primary);
+  border-left: 2px solid var(--dsw-alias-state-success-primary);
+  padding-left: 8px;
+}
+.Md3f7G_turnStatusClock {
+  font-family: var(--ds-font-family-code);
+  font-size: 11px;
 }
 ._7rgC5q_anchorDock {
   background: rgba(4, 15, 28, 0.85);
@@ -304,6 +368,7 @@ input {
   background: rgba(54, 123, 191, 0.45);
   color: #eaf3ff;
 }
+
 `;
 
     function apply(ctx) {
