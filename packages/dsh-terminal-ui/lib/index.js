@@ -1,10 +1,10 @@
 // dsh-terminal-ui host half:
 //  1. serves the desktop wallpaper to the browser at /terminal-ui/wallpaper
 //     (the client theme uses it as a background);
-//  2. tracks the live session cost: wraps llm/stream, accumulates the
-//     per-session token usage (input/output/cacheRead/cacheWrite), prices it
-//     with the DeepSeek ledger prices, and serves the current session's cost
-//     line at /terminal-ui/session-cost.
+//  2. tracks the live session cost: a session projection folds the per-session
+//     token usage (input/output/cacheRead/cacheWrite) from the event log and
+//     prices it with the DeepSeek ledger prices; the current session's cost
+//     line is served at /terminal-ui/session-cost.
 // The cost line used to come from the dsh-cost-meter plugin; this module
 // re-implements just the session-cost values (usage buckets + price table →
 // dollar cost) so the theme can render the line itself.
@@ -13,7 +13,7 @@ import { readFileSync, existsSync } from "node:fs";
 import { homedir } from "node:os";
 import { join } from "node:path";
 
-const inject = ["webServer"];
+const inject = ["webServer", "sessions", "sessionProjections"];
 
 const WALLPAPER_HINT = join(homedir(), ".cache/quickshell-wallpaper-path");
 const FALLBACK = "/home/neg/pic/wl/wallhaven-jek6kq.jpg";
@@ -50,11 +50,6 @@ const LEDGER_PRICES = {
 
 const zeroBuckets = () => ({ input: 0, output: 0, cacheRead: 0, cacheWrite: 0 });
 
-/** Per-session running totals: model name + token buckets. */
-const sessions = new Map();
-/** Session id of the most recent llm/stream activity (the one on screen). */
-let lastActiveSession = "current";
-
 function bucketsOf(usage) {
   return {
     input: Number(usage.inputTokens) || 0,
@@ -62,43 +57,6 @@ function bucketsOf(usage) {
     cacheRead: Number(usage.cacheReadTokens) || 0,
     cacheWrite: Number(usage.cacheWriteTokens) || 0,
   };
-}
-
-/**
- * Apply one usage sample to the per-session totals. The same (turn, step)
- * sample replaces its streaming predecessor (subtract-then-add) so a stream
- * that reports usage more than once does not double-count.
- */
-function applyUsage(session, model, usage, turn, step) {
-  const buckets = bucketsOf(usage);
-  const key = `${turn}:${step}`;
-  const prev = session.last !== null && session.last.key === key ? session.last : null;
-  if (
-    prev !== null &&
-    prev.model === model &&
-    prev.buckets.input === buckets.input &&
-    prev.buckets.output === buckets.output &&
-    prev.buckets.cacheRead === buckets.cacheRead &&
-    prev.buckets.cacheWrite === buckets.cacheWrite
-  ) {
-    return;
-  }
-  const shift = (b, sign) => {
-    session.totals.input += sign * b.input;
-    session.totals.output += sign * b.output;
-    session.totals.cacheRead += sign * b.cacheRead;
-    session.totals.cacheWrite += sign * b.cacheWrite;
-    const m = session.byModel[model] ?? zeroBuckets();
-    session.byModel[model] = {
-      input: m.input + sign * b.input,
-      output: m.output + sign * b.output,
-      cacheRead: m.cacheRead + sign * b.cacheRead,
-      cacheWrite: m.cacheWrite + sign * b.cacheWrite,
-    };
-  };
-  if (prev !== null) shift(prev.buckets, -1);
-  shift(buckets, 1);
-  session.last = { key, model, buckets };
 }
 
 /** Cost of one bucket set at a price tier (USD). */
@@ -110,26 +68,26 @@ function costOf(buckets, tier) {
 }
 
 /** Dollar cost of a session's totals, priced per model with default fallback. */
-function sessionCost(session, prices) {
+function sessionCost(totals, byModel, prices) {
   const models = prices?.models ?? LEDGER_PRICES.models;
   const fallback = prices?.default ?? LEDGER_PRICES.default;
   let total = 0;
-  for (const [modelId, buckets] of Object.entries(session.byModel)) {
+  for (const [modelId, buckets] of Object.entries(byModel)) {
     const entry = models[modelId] ?? fallback;
     total += costOf(buckets, entry);
   }
   const modeled = { input: 0, output: 0, cacheRead: 0, cacheWrite: 0 };
-  for (const buckets of Object.values(session.byModel)) {
+  for (const buckets of Object.values(byModel)) {
     modeled.input += buckets.input;
     modeled.output += buckets.output;
     modeled.cacheRead += buckets.cacheRead;
     modeled.cacheWrite += buckets.cacheWrite;
   }
   const leftover = {
-    input: Math.max(0, session.totals.input - modeled.input),
-    output: Math.max(0, session.totals.output - modeled.output),
-    cacheRead: Math.max(0, session.totals.cacheRead - modeled.cacheRead),
-    cacheWrite: Math.max(0, session.totals.cacheWrite - modeled.cacheWrite),
+    input: Math.max(0, totals.input - modeled.input),
+    output: Math.max(0, totals.output - modeled.output),
+    cacheRead: Math.max(0, totals.cacheRead - modeled.cacheRead),
+    cacheWrite: Math.max(0, totals.cacheWrite - modeled.cacheWrite),
   };
   total += costOf(leftover, fallback);
   return total;
@@ -151,49 +109,101 @@ function loadLedgerPrices() {
   return LEDGER_PRICES;
 }
 
+/** Session projection: fold token usage from the event log (same events the
+ *  cost-meter projection watched), keyed by the session it is driven for. */
+const costUsageProjection = {
+  key: "tui-costUsage",
+  schema: undefined, // plain JSON, no zod dependency
+  stateVersion: 1,
+  init: () => ({ model: "default", totals: zeroBuckets(), byModel: {}, last: null }),
+  apply(state, event) {
+    if (event.type === "request/header") {
+      const model = event.data?.header?.config?.model;
+      const next = typeof model === "string" && model.length > 0 ? model : "default";
+      return next === state.model ? state : { ...state, model: next };
+    }
+    let usage = null;
+    let turn = 0;
+    let step = 0;
+    if (event.type === "assistant/chunk" && event.data?.chunk?.type === "usage" && event.data.chunk.usage !== undefined) {
+      usage = event.data.chunk.usage;
+      turn = event.data.turn;
+      step = event.data.step;
+    } else if (event.type === "assistant/message" && event.data?.usage !== undefined) {
+      usage = event.data.usage;
+      turn = event.data.turn;
+      step = event.data.step;
+    } else {
+      return state;
+    }
+    const buckets = bucketsOf(usage);
+    const key = `${turn}:${step}`;
+    const prev = state.last !== null && state.last.key === key ? state.last : null;
+    if (
+      prev !== null &&
+      prev.model === state.model &&
+      prev.buckets.input === buckets.input &&
+      prev.buckets.output === buckets.output &&
+      prev.buckets.cacheRead === buckets.cacheRead &&
+      prev.buckets.cacheWrite === buckets.cacheWrite
+    ) {
+      return state;
+    }
+    const totals = { ...state.totals };
+    const byModel = { ...state.byModel };
+    const shift = (model, b, sign) => {
+      totals.input += sign * b.input;
+      totals.output += sign * b.output;
+      totals.cacheRead += sign * b.cacheRead;
+      totals.cacheWrite += sign * b.cacheWrite;
+      const current = byModel[model] ?? zeroBuckets();
+      byModel[model] = {
+        input: current.input + sign * b.input,
+        output: current.output + sign * b.output,
+        cacheRead: current.cacheRead + sign * b.cacheRead,
+        cacheWrite: current.cacheWrite + sign * b.cacheWrite,
+      };
+    };
+    if (prev !== null) shift(prev.model, prev.buckets, -1);
+    shift(state.model, buckets, 1);
+    return { model: state.model, totals, byModel, last: { key, model: state.model, buckets } };
+  },
+  view(state) {
+    return {
+      input: state.totals.input,
+      output: state.totals.output,
+      cacheRead: state.totals.cacheRead,
+      cacheWrite: state.totals.cacheWrite,
+      byModel: state.byModel,
+    };
+  },
+};
+
 let prices = loadLedgerPrices();
 
+/** Session id of the most recent llm/stream activity (the one on screen). */
+let lastActiveSessionId = null;
+
 function apply(ctx) {
-  // Wrap llm/stream: capture the final usage block per request and fold it
-  // into the per-session totals. Pure passthrough — the stream protocol is
-  // untouched.
+  // Remember which session is active: a minimal llm/stream wrapper that only
+  // records the sessionId (the token counting lives in the projection, which
+  // replays the full event log).
   ctx.on("llm/stream", (options, next) => {
-    const downstream = next();
-    return (async function* costStream() {
-      let usage = null;
-      let turn = 0;
-      let step = 0;
-      try {
-        for await (const chunk of downstream) {
-          if (chunk !== null && chunk !== undefined && chunk.type === "usage" && chunk.usage !== undefined) {
-            usage = chunk.usage;
-            turn = chunk.turn ?? 0;
-            step = chunk.step ?? 0;
-          }
-          yield chunk;
-        }
-      } finally {
-        if (usage !== null) {
-          const sid = options?.sessionId ?? "current";
-          lastActiveSession = sid;
-          let session = sessions.get(sid);
-          if (session === undefined) {
-            session = { totals: zeroBuckets(), byModel: {}, last: null };
-            sessions.set(sid, session);
-          }
-          applyUsage(session, options?.model ?? "default", usage, turn, step);
-        }
-      }
-    })();
+    const sid = options?.sessionId ?? null;
+    if (sid !== null && sid !== lastActiveSessionId) lastActiveSessionId = sid;
+    return next();
   });
 
-  // Read the ledger prices again whenever it is rewritten by a future
-  // reinstall; harmless when absent.
-  try {
-    prices = loadLedgerPrices();
-  } catch {
-    /* ignore */
-  }
+  // Register the cost projection so every session's log folds into it.
+  ctx.effect(() => {
+    const sessionProjections = ctx.get("sessionProjections");
+    if (sessionProjections === void 0) return;
+    const dispose = sessionProjections.register(costUsageProjection);
+    return () => { try { dispose(); } catch { /* already gone */ } };
+  }, "tui: cost usage projection");
+
+  // Refresh the ledger prices once after boot (and on demand per request).
+  prices = loadLedgerPrices();
 
   ctx.effect(() =>
     ctx.webServer.register({
@@ -222,8 +232,10 @@ function apply(ctx) {
     }),
   );
 
-  // Serve the current session's cost line: JSON for the client theme to
-  // render next to the stats line.
+  // Serve the session cost line: JSON for the client theme to render next to
+  // the stats line. Reads the projection snapshot of the requested (or the
+  // most recently active) session, so values replay the full event log —
+  // including history that predates this dsh boot.
   ctx.effect(() =>
     ctx.webServer.register({
       kind: "exact",
@@ -231,16 +243,19 @@ function apply(ctx) {
       handler(req, res) {
         try {
           const url = new URL(req.url ?? "", "http://localhost");
-          const sid = url.searchParams.get("session") ?? lastActiveSession;
-          const session = sessions.get(sid);
-          const totals = session?.totals ?? zeroBuckets();
-          const cost = session ? sessionCost(session, prices) : 0;
+          const sid = url.searchParams.get("session") ?? lastActiveSessionId;
+          const session = sid === null ? undefined : ctx.get("sessions")?.get(sid);
+          const block = session !== undefined ? ctx.get("sessionProjections")?.snapshot(session) : undefined;
+          const usage = block?.values?.tuiCostUsage;
+          const totals = usage ?? zeroBuckets();
+          const byModel = usage?.byModel ?? {};
+          const cost = usage ? sessionCost(totals, byModel, prices) : 0;
           const body = JSON.stringify({
             session: sid,
             cost,
-            input: totals.input,
-            cache: totals.cacheRead + totals.cacheWrite,
-            output: totals.output,
+            input: totals.input ?? 0,
+            cache: (totals.cacheRead ?? 0) + (totals.cacheWrite ?? 0),
+            output: totals.output ?? 0,
           });
           res.writeHead(200, {
             "content-type": "application/json",
