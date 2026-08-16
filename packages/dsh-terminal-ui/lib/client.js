@@ -38,6 +38,7 @@ body[data-ds-dark-theme] {
   --dsw-alias-label-primary: #9FABBA;
   --dsw-alias-label-secondary: #7a8796;
   --dsw-alias-label-tertiary: #6a7686;
+  --dsw-alias-label-caption: #6a7686;
   --dsw-alias-brand-primary: #4a4a4a;
   --dsw-alias-brand-text: #b9c4d2;
   --dsw-alias-button-primary-fill: #2a2a2a;
@@ -52,6 +53,7 @@ body[data-ds-dark-theme] {
   --dsw-alias-state-error-primary: #5a2020;
   --dsw-alias-state-warn-primary: #8a7a50;
   --dsw-alias-state-business-primary: #4a5555;
+  --dsw-alias-border-l2-darkmode-thin: #333333;
   --dsw-specific-sidebar-fill: #000000;
   --dsw-specific-sidebar-nav-item-active: #141414;
   --dsw-specific-sidebar-nav-item-hover: #1a1a1a;
@@ -155,9 +157,22 @@ select {
   border-top: 1px solid var(--dsw-alias-border-l1);
 }
 
-/* terminal input: standard text caret (default color/behavior) */
+/* terminal input: standard text caret (visible on black), clear field frame.
+   The base theme keys the caret to --dsw-alias-state-business-primary (a muted
+   accent here, nearly invisible on #000) and the composer card border to
+   --dsw-alias-border-l2-darkmode-thin (6% white — invisible on black); both
+   are overridden above. */
 .uV2eYG_input {
   font-size: 14px;
+  caret-color: var(--dsw-alias-label-primary);
+}
+textarea,
+input {
+  caret-color: var(--dsw-alias-label-primary);
+}
+/* focused composer: accent frame */
+.uV2eYG_card:focus-within {
+  border-color: var(--dsw-alias-brand-primary);
 }
 
 /* terminal status readouts: turn status + dock band under the composer */
