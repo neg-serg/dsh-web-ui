@@ -264,6 +264,19 @@ body[data-ds-dark-theme] {
   color: var(--dsw-alias-label-primary);
 }
 
+/* the TPS line that follows the cost line: plain text node, style it in
+   the same console strip */
+.cm-root + * {
+  font-family: var(--ds-font-family-code);
+  font-size: 11px;
+  line-height: 20px;
+  color: var(--dsw-alias-label-tertiary);
+  text-align: left;
+  padding: 0 16px 4px;
+  white-space: nowrap;
+  overflow-x: auto;
+}
+
 /* workspace hover tooltip: theme text instead of hardcoded white */
 .YDXeBa_hoverTitle {
   color: var(--dsw-alias-label-primary);
