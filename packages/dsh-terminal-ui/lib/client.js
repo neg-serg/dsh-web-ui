@@ -1113,11 +1113,15 @@ body.tui-resizing {
     || pickText('.wSkVaW_header [class$="_title"]')
     || '—';
   const columnWidth = () => {
+    // physical pixels: CSS width x devicePixelRatio (HiDPI: 4K at scale 2
+    // doubles every on-screen pixel, so the "real" width is 2x the CSS px)
     const col = document.querySelector('.Md3f7G_column');
-    if (col) return Math.round(col.getBoundingClientRect().width) + 'px';
+    const dpr = window.devicePixelRatio || 1;
+    if (col) return Math.round(col.getBoundingClientRect().width * dpr) + 'px';
     const root = document.querySelector('.wSkVaW_root');
     const v = root ? getComputedStyle(root).getPropertyValue('--dsh-chat-content-width').trim() : '';
-    return v || 'auto';
+    const n = parseInt(v, 10);
+    return (isNaN(n) ? v : (Math.round(n * dpr) + 'px')) || 'auto';
   };
   const update = () => {
     placeStatus();
