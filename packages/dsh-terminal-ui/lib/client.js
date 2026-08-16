@@ -207,6 +207,8 @@ select {
   max-width: var(--dsh-chat-content-width);
   margin-left: auto;
   margin-right: auto;
+  padding-left: 0;
+  padding-right: 0;
 }
 ._7yHdaG_dock {
   max-width: var(--dsh-chat-content-width);
@@ -369,10 +371,12 @@ input {
   color: #eaf3ff;
 }
 
+
 `;
 
     function apply(ctx) {
       ctx.effect(() => {
+
         const style = document.createElement("style");
         style.setAttribute("data-dsh-terminal-ui", "");
         style.textContent = CSS;
