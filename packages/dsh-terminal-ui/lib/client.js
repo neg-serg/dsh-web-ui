@@ -240,8 +240,15 @@ body[data-ds-dark-theme] {
   white-space: nowrap;
 }
 .cm-root::before {
-  content: "cost ";
-  color: var(--dsw-alias-label-caption);
+  content: "cost";
+  display: inline-block;
+  color: #d1e5ff;
+  background: rgba(54, 123, 191, 0.35);
+  border: 1px solid var(--dsw-alias-border-l2);
+  border-radius: 3px;
+  padding: 0 6px;
+  margin-right: 8px;
+  font-weight: 600;
 }
 .cm-root .cm-num {
   color: var(--dsw-alias-label-primary);
