@@ -227,35 +227,6 @@ body[data-ds-dark-theme] {
   color: var(--dsw-alias-button-info-fill);
 }
 
-/* ── session cost line (self-hosted, replaces dsh-cost-meter) ── */
-.tui-cost-root {
-  display: inline-block;
-  text-align: left;
-  font-family: var(--ds-font-family-code);
-  font-size: 11px;
-  line-height: 20px;
-  color: var(--dsw-alias-label-secondary);
-  padding: 6px 16px 6px 0;
-  white-space: nowrap;
-}
-/* flat squared COST tag — strict, no rounded badge */
-.tui-cost-root::before {
-  content: "COST";
-  display: inline-block;
-  color: var(--dsw-alias-state-business-primary);
-  border: 1px solid var(--dsw-alias-state-business-primary);
-  border-radius: 0;
-  padding: 0 5px;
-  margin-right: 8px;
-  font-weight: 600;
-  letter-spacing: 0.5px;
-  line-height: 14px;
-}
-.tui-cost-root .tui-cost-num {
-  color: var(--dsw-alias-label-primary);
-}
-
-
 /* workspace hover tooltip: theme text instead of hardcoded white */
 .YDXeBa_hoverTitle {
   color: var(--dsw-alias-label-primary);
@@ -268,10 +239,13 @@ body[data-ds-dark-theme] {
   color: var(--dsw-alias-label-tertiary);
 }
 
-/* ── glass blur on the columns (data-pane stamped by dsh-web-ui-all) ── */
+/* ── glass blur on the columns (data-pane stamped by dsh-web-ui-all) ──
+   NOTE: the sidebar column must NOT get a backdrop-filter. Any non-none
+   backdrop-filter on an ancestor creates a containing block for position:fixed
+   descendants, which traps the settings modal (rendered inside the sidebar's
+   settings slot) inside the 279px sidebar and clips it to a narrow strip.
+   Keep the glass on the conversation/details columns only. */
 [data-pane="conversation"],
-[data-pane="sidebar"],
-[class*="sidebarCol"],
 [class*="centerCol"],
 [class*="detailsCol"] {
   backdrop-filter: blur(14px) saturate(1.15);
@@ -1243,77 +1217,6 @@ body.tui-resizing {
   });
 }
         }
-        // ── feature: session cost line (self-hosted, replaces dsh-cost-meter) ──
-        {
-  const fmtTokens = (n) => {
-    const v = Math.max(0, Number(n) || 0);
-    const scaled = (x) => (x >= 100 ? String(Math.round(x)) : String(Math.round(x * 10) / 10));
-    if (v < 1000) return String(Math.round(v));
-    if (v < 1000000) return scaled(v / 1000) + "K";
-    return scaled(v / 1000000) + "M";
-  };
-  const fmtUsd = (v) => {
-    const x = Number(v) || 0;
-    const fixed = x.toFixed(6).replace(/0+$/, "").replace(/\.$/, "");
-    return "$" + (fixed === "" ? "0" : fixed);
-  };
-
-  let costEl = null;
-  let lastText = "";
-
-  const render = (data) => {
-    if (!data) return;
-    const text =
-      "This session " + fmtUsd(data.cost) +
-      " \u00b7 Input " + fmtTokens(data.input) +
-      " \u00b7 Cache " + fmtTokens(data.cache) +
-      " \u00b7 Output " + fmtTokens(data.output);
-    if (!costEl) return;
-    if (costEl.textContent === text) return;
-    costEl.textContent = text;
-    lastText = text;
-  };
-
-  const fetchCost = () => {
-    try {
-      fetch("/terminal-ui/session-cost", { cache: "no-store" })
-        .then((r) => (r.ok ? r.json() : null))
-        .then((data) => render(data))
-        .catch(() => {});
-    } catch (e) { /* fetch failed — retry on next tick */ }
-  };
-
-  // Mount the cost line as a sibling right after the stats line so both sit
-  // on the same console row. The stats line (FJxK0a_root) and this element
-  // are inline-block children of the same container.
-  const mount = () => {
-    const stats = document.querySelector(".FJxK0a_root");
-    if (!stats) return false;
-    const parent = stats.parentElement;
-    if (!parent) return false;
-    if (parent.contains(costEl)) return true;
-    const el = document.createElement("div");
-    el.className = "tui-cost-root";
-    parent.insertBefore(el, stats.nextSibling);
-    costEl = el;
-    fetchCost();
-    return true;
-  };
-
-  if (!mount()) {
-    const mo = new MutationObserver(() => {
-      if (mount()) { fetchCost(); mo.disconnect(); }
-    });
-    mo.observe(document.body, { childList: true, subtree: true });
-    cleanups.push(() => mo.disconnect());
-  }
-
-  const costIv = setInterval(() => {
-    if (costEl && costEl.isConnected) fetchCost();
-    else mount();
-  }, 3000);
-  cleanups.push(() => clearInterval(costIv));
-}
         return () => {
           cleanups.forEach((fn) => fn());
           style.remove();
