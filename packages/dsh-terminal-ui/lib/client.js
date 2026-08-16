@@ -1216,6 +1216,58 @@ body.tui-resizing {
     bodyObs.disconnect();
   });
 }
+        {
+{
+  // tui-no-tps: the harness renders "tok/s" (tokens per second) in the
+  // composer stats line and on each message's actions clock. Strip those
+  // text nodes so no TPS output stays in the web UI.
+  const strip = () => {
+    const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
+    const hits = [];
+    while (walker.nextNode()) {
+      const node = walker.currentNode;
+      if (node.nodeType === 3 && /tok\/s/.test(node.textContent || "")) hits.push(node);
+    }
+    for (const node of hits) {
+      if (!node.isConnected) continue;
+      const parent = node.parentNode;
+      if (!parent || parent.nodeType !== 1) continue;
+      const text = node.textContent || "";
+      const siblings = [...parent.childNodes];
+      const hasOtherContent = siblings.some((c) => c !== node && !(c.nodeType === 3 && c.textContent.trim() === ""));
+      const trailing = text.replace(/\s*·\s*[^·]*?tok\/s\s*$/, "");
+      if (trailing !== text) {
+        // StatsLine group like "TTFT 0.5s · 123 tok/s": drop the trailing segment.
+        node.textContent = trailing;
+        continue;
+      }
+      if (!hasOtherContent) {
+        // The parent element is nothing but the TPS number: drop it and a
+        // preceding "|" separator (StatsLine group).
+        const prev = parent.previousElementSibling;
+        if (prev && prev.getAttribute("aria-hidden") === "true" && prev.textContent.trim() === "|") prev.remove();
+        parent.remove();
+        continue;
+      }
+      // Per-message actions clock: drop the "· 123 tok/s" tail (dot + number).
+      const prevSib = node.previousSibling;
+      if (prevSib && prevSib.nodeType === 1 && prevSib.getAttribute("aria-hidden") === "true" && prevSib.textContent.trim() === "·") prevSib.remove();
+      node.remove();
+    }
+  };
+  strip();
+  let timer = 0;
+  const mo = new MutationObserver(() => {
+    clearTimeout(timer);
+    timer = setTimeout(strip, 300);
+  });
+  mo.observe(document.body, { childList: true, subtree: true, characterData: true });
+  cleanups.push(() => {
+    clearTimeout(timer);
+    mo.disconnect();
+  });
+}
+        }
         }
         return () => {
           cleanups.forEach((fn) => fn());
