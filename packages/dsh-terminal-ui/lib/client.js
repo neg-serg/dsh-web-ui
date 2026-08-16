@@ -465,18 +465,701 @@ input {
 }
 
 
+/* ── feature: feat-6.json ── */
+/* ── network activity indicator (tui) ── */
+.tui-net-indicator {
+  position: fixed;
+  left: 16px;
+  bottom: 40px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 8px;
+  border: 1px solid var(--dsw-alias-border-l1);
+  border-radius: 3px;
+  background: rgba(4, 15, 28, 0.85);
+  font-family: var(--ds-font-family-code);
+  font-size: 10px;
+  line-height: 1;
+  color: var(--dsw-alias-label-tertiary);
+  z-index: 9999;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 120ms ease, visibility 120ms ease;
+  pointer-events: none;
+}
+.tui-net-indicator.tui-net-active {
+  opacity: 1;
+  visibility: visible;
+}
+.tui-net-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 4px;
+  background: var(--dsw-alias-state-success-primary);
+  flex: none;
+}
+.tui-net-indicator.tui-net-active .tui-net-dot {
+  animation: tui-net-pulse 1s ease-in-out infinite;
+}
+@keyframes tui-net-pulse {
+  0%, 100% {
+    opacity: 1;
+    box-shadow: 0 0 2px var(--dsw-alias-state-success-primary);
+  }
+  50% {
+    opacity: 0.35;
+    box-shadow: 0 0 8px var(--dsw-alias-state-success-primary);
+  }
+}
+
+/* ── feature: feat-8.json ── */
+/* chat column drag-resize handle (console style) */
+.wSkVaW_root {
+  position: relative;
+}
+.tui-resize-handle {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 6px;
+  cursor: col-resize;
+  z-index: 1000;
+  background: transparent;
+}
+.tui-resize-handle::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 2px;
+  width: 2px;
+  background: var(--dsw-alias-border-l1);
+  transition: background 0.15s ease;
+}
+.tui-resize-handle:hover::after,
+body.tui-resizing .tui-resize-handle::after {
+  background: var(--dsw-alias-brand-primary);
+}
+body.tui-resizing {
+  cursor: col-resize;
+  user-select: none;
+}
+/* ── feature: feat-9.json ── */
+.tui-export-btn {
+  margin-left: auto;
+  font-family: var(--ds-font-family-code);
+  font-size: 12px;
+  line-height: 20px;
+  color: var(--dsw-alias-label-secondary);
+  background: transparent;
+  border: 1px solid var(--dsw-alias-border-l1);
+  border-radius: 3px;
+  padding: 2px 8px;
+  cursor: pointer;
+  flex: none;
+  white-space: nowrap;
+}
+.tui-export-btn:hover {
+  color: var(--dsw-alias-label-primary);
+  border-color: var(--dsw-alias-state-success-primary);
+  background: rgba(255, 255, 255, 0.06);
+}
+.tui-export-btn:active {
+  transform: translateY(1px);
+}
+/* ── feature: feat-10.json ── */
+/* ── vim-style status line above the composer (feature: active session) ── */
+.tui-statusline {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  flex: none;
+  width: 100%;
+  max-width: var(--dsh-chat-content-width, 1184px);
+  margin: 0 auto;
+  padding: 2px 8px 4px;
+  box-sizing: border-box;
+  font-family: var(--ds-font-family-code), monospace;
+  font-size: 11px;
+  line-height: 16px;
+  color: var(--dsw-alias-label-tertiary);
+  border-top: 1px solid var(--dsw-alias-border-l1);
+  white-space: nowrap;
+  overflow: hidden;
+  user-select: none;
+}
+.tui-statusline .tui-sl-left {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.tui-statusline .tui-sl-left::before {
+  content: "session";
+  color: var(--dsw-alias-label-caption);
+  margin-right: 6px;
+}
+.tui-statusline .tui-sl-right {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--dsw-alias-label-caption);
+}
+.tui-statusline .tui-sl-sep {
+  color: var(--dsw-alias-border-l1);
+}
+
+/* ── feature: feat-5.json ── */
+/* tui-search: Ctrl+F terminal-style find */
+.tui-search {
+  position: fixed;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 100;
+  display: none;
+  align-items: center;
+  gap: 10px;
+  box-sizing: border-box;
+  width: min(520px, 70vw);
+  padding: 6px 12px;
+  background: var(--dsw-specific-menu);
+  border: 1px solid var(--dsw-alias-border-l1);
+  border-radius: 4px;
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.5);
+  font-family: var(--ds-font-family-code);
+}
+.tui-search-input {
+  flex: 1;
+  min-width: 0;
+  background: rgba(4, 15, 28, 0.6);
+  color: var(--dsw-alias-label-primary);
+  border: 1px solid var(--dsw-alias-border-l2);
+  border-radius: 3px;
+  padding: 3px 8px;
+  font-family: var(--ds-font-family-code);
+  font-size: 12px;
+  line-height: 18px;
+}
+.tui-search-input:focus {
+  outline: none;
+  border-color: var(--dsw-alias-state-business-primary);
+}
+.tui-search-counter {
+  color: var(--dsw-alias-label-secondary);
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.tui-search-hint {
+  color: var(--dsw-alias-label-tertiary);
+  font-size: 11px;
+  white-space: nowrap;
+}
+/* match highlights on message rows (no DOM text wrapping — React-safe) */
+.Md3f7G_flowItem.tui-match {
+  background: rgba(54, 123, 191, 0.20);
+}
+.Md3f7G_flowItem.tui-match-current {
+  background: rgba(54, 123, 191, 0.40);
+  box-shadow: inset 3px 0 0 var(--dsw-alias-state-business-primary);
+}
+
 `;
 
     function apply(ctx) {
       ctx.effect(() => {
-
-
-
         const style = document.createElement("style");
         style.setAttribute("data-dsh-terminal-ui", "");
         style.textContent = CSS;
         document.head.appendChild(style);
+        // Feature cleanup registry — each injected feature registers its
+        // teardown here (see the tui-* feature blocks below).
+        const cleanups = [];
+        // ── feature: feat-5.json ──
+        {
+{
+  // tui-search: Ctrl+F terminal-style find over message rows
+  const BAR_ID = 'tui-search-bar';
+  if (!document.getElementById(BAR_ID)) {
+    const bar = document.createElement('div');
+    bar.id = BAR_ID;
+    bar.className = 'tui-search';
+    const input = document.createElement('input');
+    input.type = 'text';
+    input.className = 'tui-search-input';
+    input.setAttribute('placeholder', 'поиск в чате…');
+    input.setAttribute('spellcheck', 'false');
+    input.setAttribute('autocomplete', 'off');
+    const counter = document.createElement('span');
+    counter.className = 'tui-search-counter';
+    const hint = document.createElement('span');
+    hint.className = 'tui-search-hint';
+    hint.textContent = 'Enter — дальше · Esc — закрыть';
+    bar.appendChild(input);
+    bar.appendChild(counter);
+    bar.appendChild(hint);
+    document.body.appendChild(bar);
+
+    let matches = [];
+    let current = -1;
+
+    const flowItems = () => Array.from(document.querySelectorAll('.Md3f7G_flowItem'));
+
+    const clearHighlights = () => {
+      flowItems().forEach((el) => {
+        el.classList.remove('tui-match', 'tui-match-current');
+      });
+    };
+
+    const focusMatch = (idx, doScroll) => {
+      current = idx;
+      matches.forEach((el, i) => {
+        el.classList.toggle('tui-match-current', i === current);
+      });
+      const m = matches[current];
+      if (m) {
+        if (doScroll) m.scrollIntoView({ block: 'center', behavior: 'smooth' });
+        counter.textContent = (current + 1) + '/' + matches.length;
+      }
+    };
+
+    const runSearch = () => {
+      const q = input.value.trim().toLowerCase();
+      clearHighlights();
+      matches = [];
+      current = -1;
+      if (!q) {
+        counter.textContent = '';
+        return;
+      }
+      matches = flowItems().filter((el) => {
+        const t = el.textContent;
+        return t && t.toLowerCase().includes(q);
+      });
+      matches.forEach((el) => el.classList.add('tui-match'));
+      if (matches.length) {
+        counter.textContent = '1/' + matches.length;
+        focusMatch(0, false);
+      } else {
+        counter.textContent = '0/0';
+      }
+    };
+
+    const nextMatch = () => {
+      if (!matches.length) return;
+      const idx = current < 0 ? 0 : (current + 1) % matches.length;
+      focusMatch(idx, true);
+    };
+
+    const close = () => {
+      clearHighlights();
+      bar.style.display = 'none';
+      input.value = '';
+      matches = [];
+      current = -1;
+      counter.textContent = '';
+    };
+
+    const open = () => {
+      const seat = document.querySelector('[data-composer-seat]');
+      if (seat) {
+        const r = seat.getBoundingClientRect();
+        const vh = window.innerHeight || document.documentElement.clientHeight;
+        bar.style.bottom = Math.max(8, vh - r.top + 12) + 'px';
+      } else {
+        bar.style.bottom = '200px';
+      }
+      bar.style.display = 'flex';
+      input.focus();
+      input.select();
+      runSearch();
+    };
+
+    input.addEventListener('input', runSearch);
+    input.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        nextMatch();
+      } else if (e.key === 'Escape') {
+        e.preventDefault();
+        close();
+      }
+    });
+
+    const onGlobalKey = (e) => {
+      const t = e.target;
+      if (t && t.classList && t.classList.contains('tui-search-input')) {
+        e.preventDefault();
+        input.focus();
+        input.select();
+        return;
+      }
+      if (!(e.ctrlKey || e.metaKey)) return;
+      const k = e.key.toLowerCase();
+      if (k !== 'f' && k !== 'ф') return;
+      const tag = t && (t.tagName || '');
+      if (tag === 'INPUT' || tag === 'TEXTAREA' || (t && t.isContentEditable)) return;
+      e.preventDefault();
+      open();
+    };
+    document.addEventListener('keydown', onGlobalKey, true);
+
+    cleanups.push(() => {
+      document.removeEventListener('keydown', onGlobalKey, true);
+      bar.remove();
+      clearHighlights();
+    });
+  }
+}
+
+        }
+        // ── feature: feat-6.json ──
+        {
+{
+  // ── network activity indicator (tui) ──
+  const indicator = document.createElement("div");
+  indicator.className = "tui-net-indicator";
+  indicator.innerHTML = '<span class="tui-net-dot"></span><span>net</span>';
+  document.body.appendChild(indicator);
+
+  let active = 0;
+  let hideTimer = null;
+
+  const show = () => {
+    indicator.classList.add("tui-net-active");
+  };
+  const hide = () => {
+    indicator.classList.remove("tui-net-active");
+  };
+  const track = () => {
+    active += 1;
+    clearTimeout(hideTimer);
+    show();
+  };
+  const untrack = () => {
+    active = Math.max(0, active - 1);
+    if (active === 0) {
+      clearTimeout(hideTimer);
+      hideTimer = setTimeout(hide, 150);
+    }
+  };
+
+  if (!window.__tuiNetPatched) {
+    window.__tuiNetPatched = true;
+    window.__tuiNetOriginals = {};
+
+    const origFetch = window.fetch;
+    if (typeof origFetch === "function") {
+      window.__tuiNetOriginals.fetch = origFetch;
+      window.fetch = function (...args) {
+        track();
+        return origFetch.apply(this, args).then(
+          (res) => {
+            untrack();
+            return res;
+          },
+          (err) => {
+            untrack();
+            throw err;
+          }
+        );
+      };
+    }
+
+    const XHR = window.XMLHttpRequest;
+    if (XHR && XHR.prototype) {
+      window.__tuiNetOriginals.xhrOpen = XHR.prototype.open;
+      window.__tuiNetOriginals.xhrSend = XHR.prototype.send;
+      XHR.prototype.open = function (...args) {
+        this.__tuiNetTracked = false;
+        return window.__tuiNetOriginals.xhrOpen.apply(this, args);
+      };
+      XHR.prototype.send = function (...args) {
+        if (!this.__tuiNetTracked) {
+          this.__tuiNetTracked = true;
+          track();
+          this.addEventListener("loadend", untrack, { once: true });
+        }
+        return window.__tuiNetOriginals.xhrSend.apply(this, args);
+      };
+    }
+
+    const WS = window.WebSocket;
+    if (WS && WS.prototype) {
+      window.__tuiNetOriginals.wsSend = WS.prototype.send;
+      WS.prototype.send = function (...args) {
+        track();
+        setTimeout(untrack, 60);
+        return window.__tuiNetOriginals.wsSend.apply(this, args);
+      };
+    }
+  }
+
+  cleanups.push(() => {
+    clearTimeout(hideTimer);
+    if (indicator.parentNode) {
+      indicator.parentNode.removeChild(indicator);
+    }
+    if (window.__tuiNetPatched && window.__tuiNetOriginals) {
+      const o = window.__tuiNetOriginals;
+      if (o.fetch) window.fetch = o.fetch;
+      if (o.xhrOpen) window.XMLHttpRequest.prototype.open = o.xhrOpen;
+      if (o.xhrSend) window.XMLHttpRequest.prototype.send = o.xhrSend;
+      if (o.wsSend) window.WebSocket.prototype.send = o.wsSend;
+      delete window.__tuiNetOriginals;
+      delete window.__tuiNetPatched;
+    }
+  });
+}
+
+        }
+        // ── feature: feat-8.json ──
+        {
+{
+  const STORAGE_KEY = "tui-chat-width";
+  const MIN = 520;
+  const MAX = 1600;
+  let root = document.querySelector(".wSkVaW_root");
+  let handle = null;
+
+  const clamp = (v) => Math.min(MAX, Math.max(MIN, v));
+
+  const applyWidth = (w) => {
+    if (!root) return;
+    root.style.setProperty("--dsh-chat-content-width", clamp(w) + "px");
+  };
+
+  const column = () => root ? root.querySelector(".Md3f7G_column") : null;
+
+  const currentWidth = () => {
+    const col = column();
+    if (col) return col.getBoundingClientRect().width;
+    return root ? root.getBoundingClientRect().width : MIN;
+  };
+
+  // keep the handle glued to the column's right edge (column is centered)
+  const positionHandle = () => {
+    if (!root || !handle) return;
+    const col = column();
+    const ref = col || root;
+    const rr = root.getBoundingClientRect();
+    handle.style.left = Math.round(ref.getBoundingClientRect().right - rr.left - 3) + "px";
+  };
+
+  const ensureHandle = () => {
+    if (!root || handle) return;
+    handle = document.createElement("div");
+    handle.className = "tui-resize-handle";
+    root.appendChild(handle);
+
+    const onDown = (e) => {
+      e.preventDefault();
+      document.body.classList.add("tui-resizing");
+      const startX = e.clientX;
+      const startW = currentWidth();
+      const onMove = (ev) => {
+        applyWidth(startW + (ev.clientX - startX));
+        positionHandle();
+      };
+      const onUp = () => {
+        document.body.classList.remove("tui-resizing");
+        document.removeEventListener("mousemove", onMove);
+        document.removeEventListener("mouseup", onUp);
+        const cur = root.style.getPropertyValue("--dsh-chat-content-width");
+        if (cur) localStorage.setItem(STORAGE_KEY, cur.replace("px", ""));
+      };
+      document.addEventListener("mousemove", onMove);
+      document.addEventListener("mouseup", onUp);
+      cleanups.push(() => {
+        document.removeEventListener("mousemove", onMove);
+        document.removeEventListener("mouseup", onUp);
+      });
+    };
+    handle.addEventListener("mousedown", onDown);
+    cleanups.push(() => handle.removeEventListener("mousedown", onDown));
+  };
+
+  const init = () => {
+    root = document.querySelector(".wSkVaW_root");
+    if (!root) return;
+    const saved = localStorage.getItem(STORAGE_KEY);
+    if (saved) applyWidth(parseInt(saved, 10));
+    ensureHandle();
+    positionHandle();
+  };
+
+  // the root mounts late (React); retry briefly, then keep watching
+  let tries = 0;
+  const attempt = () => {
+    if (root || tries++ >= 40) return init();
+    setTimeout(attempt, 500);
+  };
+  attempt();
+
+  const mo = new MutationObserver(() => {
+    if (!root) {
+      root = document.querySelector(".wSkVaW_root");
+      if (root) init();
+    }
+  });
+  mo.observe(document.body, { childList: true, subtree: true });
+  cleanups.push(() => mo.disconnect());
+
+  const onResize = () => positionHandle();
+  window.addEventListener("resize", onResize);
+  cleanups.push(() => window.removeEventListener("resize", onResize));
+}
+        }
+        // ── feature: feat-9.json ──
+        {
+{
+  const btn = document.createElement("button");
+  btn.type = "button";
+  btn.className = "tui-export-btn";
+  btn.title = "Export conversation as Markdown";
+  btn.textContent = "\u2b07 md";
+
+  const mount = () => {
+    const header = document.querySelector(".wSkVaW_header");
+    if (!header || header.contains(btn)) return false;
+    header.appendChild(btn);
+    return true;
+  };
+
+  if (!mount()) {
+    const mo = new MutationObserver(() => { if (mount()) mo.disconnect(); });
+    mo.observe(document.body, { childList: true, subtree: true });
+    cleanups.push(() => mo.disconnect());
+  }
+
+  btn.addEventListener("click", () => {
+    try {
+      const titleEl = document.querySelector('.wSkVaW_header [class$="_title"]');
+      const title = titleEl ? titleEl.textContent.replace(/\s+/g, " ").trim() : "dsh conversation";
+      const parts = [];
+      const push = (t) => { const x = t.replace(/\s+/g, " ").trim(); if (x) parts.push(x); };
+
+      document.querySelectorAll(".Md3f7G_flowItem").forEach((item) => {
+        const userRow = item.querySelector(".gdEzaW_userRow");
+        const asstRoot = item.querySelector(".Sxvs8a_root");
+        if (userRow) push("\u276f " + userRow.textContent);
+        else if (asstRoot) push(asstRoot.textContent);
+        // tool rows inside the item that are NOT part of the assistant body
+        item.querySelectorAll(".Md3f7G_callRow").forEach((row) => {
+          if (row.closest(".Sxvs8a_root")) return;
+          push("$ " + row.textContent);
+        });
+      });
+      // standalone tool rows (direct children of the message column)
+      document.querySelectorAll(".Md3f7G_column > .Md3f7G_callRow").forEach((row) => {
+        push("$ " + row.textContent);
+      });
+
+      if (parts.length === 0) return;
+      const stamp = new Date().toISOString().replace(/[:.]/g, "-").slice(0, 19);
+      const md = "# " + title + "\n\n" + parts.join("\n\n") + "\n";
+      const blob = new Blob([md], { type: "text/markdown;charset=utf-8" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "dsh-export-" + stamp + ".md";
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+    } catch (e) {
+      /* export failed silently — no messages or DOM changed mid-click */
+    }
+  });
+}
+        }
+        // ── feature: feat-10.json ──
+        {
+{
+  const mkStatus = () => {
+    let el = document.querySelector('.tui-statusline');
+    if (!el) {
+      el = document.createElement('div');
+      el.className = 'tui-statusline';
+      const left = document.createElement('span');
+      left.className = 'tui-sl-left';
+      const right = document.createElement('span');
+      right.className = 'tui-sl-right';
+      el.append(left, right);
+      document.body.appendChild(el);
+    }
+    return el;
+  };
+  const placeStatus = () => {
+    const el = mkStatus();
+    const seat = document.querySelector('[data-composer-seat]');
+    const root = document.querySelector('.wSkVaW_root');
+    if (seat) {
+      if (el.previousElementSibling !== seat) seat.parentNode.insertBefore(el, seat);
+    } else if (root && el.parentNode !== root) {
+      root.appendChild(el);
+    }
+  };
+  const pickText = (sel) => {
+    const n = document.querySelector(sel);
+    if (!n) return '';
+    return (n.textContent || '').trim();
+  };
+  const sessionName = () =>
+    pickText('.YDXeBa_sessionRow.YDXeBa_selected .YDXeBa_title')
+    || pickText('.YDXeBa_sessionRow .YDXeBa_title')
+    || pickText('.wSkVaW_header [class$="_title"]')
+    || '—';
+  const columnWidth = () => {
+    const col = document.querySelector('.Md3f7G_column');
+    if (col) return Math.round(col.getBoundingClientRect().width) + 'px';
+    const root = document.querySelector('.wSkVaW_root');
+    const v = root ? getComputedStyle(root).getPropertyValue('--dsh-chat-content-width').trim() : '';
+    return v || 'auto';
+  };
+  const update = () => {
+    placeStatus();
+    const el = mkStatus();
+    const left = el.querySelector('.tui-sl-left');
+    const right = el.querySelector('.tui-sl-right');
+    if (!left || !right) return;
+    left.textContent = sessionName();
+    right.textContent = '';
+    const parts = ['tui', 'neg-dark', columnWidth()];
+    for (let i = 0; i < parts.length; i++) {
+      if (i > 0) {
+        const sep = document.createElement('span');
+        sep.className = 'tui-sl-sep';
+        sep.textContent = '·';
+        right.appendChild(sep);
+      }
+      const s = document.createElement('span');
+      s.textContent = parts[i];
+      right.appendChild(s);
+    }
+  };
+  let debounce = 0;
+  const schedule = () => { clearTimeout(debounce); debounce = setTimeout(update, 300); };
+  placeStatus();
+  update();
+  const sideObs = new MutationObserver(schedule);
+  const side = document.querySelector('[data-pane="sidebar"]');
+  if (side) sideObs.observe(side, { childList: true, subtree: true });
+  const bodyObs = new MutationObserver(schedule);
+  bodyObs.observe(document.body, { childList: true, subtree: true });
+  const iv = setInterval(update, 2000);
+  cleanups.push(() => {
+    clearTimeout(debounce);
+    clearInterval(iv);
+    sideObs.disconnect();
+    bodyObs.disconnect();
+  });
+}
+        }
         return () => {
+          cleanups.forEach((fn) => fn());
           style.remove();
         };
       });
