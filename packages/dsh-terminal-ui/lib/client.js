@@ -186,8 +186,8 @@ body[data-ds-dark-theme] {
   border-left: 3px solid var(--dsw-alias-state-business-primary);
   border-radius: 10px;
   color: var(--dsw-alias-label-primary-dimmed);
-  font-size: 13.5px;
-  line-height: 22px;
+  font-size: 14px;
+  line-height: 23px;
 }
 [data-variant="think"] .QWLzlG_row {
   margin: 0;
@@ -240,8 +240,9 @@ body[data-ds-dark-theme] {
   color: var(--dsw-alias-button-info-fill);
 }
 
-/* docked: bold slash crossing the full panel height, in the same dark
-   color as the composer input frame (#002c52, see .uV2eYG_card) */
+/* docked: bold slash crossing the full panel height, in kitty color25
+   (#005faf, see /etc/nixos/files/kitty/theme.conf) — the status-row
+   separators match the kitty accent */
 .FJxK0a_root.tui-docked-stats .FJxK0a_sep {
   position: relative;
   align-self: stretch;
@@ -257,9 +258,9 @@ body[data-ds-dark-theme] {
   bottom: -3px;
   width: 3px;
   transform: translateX(-50%) rotate(28deg);
-  background: linear-gradient(180deg, transparent, #002c52 25%, #002c52 75%, transparent);
+  background: linear-gradient(180deg, transparent, #005faf 25%, #005faf 75%, transparent);
   border-radius: 2px;
-  box-shadow: 0 0 6px rgba(0, 44, 82, 0.35);
+  box-shadow: 0 0 6px rgba(0, 95, 175, 0.4);
 }
 
 /* ── session stats line docked into the composer row ──
@@ -290,9 +291,9 @@ body[data-ds-dark-theme] {
   overflow: visible;
   white-space: normal;
   font-family: var(--ds-font-family-code);
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 500;
-  line-height: 20px;
+  line-height: 21px;
   color: var(--dsw-alias-label-secondary);
 }
 .FJxK0a_root.tui-docked-stats::before {
