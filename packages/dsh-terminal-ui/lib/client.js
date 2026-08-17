@@ -224,6 +224,29 @@ body[data-ds-dark-theme] {
   color: var(--dsw-alias-button-info-fill);
 }
 
+/* ── session stats line docked into the composer row ──
+   The stock stats line (turns/steps/LLM·tool time/TTFT/cache) renders as a
+   full-width bar under the composer card; the JS feature below moves it into
+   the input card's bottom row (uV2eYG_row), at the left where the "Full
+   access" button sits, so it reads as part of the terminal status row. */
+.FJxK0a_root.tui-docked-stats {
+  display: inline-flex !important;
+  align-items: center;
+  border-top: none;
+  background: transparent;
+  padding: 0 10px 0 0;
+  margin: 0;
+  flex: 0 1 auto;
+  min-width: 0;
+  max-width: 45%;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.FJxK0a_root.tui-docked-stats::before {
+  content: "";
+}
+
 /* workspace hover tooltip: theme text instead of hardcoded white */
 .YDXeBa_hoverTitle {
   color: var(--dsw-alias-label-primary);
@@ -737,6 +760,7 @@ button[aria-label="Add workspace"] {
   overflow: hidden;
   text-overflow: ellipsis;
 }
+
 `;
 
     function apply(ctx) {
@@ -1085,6 +1109,9 @@ button[aria-label="Add workspace"] {
           // Keyboard replacements for the hidden composer buttons:
           //   Esc      → stop the run (stop button is rendered only while a
           //              run is in flight)
+          //   Ctrl+C   → terminal-style interrupt: stop the run; copy keeps
+          //              priority (selection in the composer/page, or focus
+          //              in another field — the browser owns Ctrl+C there)
           //   Ctrl+M   → open the model picker (the hidden [aria-haspopup="menu"]
           //              trigger; arrows/Enter work inside the picker)
           // Bubble-phase listener: React's own key handlers (popup dismissal,
@@ -1100,6 +1127,21 @@ button[aria-label="Add workspace"] {
               const ae = document.activeElement;
               const aeLabel = ae && ae.getAttribute("aria-label");
               if (ae && ae.tagName === "INPUT" && EDIT_LABELS.includes(aeLabel)) return;
+              const composer = document.querySelector("[data-composer-card]");
+              const stop = composer && composer.querySelector(STOP);
+              if (stop && !stop.disabled) {
+                e.preventDefault();
+                stop.click();
+              }
+              return;
+            }
+            if ((e.ctrlKey || e.metaKey) && e.code === "KeyC") {
+              const ta = document.querySelector("[data-composer-card] textarea");
+              const ae = document.activeElement;
+              const composerSel = ta !== null && ta.selectionStart !== ta.selectionEnd;
+              const pageSel = window.getSelection() && window.getSelection().toString() !== "";
+              const otherField = ae !== null && ae !== document.body && ae !== ta;
+              if (composerSel || pageSel || otherField) return;
               const composer = document.querySelector("[data-composer-card]");
               const stop = composer && composer.querySelector(STOP);
               if (stop && !stop.disabled) {
@@ -1300,6 +1342,29 @@ button[aria-label="Add workspace"] {
           check();
           cleanups.push(() => { stopped = true; clearInterval(timer); });
         }
+        // ── feature: dock session stats line into the composer row ──
+        // The stock stats line (session stats: turns/steps/LLM time/TTFT/
+        // cache hit) renders as a full-width bar under the composer card.
+        // Move it into the card's bottom row (uV2eYG_row), at the left where
+        // the "Full access" button sits, so it reads as part of the terminal
+        // status row. React updates the node in place; the observer re-docks
+        // it after full re-mounts (session switches, re-renders).
+        {
+          const dock = () => {
+            const stats = document.querySelector(".FJxK0a_root");
+            if (!stats) return;
+            const row = document.querySelector(".uV2eYG_row");
+            if (!row || row.contains(stats)) return;
+            stats.classList.add("tui-docked-stats");
+            const tools = row.querySelector(".uV2eYG_tools");
+            (tools || row).insertBefore(stats, (tools || row).firstChild);
+          };
+          dock();
+          const mo = new MutationObserver(dock);
+          mo.observe(document.body, { childList: true, subtree: true });
+          cleanups.push(() => mo.disconnect());
+        }
+
         // ── feature: kill the 56px sidebar rail on collapse ──
         // The layout service resolves a closed sidebar preference to the
         // compact icon rail (56px) and the AppFrame bakes it into the
@@ -1368,6 +1433,25 @@ button[aria-label="Add workspace"] {
           const cur = items.findIndex((el) => el.getAttribute("aria-selected") === "true");
           const idx = cur === -1 ? (dir === 1 ? 0 : items.length - 1) : (cur + dir + items.length) % items.length;
           items[idx]?.click();
+        };
+        // Archive the current session durably, then land on the first
+        // remaining session (the archived row disappears from the list) or
+        // start a fresh one when nothing is left. Archiving the current
+        // session clears `current` in the sessions store, so we must switch
+        // explicitly (the sidebar archive flow relies on the same store).
+        const archiveCurrent = async () => {
+          const cur = scope.sessions.list.getSnapshot().current;
+          if (cur === void 0) return;
+          try {
+            await scope.workspaces.archiveSession(cur);
+          } catch {
+            return; // unknown session or persistence failure — leave as is
+          }
+          requestAnimationFrame(() => {
+            const items = sessionRows();
+            if (items.length > 0) items[0].click();
+            else scope.workspaces.startSession();
+          });
         };
         // ── step 9 helpers: trajectory view, panels, settings ──
         // Chat/Trajectory are plain [role="tab"] buttons (their row is CSS-
@@ -1461,6 +1545,11 @@ button[aria-label="Add workspace"] {
             cycle(-1);
             return "handled";
           }
+          if (trimmed === "/archive") {
+            consume(session, { kind: "bare-token", token: trimmed });
+            void archiveCurrent();
+            return "handled";
+          }
           if (trimmed === "/session" || trimmed.startsWith("/session ")) {
             // Bare "/session" is consumed but does nothing; with a query it
             // opens the best match. Consumed either way — the line is a
@@ -1501,6 +1590,7 @@ button[aria-label="Add workspace"] {
           { name: "session", description: "перейти к сессии по имени: /session <имя>" },
           { name: "next", description: "следующая сессия" },
           { name: "prev", description: "предыдущая сессия" },
+          { name: "archive", description: "архивировать текущую сессию" },
           { name: "trajectory", description: "переключить вид: траектория/чат" },
           { name: "sidebar", description: "показать/скрыть левую панель" },
           { name: "details", description: "показать/скрыть правую панель" },
@@ -1526,6 +1616,7 @@ button[aria-label="Add workspace"] {
             if (name === "new") scope.workspaces.startSession();
             else if (name === "next") cycle(1);
             else if (name === "prev") cycle(-1);
+            else if (name === "archive") void archiveCurrent();
             else if (name === "trajectory") toggleView("trajectory");
             else if (name === "sidebar") toggleSidebar();
             else if (name === "details") toggleDetails();
@@ -1568,6 +1659,49 @@ button[aria-label="Add workspace"] {
           clearTimeout(settle);
           unsub();
         }, "tui: session-end scroll");
+      });
+
+      // ── feature: autofocus the composer input ──
+      // Focus the composer textarea immediately: on page load (retrying while
+      // the composer mounts late) and whenever the active session changes
+      // (sidebar click, Ctrl+Alt+J/K, /session, /next, /prev, /new). Never
+      // steals focus from an open modal or from another text field (sidebar
+      // search, dialogs) the user is typing in.
+      ctx.inject(["sessions"], (scope) => {
+        const list = scope.sessions.list;
+        const isTypingElsewhere = () => {
+          const ae = document.activeElement;
+          if (!ae || ae === document.body) return false;
+          const tag = ae.tagName;
+          return tag === "INPUT" || tag === "TEXTAREA" || ae.isContentEditable === true;
+        };
+        const focusInput = () => {
+          if (document.querySelector('[aria-modal="true"]')) return;
+          if (isTypingElsewhere()) return;
+          const ta = document.querySelector("[data-composer-card] textarea");
+          if (ta && !ta.disabled) ta.focus();
+        };
+        // On load: the composer mounts late — retry briefly.
+        let tries = 0;
+        const boot = setInterval(() => {
+          if (tries++ >= 12) { clearInterval(boot); return; }
+          if (document.querySelector("[data-composer-card] textarea")) {
+            clearInterval(boot);
+            focusInput();
+          }
+        }, 250);
+        // On session switch: refocus after React renders the new session.
+        let prev = list.getSnapshot().current;
+        const unsub = list.subscribe(() => {
+          const cur = list.getSnapshot().current;
+          if (cur === prev) return;
+          prev = cur;
+          requestAnimationFrame(() => requestAnimationFrame(focusInput));
+        });
+        ctx.effect(() => () => {
+          clearInterval(boot);
+          unsub();
+        }, "tui: composer autofocus");
       });
 
       // ── feature: buttons-to-commands (step 8): /session name autocomplete ──
