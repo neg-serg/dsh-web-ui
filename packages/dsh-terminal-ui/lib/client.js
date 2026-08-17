@@ -259,7 +259,7 @@ body[data-ds-dark-theme] {
 .FJxK0a_root.tui-docked-stats::before {
   content: "";
 }
-/* stat group cells: pictogram + value, "·" subgroups stay inline */
+/* stat group cells: Material icon + value, "·" subgroups stay inline */
 .FJxK0a_root.tui-docked-stats > span:not(.FJxK0a_sep) {
   display: inline-flex;
   align-items: center;
@@ -267,31 +267,35 @@ body[data-ds-dark-theme] {
   padding: 0 2px;
   white-space: nowrap;
 }
-/* Nerd Font pictogram per group (tagged by the dock feature) */
+/* Material icon per group (tagged by the dock feature). Inline SVG data
+   URIs — crisp at any size, same 24px Material grid scaled to 14px, one
+   consistent glyph language across the whole status chip. */
 .FJxK0a_root.tui-docked-stats > span[data-stat]::before {
-  font-family: "FiraCode Nerd Font", "Iosevka Nerd Font", var(--ds-font-family-code);
-  font-size: 13px;
-  line-height: 1;
+  content: "";
+  width: 14px;
+  height: 14px;
+  flex: none;
+  background: center / contain no-repeat;
 }
 .FJxK0a_root.tui-docked-stats > span[data-stat="counts"]::before {
-  content: "󰔄"; /* nf-md-autorenew — turns/steps cycle */
-  color: var(--dsw-alias-state-success-primary);
+  /* material: autorenew — turns/steps cycle */
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%2337b393'%3E%3Cpath d='M12 6v3l4-4-4-4v3c-4.42 0-8 3.58-8 8 0 1.57.46 3.03 1.24 4.26L6.7 14.8A5.87 5.87 0 0 1 6 12c0-3.31 2.69-6 6-6zm6.76 1.74L17.3 9.2c.44.84.7 1.79.7 2.8 0 3.31-2.69 6-6 6v-3l-4 4 4 4v-3c4.42 0 8-3.58 8-8 0-1.57-.46-3.03-1.24-4.26z'/%3E%3C/svg%3E");
 }
 .FJxK0a_root.tui-docked-stats > span[data-stat="durations"]::before {
-  content: "󰅐"; /* nf-md-timer — LLM / tool wall time */
-  color: var(--dsw-alias-state-business-primary);
+  /* material: schedule — LLM / tool wall time */
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23367bbf'%3E%3Cpath d='M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67z'/%3E%3C/svg%3E");
 }
 .FJxK0a_root.tui-docked-stats > span[data-stat="speeds"]::before {
-  content: "󰥔"; /* nf-md-clock-outline — TTFT latency */
-  color: var(--dsw-alias-state-warn-primary);
+  /* material: bolt — TTFT latency */
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23c8a8ef'%3E%3Cpath d='M11 21h-1l1-7H7.5c-.58 0-.57-.32-.38-.66.19-.34.05-.08.07-.12C8.48 10.94 10.42 7.54 13 3h1l-1 7h3.5c.49 0 .56.33.47.51l-.07.15C12.96 17.55 11 21 11 21z'/%3E%3C/svg%3E");
 }
 .FJxK0a_root.tui-docked-stats > span[data-stat="cache"]::before {
-  content: "󰚲"; /* nf-md-database-outline — cache hit share */
-  color: #9bb1ce;
+  /* material: check_circle — cache hit share */
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%239bb1ce'%3E%3Cpath d='M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z'/%3E%3C/svg%3E");
 }
 .FJxK0a_root.tui-docked-stats > span[data-stat="tokens"]::before {
-  content: "󰈙"; /* nf-md-file-document — token counts */
-  color: var(--dsw-alias-label-secondary);
+  /* material: token — token counts */
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%236d839e'%3E%3Cpath d='M12 2l7 4v6c0 4.5-3 8-7 10-4-2-7-5.5-7-10V6l7-4zm0 4.5L7.5 8.5V12c0 2.9 1.9 5.4 4.5 6.4 2.6-1 4.5-3.5 4.5-6.4V8.5L12 6.5z'/%3E%3C/svg%3E");
 }
 
 /* ── context meter: same chip treatment as the stats cluster ──
@@ -887,149 +891,54 @@ button[aria-label="Check for updates"] {
   text-overflow: ellipsis;
 }
 
-/* ── tui-jsondock: system-status chips under the composer ──
-   A row of compact chips (Nerd Font pictogram + short value), one per JSON
-   source served by the host half at /terminal-ui/json/<name>. Clicking a
-   chip opens the .tui-jsondock-popup panel with a rendered detail view.
-   Chips get data-state="ok|warn|error" (set by the JS feature) to tint the
-   frame — e.g. red when a systemd unit failed or a sensor is hot. */
-.tui-jsondock {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 4px;
-  align-items: center;
-  box-sizing: border-box;
-  width: 100%;
-  max-width: var(--dsh-chat-content-width, 1184px);
-  margin: 0 auto;
-  padding: 4px 12px 0;
+/* ── tui-jsonfmt: syntax-highlighted JSON in tool-call IN/OUT cards ──
+   The JS feature rewrites .o3BgMG_ioText nodes whose text is valid JSON
+   into a highlighted, pretty-printed form: colored tokens (keys / strings /
+   numbers / booleans / null), two-space indent, and a collapse marker on
+   long payloads (click to expand, Nerd Font chevron). The block keeps the
+   base pre-wrap layout; only token colors are added. */
+.o3BgMG_ioText.tui-json {
+  font-variant-ligatures: none;
 }
-.tui-jsondock-chip {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  padding: 1px 8px;
-  background: rgba(4, 15, 28, 0.72);
-  border: 1px solid var(--dsw-alias-border-l1);
-  border-radius: 0; /* strict: squared, like the theme's other chips */
-  font-family: var(--ds-font-family-code);
-  font-size: 11px;
-  line-height: 18px;
-  color: var(--dsw-alias-label-secondary);
-  cursor: pointer;
-  white-space: nowrap;
-  user-select: none;
-}
-.tui-jsondock-chip:hover {
-  color: var(--dsw-alias-label-primary);
-  border-color: var(--dsw-alias-state-business-primary);
-  background: rgba(16, 35, 58, 0.85);
-}
-.tui-jsondock-chip .tui-jsondock-ico {
-  font-family: "FiraCode Nerd Font", "Iosevka Nerd Font", var(--ds-font-family-code);
-  font-size: 13px;
-  line-height: 1;
-  color: var(--dsw-alias-state-business-primary);
-}
-.tui-jsondock-chip[data-state="ok"] .tui-jsondock-ico {
-  color: var(--dsw-alias-state-success-primary);
-}
-.tui-jsondock-chip[data-state="warn"] {
-  border-color: rgba(200, 168, 239, 0.55);
-}
-.tui-jsondock-chip[data-state="warn"] .tui-jsondock-ico {
-  color: var(--dsw-alias-state-warn-primary);
-}
-.tui-jsondock-chip[data-state="error"] {
-  border-color: var(--dsw-alias-state-error-primary);
-  color: var(--dsw-alias-state-error-primary);
-}
-.tui-jsondock-chip[data-state="error"] .tui-jsondock-ico {
-  color: var(--dsw-alias-state-error-primary);
-}
-.tui-jsondock-chip[data-loading] .tui-jsondock-val {
-  opacity: 0.5;
-}
-
-/* popup: detail panel for the clicked chip — fixed, above the composer,
-   same family as the autocomplete popups */
-.tui-jsondock-popup {
-  position: fixed;
-  z-index: 300;
-  display: none;
-  box-sizing: border-box;
-  min-width: 320px;
-  max-width: 560px;
-  max-height: 60vh;
-  overflow-y: auto;
-  padding: 8px 10px;
-  background: var(--dsw-specific-menu);
-  border: 1px solid var(--dsw-alias-border-l1);
-  border-radius: 4px;
-  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.55);
-  font-family: var(--ds-font-family-code);
-  font-size: 12px;
-  line-height: 18px;
-  color: var(--dsw-alias-label-primary);
-}
-.tui-jsondock-popup h3 {
-  margin: 0 0 6px;
-  font-size: 12px;
-  font-weight: 600;
-  color: var(--dsw-alias-label-primary);
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-}
-.tui-jsondock-popup h3 .tui-jsondock-popup-ico {
-  margin-right: 4px;
-  color: var(--dsw-alias-state-business-primary);
-}
-.tui-jsondock-popup table {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: 11px;
-}
-.tui-jsondock-popup td,
-.tui-jsondock-popup th {
-  padding: 2px 6px;
-  text-align: left;
-  vertical-align: top;
-  border-bottom: 1px solid rgba(43, 68, 98, 0.35);
-  white-space: nowrap;
-}
-.tui-jsondock-popup td.tui-jsondock-pad {
-  white-space: normal;
-  word-break: break-word;
-}
-.tui-jsondock-popup th {
-  color: var(--dsw-alias-label-caption);
-  font-weight: 500;
-}
-.tui-jsondock-popup tr:last-child td {
-  border-bottom: none;
-}
-.tui-jsondock-popup .tui-jsondock-bar {
-  display: inline-block;
-  height: 8px;
-  vertical-align: middle;
-  background: var(--dsw-alias-state-business-primary);
-  border-radius: 2px;
-}
-.tui-jsondock-popup .tui-jsondock-bar-wrap {
-  background: rgba(43, 68, 98, 0.35);
-  border-radius: 2px;
-}
-.tui-jsondock-popup .tui-jsondock-err {
-  color: var(--dsw-alias-state-error-primary);
-}
-.tui-jsondock-popup .tui-jsondock-muted {
+.tui-json .tui-json-punct {
   color: var(--dsw-alias-label-tertiary);
 }
-.tui-jsondock-popup .tui-jsondock-hot {
-  color: var(--dsw-alias-state-warn-primary);
+.tui-json .tui-json-key {
+  color: #7fb3e0; /* key names — light steel blue */
 }
-.tui-jsondock-popup .tui-jsondock-cold {
-  color: var(--dsw-alias-state-success-primary);
+.tui-json .tui-json-str {
+  color: var(--dsw-alias-state-success-primary); /* strings — green */
+}
+.tui-json .tui-json-num {
+  color: #e6c07b; /* numbers — warm gold */
+}
+.tui-json .tui-json-bool {
+  color: var(--dsw-alias-state-warn-primary); /* true/false — lilac */
+}
+.tui-json .tui-json-null {
+  color: var(--dsw-alias-state-warn-primary);
+  font-style: italic;
+}
+/* collapsed long payloads: click to expand */
+.o3BgMG_ioText.tui-json.tui-json-collapsed {
+  cursor: pointer;
+  max-height: 9em;
+  overflow: hidden;
+  position: relative;
+}
+.o3BgMG_ioText.tui-json.tui-json-collapsed::after {
+  content: "󰅂  … развернуть";
+  position: sticky;
+  bottom: 0;
+  left: 0;
+  display: block;
+  padding: 1px 6px;
+  background: rgba(4, 15, 28, 0.9);
+  border-top: 1px solid var(--dsw-alias-border-l1);
+  color: var(--dsw-alias-state-business-primary);
+  font-family: "FiraCode Nerd Font", var(--ds-font-family-code);
+  font-size: 11px;
+  line-height: 16px;
 }
 
 `;
@@ -1720,437 +1629,154 @@ button[aria-label="Check for updates"] {
             railMo.disconnect();
           });
         }
-        // ── feature: tui-jsondock — system-status chips under the composer ──
-        // One compact chip per JSON source served by the host half at
-        // /terminal-ui/json/<name> (sensors, systemd, network, hyprland,
-        // disks, torrents, MPD, flake metadata, generations, fastfetch,
-        // weather, pet, plugin registry). Each chip polls its source on its
-        // own interval, shows a short summary (pictogram + value), and opens
-        // a .tui-jsondock-popup with a rendered detail view on click.
-        // The dock row is parked right after the composer seat; a
-        // MutationObserver re-parks it after React re-mounts the composer.
+        // ── feature: tui-jsonfmt — pretty-print + highlight JSON tool output ──
+        // Tool-call cards render IN/OUT payloads as a single pre-wrap text
+        // node (.o3BgMG_ioText inside .o3BgMG_ioCard). When that text parses
+        // as JSON, rewrite it into a highlighted, pretty-printed form:
+        //   - two-space indent (JSON.stringify(…, null, 2));
+        //   - colored tokens: keys / strings / numbers / booleans / null
+        //     (CSS classes tui-json-*);
+        //   - long payloads (> 4000 chars) collapse to 9em, click to expand
+        //     (expanded state remembered per node in a WeakSet).
+        // React rewrites the text node on re-render, so a MutationObserver
+        // re-applies on every change (same pattern as tui-no-tps). Nodes we
+        // already converted carry a data-tui-json marker to skip rework.
         {
-          const dock = document.createElement("div");
-          dock.className = "tui-jsondock";
-          dock.setAttribute("data-tui-jsondock", "");
-
-          const esc = (s) =>
-            String(s ?? "").replace(/[&<>"']/g, (c) =>
+          const converted = new WeakSet(); // nodes the user expanded
+          const escHtml = (s) =>
+            String(s).replace(/[&<>"']/g, (c) =>
               ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
 
-          // Shared popup panel (one instance for all chips).
-          const popup = document.createElement("div");
-          popup.className = "tui-jsondock-popup";
-          document.body.appendChild(popup);
-          let popupSource = null;
-          const hidePopup = () => { popup.style.display = "none"; popupSource = null; };
-          const showPopup = (source, ico, title, html) => {
-            popupSource = source;
-            popup.innerHTML = "";
-            const h = document.createElement("h3");
-            h.innerHTML = `<span class="tui-jsondock-popup-ico">${ico}</span>${esc(title)}`;
-            popup.appendChild(h);
-            if (typeof html === "string") {
-              const wrap = document.createElement("div");
-              wrap.innerHTML = html;
-              popup.appendChild(wrap);
-            } else {
-              const wrap = document.createElement("div");
-              wrap.appendChild(html);
-              popup.appendChild(wrap);
+          // Tokenize a JSON string into highlighted spans. Keys are strings
+          // immediately followed (after whitespace) by ":", so scan tokens
+          // left-to-right and lookahead after each string literal.
+          const highlight = (json) => {
+            const esc = escHtml;
+            const out = [];
+            let i = 0;
+            const n = json.length;
+            const push = (text, cls) => {
+              if (text === "") return;
+              out.push(cls ? `<span class="${cls}">${esc(text)}</span>` : esc(text));
+            };
+            const skipWs = (from) => { let j = from; while (j < n && /\s/.test(json[j])) j++; return j; };
+            const readString = (start) => {
+              // json[start] === '"' — return [literal, nextIndex]
+              let j = start + 1;
+              let lit = '"';
+              while (j < n) {
+                const c = json[j];
+                lit += c;
+                j++;
+                if (c === "\\" && j < n) { lit += json[j]; j++; continue; }
+                if (c === '"') break;
+              }
+              return [lit, j];
+            };
+            while (i < n) {
+              const ch = json[i];
+              if (/\s/.test(ch)) { push(ch); i++; continue; }
+              if (ch === '"') {
+                const [lit, next] = readString(i);
+                // key if followed (after ws) by ":"
+                const after = skipWs(next);
+                const isKey = after < n && json[after] === ":";
+                push(lit, isKey ? "tui-json-key" : "tui-json-str");
+                i = next;
+                continue;
+              }
+              if (/[0-9-]/.test(ch)) {
+                let j = i;
+                let num = "";
+                while (j < n && /[0-9eE+\-.]/.test(json[j])) { num += json[j]; j++; }
+                push(num, "tui-json-num");
+                i = j;
+                continue;
+              }
+              if (json.startsWith("true", i) || json.startsWith("false", i)) {
+                push(json.slice(i, i + 5), "tui-json-bool");
+                i += 5;
+                continue;
+              }
+              if (json.startsWith("null", i)) {
+                push("null", "tui-json-null");
+                i += 4;
+                continue;
+              }
+              if (ch === ":" || ch === "," || ch === "{" || ch === "}" || ch === "[" || ch === "]") {
+                push(ch, "tui-json-punct");
+                i++;
+                continue;
+              }
+              push(ch);
+              i++;
             }
-            popup.style.display = "block";
-          };
-          const positionPopup = (chip) => {
-            const r = chip.getBoundingClientRect();
-            popup.style.left = Math.max(8, Math.min(r.left, window.innerWidth - 580)) + "px";
-            const above = r.top - popup.offsetHeight - 8;
-            popup.style.bottom = "";
-            popup.style.top = (above >= 8 ? above : r.bottom + 8) + "px";
+            return out.join("");
           };
 
-          // ── per-source renderers ──
-          const fmtBytes = (n) => {
-            if (n == null || Number.isNaN(Number(n))) return "—";
-            const v = Number(n);
-            if (v >= 1 << 30) return (v / (1 << 30)).toFixed(1) + "G";
-            if (v >= 1 << 20) return (v / (1 << 20)).toFixed(1) + "M";
-            if (v >= 1 << 10) return (v / (1 << 10)).toFixed(1) + "K";
-            return String(Math.round(v));
-          };
-          const bar = (pct) =>
-            `<span class="tui-jsondock-bar-wrap" style="display:inline-block;width:90px"><span class="tui-jsondock-bar" style="width:${Math.max(0, Math.min(100, pct))}%"></span></span>`;
-
-          const SOURCES = {
-            // temperatures: max of every temp*_input across chips
-            sensors: {
-              ico: "󰔐", // nf-md-thermometer
-              interval: 15000,
-              label: (d) => {
-                const rows = [];
-                const walk = (o, path) => {
-                  if (o === null || typeof o !== "object") return;
-                  for (const [k, v] of Object.entries(o)) {
-                    if (typeof v === "object" && v !== null) walk(v, [...path, k]);
-                    else if (/^temp\d*_input$/.test(k) && typeof v === "number") rows.push([path.join("/"), v]);
-                  }
-                };
-                walk(d, []);
-                if (rows.length === 0) return { label: "—", state: "error" };
-                const hot = Math.max(...rows.map((r) => r[1]));
-                return { label: `${Math.round(hot)}°C`, state: hot > 80 ? "warn" : hot > 90 ? "error" : "ok" };
-              },
-              detail: (d) => {
-                const rows = [];
-                const walk = (o, path) => {
-                  if (o === null || typeof o !== "object") return;
-                  for (const [k, v] of Object.entries(o)) {
-                    if (typeof v === "object" && v !== null) walk(v, [...path, k]);
-                    else if (/^temp\d*_input$/.test(k) && typeof v === "number") rows.push([path.join("/"), v]);
-                  }
-                };
-                walk(d, []);
-                if (rows.length === 0) return `<div class="tui-jsondock-err">нет данных</div>`;
-                const hot = Math.max(...rows.map((r) => r[1]));
-                const cls = (t) => (t > 90 ? "tui-jsondock-err" : t > 80 ? "tui-jsondock-hot" : t > 55 ? "" : "tui-jsondock-cold");
-                const body = rows
-                  .sort((a, b) => b[1] - a[1])
-                  .map(([name, t]) => `<tr><td class="tui-jsondock-pad">${esc(name)}</td><td class="${cls(t)}">${Math.round(t)}°C</td></tr>`)
-                  .join("");
-                return `<div class="tui-jsondock-muted">пик: ${Math.round(hot)}°C</div><table><tbody>${body}</tbody></table>`;
-              },
-            },
-            // systemd: running/failed service counts
-            system: {
-              ico: "󰓧", // nf-md-server
-              interval: 30000,
-              label: (d) => {
-                const c = d?.counts ?? { running: 0, failed: 0 };
-                const base = `sys ${c.running}`;
-                return c.failed > 0
-                  ? { label: `${base} ⚠${c.failed}`, state: "error" }
-                  : { label: base, state: "ok" };
-              },
-              detail: (d) => {
-                const c = d?.counts ?? { running: 0, failed: 0 };
-                const failed = (d?.failed ?? []).slice(0, 12)
-                  .map((u) => `<tr><td class="tui-jsondock-pad">${esc(u.unit)}</td><td class="tui-jsondock-err">${esc(u.sub ?? u.active ?? "")}</td></tr>`)
-                  .join("");
-                return `<div class="tui-jsondock-muted">${c.running} запущено · ${c.failed} сбоев</div>${
-                  c.failed > 0 ? `<table><tbody>${failed}</tbody></table>` : ""
-                }`;
-              },
-            },
-            // network interfaces
-            net: {
-              ico: "󰛳", // nf-md-lan
-              interval: 30000,
-              label: (d) => {
-                const ifaces = d?.Interfaces ?? [];
-                const up = ifaces.filter((i) => i.OperationalState === "carrier" || i.OperationalState === "routable").length;
-                return { label: `net ${up}/${ifaces.length}`, state: ifaces.length === 0 ? "warn" : "ok" };
-              },
-              detail: (d) => {
-                const ifaces = d?.Interfaces ?? [];
-                const rows = ifaces.map((i) =>
-                  `<tr><td>${esc(i.Name)}</td><td class="tui-jsondock-pad">${esc(i.KernelOperationalStateString ?? i.OperationalState ?? "")}</td><td class="tui-jsondock-muted">${esc(i.Type ?? "")} · MTU ${i.MTU ?? "—"}</td></tr>`)
-                  .join("");
-                return `<table><tbody>${rows || '<tr><td class="tui-jsondock-muted">нет интерфейсов</td></tr>'}</tbody></table>`;
-              },
-            },
-            // hyprland: active monitor + window count
-            hypr: {
-              ico: "󰍹", // nf-md-monitor
-              interval: 10000,
-              label: (d) => {
-                const mon = (d?.monitors ?? [])[0];
-                const wins = (d?.clients ?? []).filter((c) => c.mapped && !c.hidden).length;
-                if (mon === undefined) return { label: "hypr —", state: "warn" };
-                const ws = mon.activeWorkspace?.name ?? mon.activeWorkspace?.id ?? "?";
-                return { label: `${ws} · ${wins} ок`, state: "ok" };
-              },
-              detail: (d) => {
-                const mons = (d?.monitors ?? []).map((m) =>
-                  `<tr><td>${esc(m.name)}</td><td>${m.width}×${m.height}${m.refreshRate ? ` @${Math.round(m.refreshRate)}` : ""}</td><td class="tui-jsondock-muted">ws ${esc(m.activeWorkspace?.name ?? m.activeWorkspace?.id ?? "?")}</td></tr>`)
-                  .join("");
-                const aw = d?.activewindow;
-                const awLine = aw && aw.class
-                  ? `<div class="tui-jsondock-muted">активное окно: ${esc(aw.class)} — ${esc(aw.title ?? "")}</div>`
-                  : "";
-                return `${awLine}<table><tbody>${mons || '<tr><td class="tui-jsondock-muted">нет мониторов</td></tr>'}</tbody></table>`;
-              },
-            },
-            // disks: used % of the root mount
-            duf: {
-              ico: "󰋊", // nf-md-harddisk
-              interval: 60000,
-              label: (d) => {
-                const rows = Array.isArray(d) ? d : [];
-                const root = rows.find((r) => r.mount_point === "/") ?? rows[0];
-                if (root === undefined) return { label: "disk —", state: "warn" };
-                const pct = root.total > 0 ? Math.round((100 * root.used) / root.total) : 0;
-                return { label: `${pct}%`, state: pct > 90 ? "error" : pct > 75 ? "warn" : "ok" };
-              },
-              detail: (d) => {
-                const rows = Array.isArray(d) ? d : [];
-                const body = rows.map((r) => {
-                  const pct = r.total > 0 ? (100 * r.used) / r.total : 0;
-                  return `<tr><td>${esc(r.mount_point)}</td><td>${bar(pct)}</td><td>${fmtBytes(r.used)} / ${fmtBytes(r.total)}</td><td class="tui-jsondock-muted">${esc(r.fs_type ?? "")}</td></tr>`;
-                }).join("");
-                return `<table><tbody>${body || '<tr><td class="tui-jsondock-muted">нет дисков</td></tr>'}</tbody></table>`;
-              },
-            },
-            // transmission: torrent count + aggregate speeds
-            torrents: {
-              ico: "󰈦", // nf-md-download
-              interval: 60000,
-              label: (d) => {
-                const list = d?.result?.torrents ?? [];
-                const active = list.filter((t) => (t.rateDownload ?? 0) > 0 || (t.rateUpload ?? 0) > 0);
-                if (list.length === 0) return { label: "tor 0", state: "ok" };
-                return { label: `tor ${list.length}${active.length ? ` · ${active.length}↕` : ""}`, state: "ok" };
-              },
-              detail: (d) => {
-                const list = d?.result?.torrents ?? [];
-                const body = list.slice(0, 15).map((t) => {
-                  const pct = (t.percentDone ?? 0) * 100;
-                  return `<tr><td class="tui-jsondock-pad">${esc(t.name)}</td><td>${bar(pct)}</td><td>${Math.round(pct)}%</td><td class="tui-jsondock-muted">↓${fmtBytes(t.rateDownload ?? 0)}/s ↑${fmtBytes(t.rateUpload ?? 0)}/s</td></tr>`;
-                }).join("");
-                return `<table><tbody>${body || '<tr><td class="tui-jsondock-muted">нет торрентов</td></tr>'}</tbody></table>`;
-              },
-            },
-            // MPD: current track
-            mpc: {
-              ico: "󰎆", // nf-md-music-note
-              interval: 10000,
-              label: (d) => {
-                const cur = d?.current ?? "";
-                if (cur === "") return { label: "mpd —", state: "ok" };
-                return { label: cur.length > 34 ? cur.slice(0, 33) + "…" : cur, state: "ok" };
-              },
-              detail: (d) => `<div class="tui-jsondock-pad">${esc(d?.current ?? "")}</div><div class="tui-jsondock-muted">${esc(d?.status ?? "")}</div>`,
-            },
-            // nix flake metadata
-            flake: {
-              ico: "󰋼", // nf-md-package-variant-closed
-              interval: 300000,
-              label: (d) => {
-                const rev = d?.locked?.rev ?? d?.locked?.shortRev;
-                const short = typeof rev === "string" && rev.length > 7 ? rev.slice(0, 7) : rev;
-                return { label: short ? `flake ${short}` : "flake —", state: "ok" };
-              },
-              detail: (d) => {
-                if (d === null || typeof d !== "object") return `<div class="tui-jsondock-err">нет данных</div>`;
-                const when = d.lastModified ? new Date(d.lastModified * 1000).toLocaleString() : "—";
-                return `<table><tbody>
-                  <tr><th>описание</th><td class="tui-jsondock-pad">${esc(d.description ?? "—")}</td></tr>
-                  <tr><th>rev</th><td class="tui-jsondock-pad">${esc(d.locked?.rev ?? "—")}</td></tr>
-                  <tr><th>ревизий</th><td>${esc(String(d.locked?.revCount ?? d.revCount ?? "—"))}</td></tr>
-                  <tr><th>изменено</th><td>${esc(when)}</td></tr>
-                  <tr><th>url</th><td class="tui-jsondock-pad">${esc(d.locked?.url ?? "—")}</td></tr>
-                </tbody></table>`;
-              },
-            },
-            // NixOS generations
-            generations: {
-              ico: "󰖟", // nf-md-history
-              interval: 300000,
-              label: (d) => {
-                const list = Array.isArray(d) ? d : [];
-                const cur = list[0];
-                return { label: cur ? `gen ${cur.generation}` : "gen —", state: "ok" };
-              },
-              detail: (d) => {
-                const list = Array.isArray(d) ? d : [];
-                const body = list.slice(0, 12).map((g) =>
-                  `<tr><td>#${g.generation}</td><td class="tui-jsondock-pad">${esc(g.version ?? "—")}</td><td class="tui-jsondock-muted">${g.mtime ? new Date(g.mtime).toLocaleString() : "—"}</td></tr>`)
-                  .join("");
-                return `<table><tbody>${body || '<tr><td class="tui-jsondock-muted">нет поколений</td></tr>'}</tbody></table>`;
-              },
-            },
-            // fastfetch system summary
-            fastfetch: {
-              ico: "󰇥", // nf-md-information-outline
-              interval: 300000,
-              label: (d) => {
-                const os = (Array.isArray(d) ? d : []).find((e) => e.type === "OS");
-                return { label: os?.result?.prettyName ?? "system", state: "ok" };
-              },
-              detail: (d) => {
-                const arr = Array.isArray(d) ? d : [];
-                const rows = arr.map((e) => {
-                  const v = e.result;
-                  let text;
-                  if (v === null || v === undefined) text = "—";
-                  else if (typeof v === "object") text = JSON.stringify(v);
-                  else text = String(v);
-                  return `<tr><th>${esc(e.type)}</th><td class="tui-jsondock-pad">${esc(text)}</td></tr>`;
-                }).join("");
-                return `<table><tbody>${rows || '<tr><td class="tui-jsondock-muted">нет данных</td></tr>'}</tbody></table>`;
-              },
-            },
-            // weather: wttr.in current conditions
-            weather: {
-              ico: "󰖕", // nf-md-weather-partly-cloudy
-              interval: 600000,
-              label: (d) => {
-                const cur = d?.current_condition?.[0];
-                if (cur === undefined) return { label: "wthr —", state: "warn" };
-                const t = Math.round(Number(cur.temp_C ?? NaN));
-                return { label: Number.isNaN(t) ? "wthr —" : `${t}°C`, state: "ok" };
-              },
-              detail: (d) => {
-                const cur = d?.current_condition?.[0];
-                if (cur === undefined) return `<div class="tui-jsondock-err">нет данных</div>`;
-                const desc = cur.weatherDesc?.[0]?.value ?? "";
-                return `<table><tbody>
-                  <tr><th>температура</th><td>${Math.round(Number(cur.temp_C ?? NaN))}°C (ощущается ${Math.round(Number(cur.FeelsLikeC ?? NaN))}°C)</td></tr>
-                  <tr><th>погода</th><td>${esc(desc)}</td></tr>
-                  <tr><th>влажность</th><td>${esc(String(cur.humidity ?? "—"))}%</td></tr>
-                  <tr><th>ветер</th><td>${esc(String(cur.windspeedKmph ?? "—"))} км/ч</td></tr>
-                  <tr><th>давление</th><td>${esc(String(cur.pressure ?? "—"))} гПа</td></tr>
-                </tbody></table>`;
-              },
-            },
-            // dshmarket pet state
-            pet: {
-              ico: "󰈞", // nf-md-heart
-              interval: 60000,
-              label: (d) => {
-                const p = d?.affinity?.points ?? d?.affinity?.affinity;
-                return { label: p !== undefined ? `pet ♥${p}` : "pet —", state: "ok" };
-              },
-              detail: (d) => {
-                if (d === null || typeof d !== "object") return `<div class="tui-jsondock-muted">питомец не настроен</div>`;
-                const aff = d.affinity ?? {};
-                const tr = d.treats ?? {};
-                return `<table><tbody>
-                  <tr><th>имя</th><td class="tui-jsondock-pad">${esc(Object.values(d.names ?? {})[0] ?? "—")}</td></tr>
-                  <tr><th>очки</th><td>${esc(String(aff.points ?? "—"))}</td></tr>
-                  <tr><th>поглаживания</th><td>${esc(String(aff.pets ?? "—"))}</td></tr>
-                  <tr><th>кормёжки</th><td>${esc(String(aff.feeds ?? "—"))}</td></tr>
-                  <tr><th>лакомства</th><td>${esc(String(tr.treats ?? "—"))}</td></tr>
-                  <tr><th>ходы</th><td>${esc(String(aff.turns ?? tr.turnsAtLastTreatGrant ?? "—"))}</td></tr>
-                </tbody></table>`;
-              },
-            },
-            // dshmarket plugin registry
-            registry: {
-              ico: "󰇙", // nf-md-puzzle
-              interval: 600000,
-              label: (d) => {
-                const n = d?.count;
-                return { label: n !== undefined ? `plg ${n}` : "plg —", state: "ok" };
-              },
-              detail: (d) => {
-                if (d === null || typeof d !== "object") return `<div class="tui-jsondock-muted">реестр не найден</div>`;
-                const cats = d.categories ?? {};
-                const rows = Object.entries(cats).map(([k, v]) =>
-                  `<tr><td class="tui-jsondock-pad">${esc(v.en ?? v.zh ?? k)}</td><td class="tui-jsondock-muted">${esc(k)}</td></tr>`)
-                  .join("");
-                return `<div class="tui-jsondock-muted">всего: ${esc(String(d.count ?? "—"))} · обновлено: ${esc(String(d.updated ?? "—"))}</div><table><tbody>${rows}</tbody></table>`;
-              },
-            },
-          };
-
-          // ── chip lifecycle ──
-          const chips = new Map(); // source -> { chip, val, ico, timer }
-          for (const [key, src] of Object.entries(SOURCES)) {
-            const chip = document.createElement("button");
-            chip.type = "button";
-            chip.className = "tui-jsondock-chip";
-            chip.setAttribute("data-source", key);
-            chip.innerHTML = `<span class="tui-jsondock-ico">${src.ico}</span><span class="tui-jsondock-val">…</span>`;
-            chip.title = key;
-            const val = chip.querySelector(".tui-jsondock-val");
-            chip.addEventListener("click", (e) => {
-              e.stopPropagation();
-              if (popupSource === key && popup.style.display !== "none") {
-                hidePopup();
-                return;
-              }
-              const last = chip.__data;
-              if (last === undefined) {
-                showPopup(key, src.ico, key, `<div class="tui-jsondock-muted">загрузка…</div>`);
-              } else if (last.error) {
-                showPopup(key, src.ico, key, `<div class="tui-jsondock-err">${esc(last.error)}</div>`);
-              } else {
-                showPopup(key, src.ico, key, src.detail(last));
-              }
-              positionPopup(chip);
-            });
-            dock.appendChild(chip);
-            chips.set(key, { chip, val, ico: src.ico });
-          }
-
-          const load = async (key, src) => {
-            const entry = chips.get(key);
-            if (entry === undefined) return;
-            entry.chip.setAttribute("data-loading", "");
+          // Rebuild: strip previous spans (use the saved raw text) and produce
+          // the highlighted HTML. Idempotent: if the node already carries our
+          // highlight spans (React did not rewrite it since), skip. React
+          // re-renders replace the spans with a plain text node — the scan
+          // then re-applies from the fresh text.
+          const apply = (node) => {
+            if (!(node instanceof HTMLElement)) return;
+            if (node.classList.contains("tui-json") && node.querySelector(".tui-json-key, .tui-json-str, .tui-json-num") !== null) {
+              return; // already highlighted and untouched by React
+            }
+            const raw = (node.textContent || "").trim();
+            if (raw === "") return;
+            if (raw.length < 2 || !/^[\[{]/.test(raw)) return;
+            // cap: skip enormous payloads (JSON.parse on MBs of tool output
+            // would jank the UI on every re-render)
+            if (raw.length > 200000) return;
+            let parsed;
             try {
-              const res = await fetch(`/terminal-ui/json/${key}`, { cache: "no-store" });
-              const body = await res.json();
-              if (body?.ok !== true) {
-                entry.chip.__data = { error: body?.error ?? "bad response" };
-                entry.val.textContent = "—";
-                entry.chip.setAttribute("data-state", "error");
-                return;
-              }
-              const data = body.data;
-              entry.chip.__data = data;
-              const { label, state } = src.label(data);
-              entry.val.textContent = label;
-              entry.chip.setAttribute("data-state", state ?? "ok");
-            } catch (e) {
-              entry.chip.__data = { error: String(e.message ?? e) };
-              entry.val.textContent = "—";
-              entry.chip.setAttribute("data-state", "error");
-            } finally {
-              entry.chip.removeAttribute("data-loading");
+              parsed = JSON.parse(raw);
+            } catch {
+              return; // not JSON — leave untouched
+            }
+            const pretty = JSON.stringify(parsed, null, 2);
+            if (pretty === undefined || pretty === "") return;
+            const long = pretty.length > 4000;
+            const body = highlight(pretty);
+            node.innerHTML = body;
+            node.classList.add("tui-json");
+            node.setAttribute("data-tui-json", "1");
+            if (long && !converted.has(node)) {
+              node.classList.add("tui-json-collapsed");
+              node.title = "клик — развернуть";
             }
           };
 
-          // Park the dock right after the composer seat; re-park when React
-          // re-mounts the composer (session switches, re-renders).
-          const park = () => {
-            const seat = document.querySelector("[data-composer-seat]");
-            if (seat !== null && dock.parentElement !== seat.parentElement) {
-              seat.insertAdjacentElement("afterend", dock);
-            }
-          };
-          park();
-          const parkMo = new MutationObserver(park);
-          parkMo.observe(document.body, { childList: true, subtree: true });
-
-          // Start polling; kick all sources once immediately.
-          const timers = [];
-          for (const [key, src] of Object.entries(SOURCES)) {
-            void load(key, src);
-            timers.push(setInterval(() => void load(key, src), src.interval));
-          }
-
-          // Click anywhere outside the dock/popup closes the popup.
+          // Toggle collapse on click for collapsed JSON blocks.
           const onDocClick = (e) => {
-            if (popup.style.display === "none") return;
-            if (popup.contains(e.target) || dock.contains(e.target)) return;
-            hidePopup();
+            const t = e.target;
+            const node = t instanceof Element ? t.closest(".tui-json-collapsed") : null;
+            if (node === null) return;
+            e.preventDefault();
+            e.stopPropagation();
+            converted.add(node);
+            node.classList.remove("tui-json-collapsed");
+            node.title = "";
           };
           document.addEventListener("click", onDocClick, true);
-          // Keep the popup inside the viewport when the window resizes.
-          const onResize = () => {
-            if (popup.style.display === "none") return;
-            const chip = dock.querySelector(`[data-source="${popupSource}"]`);
-            if (chip !== null) positionPopup(chip);
-          };
-          window.addEventListener("resize", onResize);
 
+          const scan = () => {
+            document.querySelectorAll(".o3BgMG_ioText").forEach(apply);
+          };
+          scan();
+          const mo = new MutationObserver(() => {
+            // debounce: React rewrites text nodes in bursts
+            clearTimeout(scanTimer);
+            scanTimer = setTimeout(scan, 200);
+          });
+          mo.observe(document.body, { childList: true, subtree: true, characterData: true });
+          let scanTimer = 0;
           cleanups.push(() => {
-            timers.forEach((t) => clearInterval(t));
-            parkMo.disconnect();
+            clearTimeout(scanTimer);
+            mo.disconnect();
             document.removeEventListener("click", onDocClick, true);
-            window.removeEventListener("resize", onResize);
-            dock.remove();
-            popup.remove();
           });
         }
         return () => {
