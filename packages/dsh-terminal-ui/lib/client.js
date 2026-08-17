@@ -407,6 +407,20 @@ select {
   margin-left: 0;
   margin-right: calc(-1 * var(--dsh-scrollbar-width, 8px));
 }
+/* composer: pin the input bar flush to the very bottom of the viewport —
+   the hero state centers the stack (justify-content:center on the
+   scrollport), so margin-top:auto eats the free space and wins over the
+   centering; the stock 32px bottom padding goes away. In a long
+   conversation nothing changes: the stack scrolls with the messages. */
+.wSkVaW_composerStack {
+  margin-top: auto;
+  padding-bottom: 0;
+}
+/* the composer root carries an extra 8px bottom padding — drop it so the
+   input card itself touches the viewport edge */
+.uV2eYG_root {
+  padding-bottom: 0;
+}
 /* composer bottom row: a small left indent so the status readout breathes
    off the card edge — the docked stats, context meter and Full access badge
    read as one row of text, not glued to the edge */
