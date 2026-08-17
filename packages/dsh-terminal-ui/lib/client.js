@@ -236,7 +236,7 @@ body[data-ds-dark-theme] {
 }
 .FJxK0a_sep::before {
   content: "/";
-  font-size: 11px;
+  font-size: 12px;
   color: var(--dsw-alias-button-info-fill);
 }
 
@@ -291,9 +291,9 @@ body[data-ds-dark-theme] {
   overflow: visible;
   white-space: normal;
   font-family: var(--ds-font-family-code);
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 500;
-  line-height: 21px;
+  line-height: 22px;
   color: var(--dsw-alias-label-secondary);
 }
 .FJxK0a_root.tui-docked-stats::before {
@@ -391,9 +391,9 @@ body[data-ds-dark-theme] {
   display: inline-flex;
   align-items: center;
   font-family: var(--ds-font-family-code);
-  font-size: 12px;
+  font-size: 14px;
   font-weight: 500;
-  line-height: 20px;
+  line-height: 22px;
   color: var(--dsw-alias-label-secondary);
 }
 .JObwrW_root .JObwrW_trigger svg {
@@ -403,7 +403,7 @@ body[data-ds-dark-theme] {
 .JObwrW_root .JObwrW_trigger[data-pct]::after {
   content: attr(data-pct) "%";
   font-family: var(--ds-font-family-code);
-  font-size: 12px;
+  font-size: 14px;
 }
 .JObwrW_root .JObwrW_fill {
   stroke: var(--dsw-alias-state-business-primary);
@@ -421,9 +421,9 @@ body[data-ds-dark-theme] {
   border: none;
   padding: 0 2px 0 10px;
   font-family: var(--ds-font-family-code);
-  font-size: 12px;
+  font-size: 14px;
   font-weight: 500;
-  line-height: 20px;
+  line-height: 22px;
   color: var(--dsw-alias-label-secondary);
 }
 .Sh0Q9G_trigger:hover:not(:disabled) {
