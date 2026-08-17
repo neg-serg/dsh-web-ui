@@ -1718,8 +1718,8 @@ button[aria-label="Check for updates"] {
             const kinds = [
               [/turn|step/i, "counts"],
               [/LLM|Tool/i, "durations"],
-              [/TTFT|tok\/s/i, "speeds"],
-              [/cache|HIT-RATE/i, "cache"],
+              [/TTFT|tok\/s|\/s(?:\b|$)/i, "speeds"],
+              [/cache|HIT-RATE|^Hit\b/i, "cache"],
               [/tok/i, "tokens"],
               [/[$\u20bd\u20ac\u00a3]/i, "cost"],
             ];
@@ -1809,7 +1809,13 @@ button[aria-label="Check for updates"] {
               } else if (kind === "tokens") {
                 replace(span, [["Input", "IN"], ["Output", "OUT"]]);
               } else if (kind === "cache") {
-                replace(span, [["Cache hit", "HIT-RATE"]]);
+                replace(span, [["Cache hit", "Hit"]]);
+              } else if (kind === "speeds") {
+                // drop the TTFT latency figure ("TTFT avg 1.6s · …"), keep
+                // the throughput ("161/s"): remove a "TTFT … · " prefix or a
+                // standalone "TTFT …" group entirely
+                const text = span.textContent ?? "";
+                span.textContent = text.replace(/TTFT[^·]*·\s*/i, "").replace(/^TTFT[^·]*$/i, "").trim();
               }
             }
           };
