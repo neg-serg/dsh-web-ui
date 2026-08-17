@@ -202,176 +202,42 @@ body[data-ds-dark-theme] {
   stroke: currentColor !important;
 }
 
-/* session stats line: console status row with a stats prefix */
+/* ── session stats: ONE composed status line ──
+   The stock stats bar (React-owned — it rewrites its spans on every
+   re-render) is hidden outright; its text is folded into a single
+   plain-text line docked at the left of the composer row. No span
+   reordering, no injected separators, no label rewriting in the stock
+   DOM — compose one string, set textContent on our own element, and
+   there is nothing React can fight. */
 .FJxK0a_root {
-  display: inline-block !important;
-  text-align: left;
-  font-family: var(--ds-font-family-code);
-  font-size: 11px;
-  line-height: 20px;
-  color: var(--dsw-alias-label-secondary);
-  background: rgba(4, 15, 28, 0.5);
-  border-top: 1px solid var(--dsw-alias-border-l1);
-  padding: 6px 16px;
-  overflow-x: auto;
-  white-space: nowrap;
+  display: none !important;
 }
-.FJxK0a_root::before {
-  content: "stats ";
-  color: var(--dsw-alias-label-caption);
-}
-.FJxK0a_root > span:not(.FJxK0a_sep) {
-  color: var(--dsw-alias-label-secondary);
-}
-.FJxK0a_sep {
-  color: var(--dsw-alias-label-tertiary);
-  margin: 0 8px;
-}
-
-/* ── neovim-style separators: blue "/" (heirline styles.separator) ── */
-/* turn stats: the "|" separator spans become a blue "/" */
-.FJxK0a_sep {
-  font-size: 0;
-  margin: 0 4px;
-}
-.FJxK0a_sep::before {
-  content: "/";
-  font-size: 12px;
-  color: var(--dsw-alias-button-info-fill);
-}
-
-/* docked: bold slash crossing the full panel height, in kitty color25
-   (#005faf, see /etc/nixos/files/kitty/theme.conf) — the status-row
-   separators match the kitty accent */
-.FJxK0a_root.tui-docked-stats .FJxK0a_sep {
-  position: relative;
-  align-self: stretch;
-  width: 16px;
-  margin: 0 2px;
-  overflow: hidden;
-}
-.FJxK0a_root.tui-docked-stats .FJxK0a_sep::before {
-  content: "";
-  position: absolute;
-  left: 50%;
-  top: -3px;
-  bottom: -3px;
-  width: 3px;
-  transform: translateX(-50%) rotate(28deg);
-  background: linear-gradient(180deg, transparent, #005faf 25%, #005faf 75%, transparent);
-  border-radius: 2px;
-  box-shadow: 0 0 6px rgba(0, 95, 175, 0.4);
-}
-
-/* ── session stats line docked into the composer row ──
-   The stock stats line (turns/steps/LLM·tool time/TTFT/cache) renders as a
-   full-width bar under the composer card; the JS feature below moves it into
-   the input card's bottom row (uV2eYG_row), at the left where the "Full
-   access" button sits, so it reads as part of the terminal status row.
-   Restyled as a borderless segment of ONE status row: no chip frame of its
-   own — the stats groups, the context meter and the "Full access" badge
-   share the row's 28px control height and the same Iosevka typography, and
-   only the bold blue "/" slashes separate the stat groups. The row gets a
-   small left indent so the readout breathes off the card edge. */
-.FJxK0a_root.tui-docked-stats {
-  display: inline-flex !important;
+.tui-statusline {
+  display: inline-flex;
   align-items: center;
-  flex-wrap: wrap;
+  gap: 8px;
   box-sizing: border-box;
   min-height: 28px;
-  width: auto;
-  max-width: none;
-  background: transparent;
-  border: none;
-  border-radius: 0;
-  padding: 0;
-  margin: 0;
-  flex: 0 1 auto;
-  min-width: 0;
-  overflow: visible;
-  white-space: normal;
+  padding: 0 10px;
   font-family: var(--ds-font-family-code);
   font-size: 14px;
   font-weight: 500;
   line-height: 22px;
   color: var(--dsw-alias-label-secondary);
-}
-.FJxK0a_root.tui-docked-stats::before {
-  content: "";
-}
-/* stat group cells: Material icon + value, "·" subgroups stay inline */
-.FJxK0a_root.tui-docked-stats > span:not(.FJxK0a_sep) {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  padding: 0 2px;
   white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
-/* Material icon per group (tagged by the dock feature). Inline SVG data
-   URIs — crisp at any size, same 24px Material grid scaled to 16px, one
-   consistent glyph language across the whole status chip. */
-.FJxK0a_root.tui-docked-stats > span[data-stat]::before {
+.tui-statusline.tui-empty {
+  display: none;
+}
+/* prompt glyph: Material folder in kitty color25 (#005faf) */
+.tui-statusline::before {
   content: "";
+  flex: none;
   width: 16px;
   height: 16px;
-  flex: none;
-  background: center / contain no-repeat;
-}
-.FJxK0a_root.tui-docked-stats > span[data-stat="counts"]::before {
-  /* material: autorenew — turns/steps cycle */
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%2337b393'%3E%3Cpath d='M12 6v3l4-4-4-4v3c-4.42 0-8 3.58-8 8 0 1.57.46 3.03 1.24 4.26L6.7 14.8A5.87 5.87 0 0 1 6 12c0-3.31 2.69-6 6-6zm6.76 1.74L17.3 9.2c.44.84.7 1.79.7 2.8 0 3.31-2.69 6-6 6v-3l-4 4 4 4v-3c4.42 0 8-3.58 8-8 0-1.57-.46-3.03-1.24-4.26z'/%3E%3C/svg%3E");
-}
-.FJxK0a_root.tui-docked-stats > span[data-stat="durations"]::before {
-  /* material: schedule — LLM / tool wall time */
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23367bbf'%3E%3Cpath d='M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67z'/%3E%3C/svg%3E");
-}
-.FJxK0a_root.tui-docked-stats > span[data-stat="speeds"]::before {
-  /* material: bolt — TTFT latency */
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23c8a8ef'%3E%3Cpath d='M11 21h-1l1-7H7.5c-.58 0-.57-.32-.38-.66.19-.34.05-.08.07-.12C8.48 10.94 10.42 7.54 13 3h1l-1 7h3.5c.49 0 .56.33.47.51l-.07.15C12.96 17.55 11 21 11 21z'/%3E%3C/svg%3E");
-}
-.FJxK0a_root.tui-docked-stats > span[data-stat="cache"]::before {
-  /* material: check_circle — cache hit share */
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%239bb1ce'%3E%3Cpath d='M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z'/%3E%3C/svg%3E");
-}
-.FJxK0a_root.tui-docked-stats > span[data-stat="tokens"]::before {
-  /* material: token — token counts */
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%236d839e'%3E%3Cpath d='M12 2l7 4v6c0 4.5-3 8-7 10-4-2-7-5.5-7-10V6l7-4zm0 4.5L7.5 8.5V12c0 2.9 1.9 5.4 4.5 6.4 2.6-1 4.5-3.5 4.5-6.4V8.5L12 6.5z'/%3E%3C/svg%3E");
-}
-.FJxK0a_root.tui-docked-stats > span[data-stat="cost"]::before {
-  /* material: payments — session cost in money */
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23c8a8ef'%3E%3Cpath d='M11.8 10.9c-2.27-.59-3-1.2-3-2.15 0-1.09 1.01-1.85 2.7-1.85 1.78 0 2.44.85 2.5 2.1h2.21c-.07-1.72-1.12-3.3-3.21-3.81V3h-3v2.16c-1.94.42-3.5 1.68-3.5 3.61 0 2.31 1.91 3.46 4.7 4.13 2.5.6 3 1.48 3 2.41 0 .69-.49 1.79-2.7 1.79-2.06 0-2.87-.92-2.98-2.1h-2.2c.12 2.19 1.76 3.42 3.68 3.83V21h3v-2.15c1.95-.37 3.5-1.5 3.5-3.55 0-2.84-2.43-3.81-4.7-4.4z'/%3E%3C/svg%3E");
-}
-.FJxK0a_root.tui-docked-stats > span[data-stat="model"]::before {
-  /* material: memory — current model chip */
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23367bbf'%3E%3Cpath d='M15 9H9v6h6V9zm-2 4h-2v-2h2v2zm8-2V9h-2V7c0-1.1-.9-2-2-2h-2V3h-2v2h-2V3H9v2H7c-1.1 0-2 .9-2 2v2H3v2h2v2H3v2h2v2c0 1.1.9 2 2 2h2v2h2v-2h2v2h2v-2h2c1.1 0 2-.9 2-2v-2h2v-2h-2v-2h2zm-4 6H7V7h10v10z'/%3E%3C/svg%3E");
-}
-/* the model chip is a real button (opens the composer's model picker):
-   interactive affordances — pointer, hover tint and a focus ring — so the
-   status row reads as a control, not a static readout */
-.FJxK0a_root.tui-docked-stats > span[data-stat="model"] {
-  cursor: pointer;
-  border-radius: 4px;
-  margin: 0 2px;
-  padding: 0 2px;
-}
-.FJxK0a_root.tui-docked-stats > span[data-stat="model"]:hover {
-  background: var(--dsw-alias-interactive-bg-hover);
-  color: var(--dsw-alias-label-primary);
-}
-.FJxK0a_root.tui-docked-stats > span[data-stat="model"]:focus-visible {
-  outline: 2px solid var(--dsw-alias-button-info-fill);
-  outline-offset: -1px;
-}
-/* cwd prefix: the active session's directory, dimmed like a shell prompt */
-.FJxK0a_root.tui-docked-stats > span[data-stat="dir"] {
-  color: var(--dsw-alias-label-primary-dimmed);
-  cursor: default;
-}
-/* dir pictogram: Material folder in kitty color25 (#005faf), matching the
-   other stat-group icons (16px grid, see the [data-stat]::before rules) */
-.FJxK0a_root.tui-docked-stats > span[data-stat="dir"]::before {
-  /* material: folder */
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23005faf'%3E%3Cpath d='M10 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2h-8l-2-2z'/%3E%3C/svg%3E");
+  background: center / contain no-repeat url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23005faf'%3E%3Cpath d='M10 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2h-8l-2-2z'/%3E%3C/svg%3E");
 }
 
 /* ── context meter: same borderless segment as the stats cluster ──
@@ -1742,330 +1608,76 @@ button[aria-label="Check for updates"] {
           check();
           cleanups.push(() => { stopped = true; clearInterval(timer); });
         }
-        // ── feature: dock session stats line into the composer row ──
-        // The stock stats line (session stats: turns/steps/LLM time/TTFT/
-        // cache hit) renders as a full-width bar under the composer card.
-        // Move it into the card's bottom row (uV2eYG_row), at the left where
-        // the "Full access" button sits, so it reads as part of the terminal
-        // status row. React updates the node in place; the observer re-docks
-        // it after full re-mounts (session switches, re-renders).
+        // ── feature: session stats as ONE composed status line ──
+        // The stock stats bar (React-owned, rewrites its spans on every
+        // re-render) is hidden via CSS; its text is folded into a single
+        // plain-text line docked at the left of the composer row. No span
+        // reordering, no injected separators, no label rewriting in the
+        // stock DOM — compose one string and set textContent on our own
+        // element, so there is nothing React can fight.
         {
-          // Tag each stat group span with its kind (counts/durations/speeds/
-          // cache/tokens/cost) so the CSS can draw the matching Material
-          // pictogram. Runs on every mutation — React rewrites the group text
-          // in place, so re-tag after each re-render.
-          const tagStats = (stats) => {
-            const kinds = [
-              [/turn|step/i, "counts"],
-              [/LLM|Tool/i, "durations"],
-              [/TTFT|tok\/s|\/s(?:\b|$)/i, "speeds"],
-              [/cache|HIT-RATE|^Hit\b/i, "cache"],
-              [/tok/i, "tokens"],
-              [/[$\u20bd\u20ac\u00a3]/i, "cost"],
-            ];
-            for (const span of stats.querySelectorAll(":scope > span:not(.FJxK0a_sep)")) {
-              if (span.getAttribute("data-stat") === "model") continue; // model chip is renderModel-owned
-              const text = span.textContent || "";
-              let kind = "";
-              for (const [re, k] of kinds) {
-                if (re.test(text)) { kind = k; break; }
-              }
-              if (kind !== "" && span.getAttribute("data-stat") !== kind) span.setAttribute("data-stat", kind);
-            }
+          const LINE_CLASS = "tui-statusline";
+          const ensureLine = () => {
+            let line = document.querySelector("." + LINE_CLASS);
+            if (line !== null) return line;
+            const row = document.querySelector(".uV2eYG_row");
+            if (row === null) return null;
+            line = document.createElement("div");
+            line.className = LINE_CLASS;
+            const tools = row.querySelector(".uV2eYG_tools");
+            (tools || row).insertBefore(line, (tools || row).firstChild);
+            return line;
           };
-          // Importance order for the status row: the active model goes
-          // first (the row identifies the model at a glance), then the token
-          // in/out, the session cost, and the cache hit-rate go left (neg's
-          // picks); the rest trails in the stock order.
-          const STAT_ORDER = ["dir", "model", "tokens", "cost", "cache", "counts", "durations", "speeds"];
-          // Reorder the group spans into STAT_ORDER, keeping a slash
-          // separator between every pair. The stock render alternates
-          // group/sep/text; the appended cost group has no separator of its
-          // own, so any missing slash is cloned from the pool.
-          const reorderStats = (stats) => {
-            const units = [];
-            const seps = [];
-            let cur = null;
-            for (const node of stats.childNodes) {
-              if (node.nodeType === 1) {
-                if (node.classList?.contains("FJxK0a_sep")) {
-                  seps.push(node);
-                } else {
-                  cur = { group: node, text: null };
-                  units.push(cur);
-                }
-              } else if (node.nodeType === 3 && cur !== null) {
-                cur.text = node;
-              }
-            }
-            if (units.length < 2) return;
-            const rank = (u) => {
-              const i = STAT_ORDER.indexOf(u.group.getAttribute("data-stat"));
-              return i === -1 ? 99 : i;
-            };
-            const sorted = units.slice().sort((a, b) => rank(a) - rank(b));
-            const same = units.every((u, i) => u.group === sorted[i].group);
-            if (same) return;
-            const sepOf = (index) => {
-              const existing = seps[index];
-              if (existing !== void 0) return existing;
-              const fresh = document.createElement("span");
-              fresh.className = "FJxK0a_sep";
-              fresh.setAttribute("aria-hidden", "true");
-              fresh.textContent = "|";
-              seps[index] = fresh;
-              return fresh;
-            };
-            const frag = document.createDocumentFragment();
-            sorted.forEach((u, i) => {
-              frag.appendChild(u.group);
-              if (i < sorted.length - 1) {
-                frag.appendChild(sepOf(i));
-                if (u.text !== null) frag.appendChild(u.text);
-              }
-            });
-            stats.appendChild(frag);
-          };
-          // Short labels for the status row: the stock strings ("Tool call",
-          // "Input … tok", "Output … tok", "Cache hit N%") are too verbose for
-          // a single status line. Rewrite the group text to terse terminal
-          // style. Runs on every mutation — React rewrites the text back on
-          // re-render, so re-apply here (the regexes in tagStats/renderCost
-          // accept both the original and the shortened forms).
-          const rewriteLabels = (stats) => {
-            const replace = (span, pairs) => {
-              if (span === null) return;
-              const text = span.textContent ?? "";
-              let next = text;
-              for (const [from, to] of pairs) {
-                next = next.split(from).join(to);
-              }
-              if (next !== text) span.textContent = next;
-            };
-            for (const span of stats.querySelectorAll(":scope > span:not(.FJxK0a_sep)")) {
-              const kind = span.getAttribute("data-stat");
-              if (kind === "durations") {
-                replace(span, [["Tool call", "Tool"]]);
-              } else if (kind === "tokens") {
-                replace(span, [["Input", "IN"], ["Output", "OUT"]]);
-              } else if (kind === "cache") {
-                replace(span, [["Cache hit", "Hit"]]);
-              } else if (kind === "speeds") {
-                // drop the TTFT latency figure ("TTFT avg 1.6s · …"), keep
-                // the throughput ("161/s"): remove a "TTFT … · " prefix or a
-                // standalone "TTFT …" group entirely
-                const text = span.textContent ?? "";
-                span.textContent = text.replace(/TTFT[^·]*·\s*/i, "").replace(/^TTFT[^·]*$/i, "").trim();
-              }
-            }
-          };
-          // Self-implemented cost readout: fold the visible session figures
-          // (billed input/output tokens, cache-hit share) through the official
-          // DeepSeek per-1M-token prices. Only the pricing MATH is borrowed
-          // from the dsh-cost-meter plugin; this implementation is ours.
-          const PRICE_TABLE = {
-            "deepseek-v4-flash": { cacheHit: 0.0028, cacheMiss: 0.14, output: 0.28 },
-            "deepseek-v4-pro": { cacheHit: 0.003625, cacheMiss: 0.435, output: 0.87 },
-            default: { cacheHit: 0.0028, cacheMiss: 0.14, output: 0.28 },
-          };
-          const parseCount = (text) => {
-            const m = /([0-9]+(?:\.[0-9]+)?)([KM]?)/.exec(text ?? "");
-            if (m === null) return 0;
-            const n = Number(m[1]);
-            const mult = m[2] === "K" ? 1e3 : m[2] === "M" ? 1e6 : 1;
-            return Number.isFinite(n) ? n * mult : 0;
-          };
-          const formatCost = (usd) => {
-            if (!(usd > 0)) return "0";
-            // adaptive decimals: show enough digits so a small cost is never 0
-            const decimals = usd >= 1 ? 2 : usd >= 0.01 ? 3 : 4;
-            return usd.toFixed(decimals).replace(/0+$/, "").replace(/\.$/, "");
-          };
-          const renderCost = (stats) => {
-            const tokensSpan = stats.querySelector('span[data-stat="tokens"]');
-            const cacheSpan = stats.querySelector('span[data-stat="cache"]');
-            let existing = stats.querySelector('span[data-stat="cost"]');
-            if (tokensSpan === null) return; // no tokens yet — nothing to price
-            const tokensText = tokensSpan.textContent || "";
-            const inTok = parseCount(/(?:Input|IN)\s+([0-9.]+[KM]?)\s*tok/i.exec(tokensText)?.[1]);
-            const outTok = parseCount(/(?:Output|OUT)\s+([0-9.]+[KM]?)\s*tok/i.exec(tokensText)?.[1]);
-            const cachePct = /([0-9]+)%/.exec(cacheSpan?.textContent ?? "")?.[1];
-            const cacheShare = cachePct === void 0 ? 0 : Math.min(100, Math.max(0, Number(cachePct))) / 100;
-            const model = document.querySelector('.uV2eYG_trailing button[aria-haspopup="menu"]')?.getAttribute("aria-label") ?? "";
-            const modelId = /current\s+([a-z0-9._-]+)/i.exec(model)?.[1] ?? "";
-            const price = PRICE_TABLE[modelId] ?? PRICE_TABLE.default;
-            const billedInput = inTok; // "Input X tok" is the billed (uncached+cache) input
-            const uncached = billedInput * (1 - cacheShare);
-            const cached = billedInput * cacheShare;
-            const usd = (uncached * price.cacheMiss + cached * price.cacheHit + outTok * price.output) / 1e6;
-            const label = formatCost(usd);
-            if (existing !== null) {
-              if (existing.textContent !== label) existing.textContent = label;
-              return;
-            }
-            existing = document.createElement("span");
-            existing.setAttribute("data-stat", "cost");
-            existing.textContent = label;
-            // append after the tokens group (kept in the row by reorder)
-            stats.appendChild(existing);
-          };
-          // Current model readout: the composer's model seat (the button in
-          // the trailing cluster, `conversation.input.model` slot) carries the
-          // live selection in its title ("DeepSeek-V4-Flash · High"). Mirror
-          // it as the leading status group so the row shows which model the
-          // session runs on, like a shell prompt prefix. The chip is a real
-          // button: clicking it clicks the composer's model seat, opening the
-          // same model picker the /model command raises — the picker logic
-          // stays upstream-owned. React owns the seat, so re-read on every
-          // mutation (same self-healing pattern as the stats dock and context
-          // meter below).
-          const renderModel = (stats) => {
+          // Normalize one stock group: collapse whitespace, shorten "Tool
+          // call" to "Tool" (the stock label for tool wall time).
+          const norm = (t) =>
+            t.split("·").map((p) => p.replace(/\s+/g, " ").trim().replace(/\bTool call\b/i, "Tool")).join(" · ");
+          // Compose the status line: cwd, then the model, then the stock
+          // groups in stock order, joined with plain " | " separators.
+          const compose = (stats) => {
+            const out = [];
+            if (tuiCwd !== "") out.push(tuiCwd.replace(/^\/home\/[^/]+/, "~"));
             const seat = document.querySelector('.uV2eYG_trailing button[aria-haspopup="menu"]');
-            const label = (seat?.getAttribute("title") || seat?.getAttribute("aria-label") || "").trim();
-            let existing = stats.querySelector('span[data-stat="model"]');
-            if (label === "") {
-              if (existing !== null) existing.remove();
-              return;
-            }
-            if (existing !== null) {
-              if (existing.textContent !== label) existing.textContent = label;
-              return;
-            }
-            existing = document.createElement("span");
-            existing.setAttribute("data-stat", "model");
-            existing.setAttribute("role", "button");
-            existing.setAttribute("tabindex", "0");
-            existing.title = "Select model";
-            existing.textContent = label;
-            const openPicker = () => seat?.click();
-            existing.addEventListener("click", openPicker);
-            existing.addEventListener("keydown", (event) => {
-              if (event.key === "Enter" || event.key === " ") {
-                event.preventDefault();
-                openPicker();
+            const model = (seat?.getAttribute("title") || seat?.getAttribute("aria-label") || "").trim();
+            if (model !== "") out.push(model);
+            for (const span of stats.querySelectorAll(":scope > span")) {
+              const t = (span.textContent ?? "").replace(/\s+/g, " ").trim();
+              if (t === "" || /^[|·•/]+$/.test(t)) continue;
+              const cache = /Cache hit\s+([0-9]+%)/i.exec(t);
+              if (cache !== null) { out.push("Hit " + cache[1]); continue; }
+              if (/TTFT/i.test(t)) {
+                // drop the TTFT latency figure — keep the throughput part
+                const segs = t.split("·");
+                const last = segs.length > 1 ? segs[segs.length - 1] : "";
+                if (last.trim() !== "") out.push(norm(last));
+                continue;
               }
-            });
-            stats.appendChild(existing); // reorderStats places it per STAT_ORDER
-          };
-          // Current-directory readout: the active session's cwd (its workspace
-          // directory) mirrored at the left edge of the status row like a
-          // shell prompt. `tuiCwd` is kept in sync by the sessions inject
-          // below; the path is shortened with "~" for the home prefix.
-          const renderDir = (stats) => {
-            let existing = stats.querySelector('span[data-stat="dir"]');
-            if (tuiCwd === "") {
-              if (existing !== null) {
-                const sep = existing.nextElementSibling;
-                existing.remove();
-                if (sep?.classList?.contains("FJxK0a_sep")) sep.remove();
+              const tin = /Input\s+([0-9.]+[KM]?)\s*tok/i.exec(t);
+              const tout = /Output\s+([0-9.]+[KM]?)\s*tok/i.exec(t);
+              if (tin !== null || tout !== null) {
+                out.push("IN " + (tin?.[1] ?? "?") + " / OUT " + (tout?.[1] ?? "?"));
+                continue;
               }
-              return;
+              out.push(norm(t));
             }
-            const short = tuiCwd.replace(/^\/home\/[^/]+/, "~");
-            if (existing !== null) {
-              if (existing.textContent !== short) existing.textContent = short;
-              return;
-            }
-            existing = document.createElement("span");
-            existing.setAttribute("data-stat", "dir");
-            existing.textContent = short;
-            existing.title = tuiCwd;
-            const sep = document.createElement("span");
-            sep.className = "FJxK0a_sep";
-            sep.setAttribute("aria-hidden", "true");
-            sep.textContent = "|";
-            stats.insertBefore(existing, stats.firstChild);
-            stats.insertBefore(sep, existing.nextSibling);
+            return out.join(" | ");
           };
-          const dock = () => {
+          const render = () => {
             const stats = document.querySelector(".FJxK0a_root");
-            if (stats !== null) {
-              stats.classList.add("tui-docked-stats");
-              tagStats(stats);
-              renderModel(stats);
-              renderDir(stats);
-              renderCost(stats);
-              reorderStats(stats);
-              rewriteLabels(stats);
-              const row = document.querySelector(".uV2eYG_row");
-              if (row !== null && !row.contains(stats)) {
-                const tools = row.querySelector(".uV2eYG_tools");
-                (tools || row).insertBefore(stats, (tools || row).firstChild);
-              }
-            }
-            // Context meter: expose the percent on the trigger (the stock
-            // button only shows the ring) and dock the ball right after the
-            // stats cluster so both read as one status chip row. The meter
-            // stays React-owned; the observer re-places it after re-mounts
-            // (same self-healing pattern as the stats dock above).
-            const meter = document.querySelector(".JObwrW_root");
-            if (meter === null) return;
-            const trig = meter.querySelector(".JObwrW_trigger");
-            if (trig !== null) {
-              const m = (trig.getAttribute("aria-label") || "").match(/(\d+)%/);
-              if (m !== null && trig.getAttribute("data-pct") !== m[1]) trig.setAttribute("data-pct", m[1]);
-            }
-            const row2 = document.querySelector(".uV2eYG_row");
-            const tools2 = row2 !== null ? row2.querySelector(".uV2eYG_tools") : null;
-            if (tools2 !== null && stats !== null && stats.parentElement === tools2) {
-              if (meter.parentElement !== tools2) {
-                stats.after(meter);
-              } else if (meter.previousElementSibling !== stats) {
-                stats.after(meter);
-              }
-            }
-            // Model picker menu: the seat's menu is React-owned and renders
-            // inside its root in the trailing cluster, so it would open at
-            // the far right of the composer card — far from the status chip
-            // the user clicked. Keep the menu in place (React's close-on-
-            // outside-click checks the seat root, so reparenting would break
-            // it) but re-position it fixed, anchored above the chip. The
-            // chip's click handler opens the picker; the observer re-anchors
-            // while the menu is open (its height changes as the model list
-            // loads, so re-measure on every mutation).
-            const chip = stats?.querySelector('span[data-stat="model"]');
-            const menu = document.querySelector('._7KE1Ra_root [role="menu"]');
-            if (menu !== null) {
-              if (chip !== null) {
-                // `position: fixed` anchors to the nearest ancestor that
-                // creates a containing block (backdrop-filter on the
-                // conversation pane does), not to the viewport — so measure
-                // the menu's own origin (its rect at 0,0) and offset the
-                // chip's viewport coordinates by it. Order matters: switch to
-                // fixed at 0,0 FIRST, then measure, then apply the offset.
-                // Re-measure on every mutation: the menu height changes as
-                // the model list loads.
-                menu.style.position = "fixed";
-                menu.style.bottom = "auto";
-                menu.style.right = "auto";
-                menu.style.left = "0px";
-                menu.style.top = "0px";
-                const origin = menu.getBoundingClientRect();
-                const chipRect = chip.getBoundingClientRect();
-                const h = menu.offsetHeight || 320;
-                menu.style.left = `${Math.max(0, chipRect.left - origin.left)}px`;
-                menu.style.top = `${Math.max(0, chipRect.top - h - 8 - origin.top)}px`;
-              } else {
-                menu.style.position = "";
-                menu.style.left = "";
-                menu.style.top = "";
-                menu.style.bottom = "";
-                menu.style.right = "";
-              }
-            }
+            const line = ensureLine();
+            if (stats === null || line === null) return;
+            const text = compose(stats);
+            if (line.textContent !== text) line.textContent = text;
+            line.classList.toggle("tui-empty", text === "");
           };
-          // Same debounce as the disclosure auto-expand above: dock() moves
-          // nodes and sets attributes/text, which is itself a childList
-          // mutation on document.body — a synchronous observer callback would
-          // re-trigger itself endlessly. Run it on a macrotask instead.
           let dockTimer = null;
           const scheduleDock = () => {
             if (dockTimer !== null) return;
-            dockTimer = setTimeout(() => { dockTimer = null; dock(); }, 120);
+            dockTimer = setTimeout(() => { dockTimer = null; render(); }, 120);
           };
-          dock();
+          render();
           const mo = new MutationObserver(scheduleDock);
-          mo.observe(document.body, { childList: true, subtree: true });
+          mo.observe(document.body, { childList: true, subtree: true, characterData: true });
           cleanups.push(() => { if (dockTimer !== null) clearTimeout(dockTimer); mo.disconnect(); });
         }
 
