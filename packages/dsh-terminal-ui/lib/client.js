@@ -547,10 +547,10 @@ select {
   max-width: 100%;
   align-items: stretch;
 }
-/* user messages: near-black terminal block, Fira Code — calmer than the
-   previous 15px/600 slabs: 14px/500 (aligned with the markdown base size),
-   tighter padding and leading. The black block + green left rail still make
-   it the loudest element in the column. */
+/* user messages: near-black terminal block, Iosevka Medium — one step
+   bolder than the GUI's regular Iosevka (400), same 14px size, text lighter
+   than the previous Fira Code (#dce8f5). The black block + green left rail
+   still make it the loudest element in the column. */
 .gdEzaW_bubble {
   background: linear-gradient(180deg, rgba(0, 0, 0, 0.82), rgba(0, 0, 0, 0.72));
   border: 1px solid #0d2b40;
@@ -558,8 +558,8 @@ select {
   border-radius: 0;
   padding: 6px 14px;
   max-width: 100%;
-  color: #dce8f5;
-  font-family: "FiraCode Nerd Font", "Fira Code", var(--ds-font-family-code);
+  color: #f0f6ff;
+  font-family: "Iosevka", "Iosevka Medium", var(--ds-font-family-code);
   font-weight: 500;
   font-size: 14px;
   line-height: 21px;
