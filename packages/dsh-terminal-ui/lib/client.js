@@ -251,14 +251,11 @@ body[data-ds-dark-theme] {
    full-width bar under the composer card; the JS feature below moves it into
    the input card's bottom row (uV2eYG_row), at the left where the "Full
    access" button sits, so it reads as part of the terminal status row.
-   Restyled as a single-row chip in the "Full access" badge style: dark
-   translucent plaque, hairline frame, squared corners (strict), Iosevka, a
-   Nerd Font pictogram per stat group (heirline-style) with the blue "/"
-   separators. Fully visible: no max-width cap, no ellipsis — the row wraps
-   only when the column is genuinely too narrow. The context meter is docked
-   right after it as a matching chip (see the dock feature below). Both sit
-   at the row's 28px control height (border-box), so the stats cluster, the
-   context meter and the neighboring buttons read as one panel row. */
+   Restyled as a borderless segment of ONE status row: no chip frame of its
+   own — the stats groups, the context meter and the "Full access" badge
+   share the row's 28px control height and the same Iosevka typography, and
+   only the bold blue "/" slashes separate the stat groups. The row gets a
+   small left indent so the readout breathes off the card edge. */
 .FJxK0a_root.tui-docked-stats {
   display: inline-flex !important;
   align-items: center;
@@ -267,11 +264,10 @@ body[data-ds-dark-theme] {
   min-height: 28px;
   width: auto;
   max-width: none;
-  border-top: none;
-  background: rgba(4, 15, 28, 0.72);
-  border: 1px solid var(--dsw-alias-border-l1);
-  border-radius: 0; /* strict: squared, like the theme's other chips */
-  padding: 0 4px 0 0; /* flush to the left edge of the composer */
+  background: transparent;
+  border: none;
+  border-radius: 0;
+  padding: 0;
   margin: 0;
   flex: 0 1 auto;
   min-width: 0;
@@ -329,21 +325,19 @@ body[data-ds-dark-theme] {
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23c8a8ef'%3E%3Cpath d='M11.8 10.9c-2.27-.59-3-1.2-3-2.15 0-1.09 1.01-1.85 2.7-1.85 1.78 0 2.44.85 2.5 2.1h2.21c-.07-1.72-1.12-3.3-3.21-3.81V3h-3v2.16c-1.94.42-3.5 1.68-3.5 3.61 0 2.31 1.91 3.46 4.7 4.13 2.5.6 3 1.48 3 2.41 0 .69-.49 1.79-2.7 1.79-2.06 0-2.87-.92-2.98-2.1h-2.2c.12 2.19 1.76 3.42 3.68 3.83V21h3v-2.15c1.95-.37 3.5-1.5 3.5-3.55 0-2.84-2.43-3.81-4.7-4.4z'/%3E%3C/svg%3E");
 }
 
-/* ── context meter: same chip treatment as the stats cluster ──
-   The round context-load ball (JObwrW_trigger) becomes a matching dark chip
-   with the progress ring and a visible percent readout (data-pct set by the
-   dock feature), docked right after the stats cluster in the same row.
-   Box-sizing is border-box and the height matches the row's 28px buttons,
-   so the chip sits flush with the stats cluster and the neighboring
-   controls as one panel row. */
+/* ── context meter: same borderless segment as the stats cluster ──
+   The round context-load ball (JObwrW_trigger) keeps its progress ring and
+   percent readout (data-pct set by the dock feature), but loses its own
+   chip frame — it sits flush next to the stats cluster in the same 28px
+   status row, separated by the same gap the stats groups use. */
 .JObwrW_root .JObwrW_trigger {
   box-sizing: border-box;
   width: auto;
   height: 28px;
   border-radius: 0;
-  background: rgba(4, 15, 28, 0.72);
-  border: 1px solid var(--dsw-alias-border-l1);
-  padding: 0 10px;
+  background: transparent;
+  border: none;
+  padding: 0 4px 0 10px;
   gap: 6px;
   display: inline-flex;
   align-items: center;
@@ -364,6 +358,27 @@ body[data-ds-dark-theme] {
 }
 .JObwrW_root .JObwrW_fill {
   stroke: var(--dsw-alias-state-business-primary);
+}
+
+/* ── "Full access" badge: third segment of the same borderless status row ──
+   The permission preset trigger keeps its icon + label + chevron but drops
+   its rounded-pill look: same 28px height, same squared corners, same
+   Iosevka typography as the stats cluster and the context meter, so all
+   three read as one status row. */
+.Sh0Q9G_trigger {
+  height: 28px;
+  border-radius: 0;
+  background: transparent;
+  border: none;
+  padding: 0 2px 0 10px;
+  font-family: var(--ds-font-family-code);
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 20px;
+  color: var(--dsw-alias-label-secondary);
+}
+.Sh0Q9G_trigger:hover:not(:disabled) {
+  background: var(--dsw-alias-interactive-bg-hover);
 }
 
 /* workspace hover tooltip: theme text instead of hardcoded white */
@@ -458,10 +473,11 @@ select {
   margin-left: 0;
   margin-right: calc(-1 * var(--dsh-scrollbar-width, 8px));
 }
-/* composer bottom row: flush to the left edge — the docked stats chip is
-   the first child and should touch the card edge (no side padding) */
+/* composer bottom row: a small left indent so the status readout breathes
+   off the card edge — the docked stats, context meter and Full access badge
+   read as one row of text, not glued to the edge */
 .uV2eYG_row {
-  padding-left: 0;
+  padding-left: 14px;
 }
 ._7yHdaG_dock {
   max-width: var(--dsh-chat-content-width);
