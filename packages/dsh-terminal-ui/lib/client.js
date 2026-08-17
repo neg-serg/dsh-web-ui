@@ -23,6 +23,11 @@ window.__ModuleLoader__.load({
 /* ── wallpaper + base ── */
 html {
   background: #040f1c;
+  /* 4K 32" desktop: scale the whole UI up. The theme is px-based (fonts,
+     spacing, icons are all hardcoded px), so a root zoom scales everything
+     uniformly — the easy knob vs. converting the theme to rem. Tune to taste
+     (1.2 = +20 %). Supported by Chromium/Vivaldi, Firefox 126+, Safari. */
+  zoom: 1.2;
 }
 body {
   background: transparent;
