@@ -685,6 +685,58 @@ button[aria-label="New session"] {
   display: none;
 }
 
+/* ── buttons-to-commands (step 9): trajectory, settings, panels → commands ──
+   Chat/Trajectory view tabs → /trajectory (clicks the matching tab)
+   Sidebar settings trigger  → /settings (clicks the hidden button)
+   Panel show/hide           → /sidebar /details /panels (layout service)
+   The closed sidebar keeps a 56px icon rail (the resolved width when the
+   sidebar preference is 0); killing it is handled in JS (feature below)
+   because the details track width is dynamic and cannot be recreated in
+   pure CSS without breaking the grid item order. */
+.wSkVaW_tabs {
+  display: none;
+}
+button[aria-label="Settings"],
+.VOzbGW_trigger {
+  display: none;
+}
+
+/* ── buttons-to-commands (step 10): workspace row buttons → commands ──
+   Sidebar workspace rows carry three buttons: the ellipsis menu (Rename /
+   Delete workspace), "+" (New session in this workspace) and the header
+   "Add workspace". /workspace <name> switches to a workspace, /workspace
+   rename|delete|add do the menu actions (client command source below), /new
+   starts sessions in the current workspace. CSS hides the buttons; the DOM
+   stays intact. */
+button[aria-label^="Workspace actions for"],
+button[aria-label^="New session in "],
+button[aria-label="Add workspace"] {
+  display: none;
+}
+
+/* workspace command feedback: transient status line above the composer
+   (success green / error red border), same family as tui-search */
+.tui-ws-status {
+  position: fixed;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 110;
+  display: none;
+  box-sizing: border-box;
+  max-width: min(720px, 80vw);
+  padding: 6px 12px;
+  background: var(--dsw-specific-menu);
+  border: 1px solid var(--dsw-alias-state-success-primary);
+  border-radius: 4px;
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.5);
+  font-family: var(--ds-font-family-code);
+  font-size: 12px;
+  line-height: 18px;
+  color: var(--dsw-alias-label-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
 `;
 
     function apply(ctx) {
@@ -957,6 +1009,77 @@ button[aria-label="New session"] {
   });
 }
         }
+        {
+{
+  // tui-no-zh: the shell bundle (dsh-web-app) hardcodes Chinese labels for a
+  // few components instead of going through the locale service, so they stay
+  // Chinese no matter which locale the app resolves — the diff-expand button
+  // ("… 其余 N 行"), its aria-labels ("展开其余 N 行…"/"收起…"), code-block
+  // copy buttons ("复制"/"复制成功"), terminal pills ("已完成"/"无输出") and
+  // the reconnect toast ("连接已断开，正在重连…"). Rewrite those exact
+  // strings to English on every mutation (same observer pattern as
+  // tui-no-tps). Only exact/structural zh phrases are matched, so message
+  // content is never touched.
+  const ZH_RULES = [
+    [/^… 其余 (\d+) 行输出$/, (n) => `… ${n} more output lines`],
+    [/^… 其余 (\d+) 行差异$/, (n) => `… ${n} more diff lines`],
+    [/^… 其余 (\d+) 行结果$/, (n) => `… ${n} more result lines`],
+    [/^… 其余 (\d+) 行$/, (n) => `… ${n} more lines`],
+    [/^展开其余 (\d+) 行输出$/, (n) => `Expand the remaining ${n} output lines`],
+    [/^展开其余 (\d+) 行差异$/, (n) => `Expand the remaining ${n} diff lines`],
+    [/^展开其余 (\d+) 行结果$/, (n) => `Expand the remaining ${n} result lines`],
+    [/^展开其余 (\d+) 行$/, (n) => `Expand the remaining ${n} lines`],
+    [/^收起输出$/, "Collapse output"],
+    [/^收起内容$/, "Collapse"],
+    [/^收起差异$/, "Collapse diff"],
+    [/^收起$/, "Collapse"],
+    [/^复制成功$/, "Copied"],
+    [/^复制$/, "Copy"],
+    [/^已完成$/, "Done"],
+    [/^无输出$/, "No output"],
+    [/^连接已断开，正在重连…$/, "Connection lost, reconnecting…"],
+  ];
+  const applyRules = (text) => {
+    const t = text.trim();
+    for (const [re, to] of ZH_RULES) {
+      const m = re.exec(t);
+      if (m === null) continue;
+      return typeof to === "function" ? to(...m.slice(1)) : to;
+    }
+    return text;
+  };
+  const rewrite = () => {
+    // text nodes
+    const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
+    const hits = [];
+    while (walker.nextNode()) {
+      const node = walker.currentNode;
+      if (node.nodeType !== 3 || !/[\u4e00-\u9fff]/.test(node.textContent || "")) continue;
+      const replaced = applyRules(node.textContent || "");
+      if (replaced !== node.textContent) hits.push([node, replaced]);
+    }
+    for (const [node, replaced] of hits) if (node.isConnected) node.textContent = replaced;
+    // aria-labels on buttons (expand/collapse + copy)
+    for (const el of document.querySelectorAll("[aria-label]")) {
+      const label = el.getAttribute("aria-label");
+      if (label === null || !/[\u4e00-\u9fff]/.test(label)) continue;
+      const replaced = applyRules(label);
+      if (replaced !== label) el.setAttribute("aria-label", replaced);
+    }
+  };
+  rewrite();
+  let timer = 0;
+  const mo = new MutationObserver(() => {
+    clearTimeout(timer);
+    timer = setTimeout(rewrite, 300);
+  });
+  mo.observe(document.body, { childList: true, subtree: true, characterData: true });
+  cleanups.push(() => {
+    clearTimeout(timer);
+    mo.disconnect();
+  });
+}
+        }
         // ── feature: buttons-to-commands (steps 2-3) ──
         {
           // Keyboard replacements for the hidden composer buttons:
@@ -1177,6 +1300,45 @@ button[aria-label="New session"] {
           check();
           cleanups.push(() => { stopped = true; clearInterval(timer); });
         }
+        // ── feature: kill the 56px sidebar rail on collapse ──
+        // The layout service resolves a closed sidebar preference to the
+        // compact icon rail (56px) and the AppFrame bakes it into the
+        // frame's inline grid-template-columns ("56px minmax(0,1fr) …").
+        // display:none on the column would renumber the grid items and drop
+        // the chat into the rail track, so instead rewrite the inline
+        // template's first track to 0 and leave the rest (the details track
+        // is dynamic) untouched. React re-renders the inline style on every
+        // layout change (drag, /details, /panels), so re-apply on
+        // mutations plus a slow interval as belt-and-suspenders.
+        {
+          const fixRail = () => {
+            const frame = document.querySelector(".pI_x6G_frame");
+            if (!(frame instanceof HTMLElement)) return;
+            if (!frame.hasAttribute("data-sidebar-collapsed")) return;
+            const tpl = frame.style.gridTemplateColumns || "";
+            const fixed = tpl.replace(/^\s*\d+(?:\.\d+)?px/, "0px");
+            if (fixed !== tpl) frame.style.gridTemplateColumns = fixed;
+          };
+          fixRail();
+          const railTimer = setInterval(fixRail, 600);
+          const railMo = new MutationObserver(fixRail);
+          const watch = () => {
+            const frame = document.querySelector(".pI_x6G_frame");
+            if (frame instanceof HTMLElement) {
+              railMo.observe(frame, { attributes: true, attributeFilter: ["style", "data-sidebar-collapsed", "class"] });
+              return true;
+            }
+            return false;
+          };
+          if (!watch()) {
+            const bootTimer = setInterval(() => { if (watch()) clearInterval(bootTimer); }, 500);
+            cleanups.push(() => clearInterval(bootTimer));
+          }
+          cleanups.push(() => {
+            clearInterval(railTimer);
+            railMo.disconnect();
+          });
+        }
         return () => {
           cleanups.forEach((fn) => fn());
           style.remove();
@@ -1192,7 +1354,7 @@ button[aria-label="New session"] {
       // (title hidden by CSS above) and matchEnter claims the bare lines
       // (the host "command" source returns void for unknown names, so
       // registration order doesn't matter).
-      ctx.inject(["inputTriggers", "workspaces", "sessions"], (scope) => {
+      ctx.inject(["inputTriggers", "workspaces", "sessions", "layout"], (scope) => {
         const consume = (session, guard) => {
           const actx = scope.sessions.scope(session.sessionId);
           if (actx === void 0 || typeof actx.bail !== "function") return;
@@ -1206,6 +1368,57 @@ button[aria-label="New session"] {
           const cur = items.findIndex((el) => el.getAttribute("aria-selected") === "true");
           const idx = cur === -1 ? (dir === 1 ? 0 : items.length - 1) : (cur + dir + items.length) % items.length;
           items[idx]?.click();
+        };
+        // ── step 9 helpers: trajectory view, panels, settings ──
+        // Chat/Trajectory are plain [role="tab"] buttons (their row is CSS-
+        // hidden); /trajectory clicks the matching tab, toggling back to Chat
+        // when the target is already the active view. The panel state is read
+        // from the AppFrame's data-* attributes (set by dsh-client-ui-layout)
+        // and driven through the layout service, whose toggleSidebar closes
+        // the sidebar preference to 0 (the CSS above hides the 56px rail that
+        // would otherwise remain), openDetails/closeDetails move the right
+        // panel. The settings modal is component-local state, so /settings
+        // clicks its (CSS-hidden) trigger button.
+        const viewTab = (id) => Array.from(document.querySelectorAll('[role="tab"]')).find(
+          (t) => (t.getAttribute("aria-label") || t.textContent || "").trim().toLowerCase() === id,
+        );
+        const toggleView = (id) => {
+          const target = viewTab(id);
+          if (target === void 0) return;
+          if (target.getAttribute("aria-selected") === "true") {
+            const chat = viewTab("chat");
+            if (chat !== void 0) chat.click();
+          } else {
+            target.click();
+          }
+        };
+        const frameEl = () => document.querySelector(".pI_x6G_frame");
+        const sidebarCollapsed = () => frameEl()?.hasAttribute("data-sidebar-collapsed") ?? false;
+        const detailsCollapsed = () => frameEl()?.hasAttribute("data-details-collapsed") ?? true;
+        const layout = scope.layout;
+        const toggleSidebar = () => { if (layout !== void 0 && typeof layout.toggleSidebar === "function") layout.toggleSidebar(); };
+        const toggleDetails = () => {
+          if (layout === void 0) return;
+          if (detailsCollapsed()) layout.openDetails();
+          else layout.closeDetails();
+        };
+        const togglePanels = () => {
+          if (layout === void 0) return;
+          if (sidebarCollapsed() && detailsCollapsed()) {
+            // everything hidden → restore both panels
+            layout.toggleSidebar();
+            layout.openDetails();
+          } else {
+            if (!sidebarCollapsed()) layout.toggleSidebar();
+            if (!detailsCollapsed()) layout.closeDetails();
+          }
+        };
+        const openSettings = () => {
+          // The trigger renders in two shapes on the pinned release: an
+          // aria-label or a bare text label — match either.
+          const btn = document.querySelector('button[aria-label="Settings"]')
+            ?? Array.from(document.querySelectorAll("button")).find((b) => (b.textContent || "").trim() === "Settings");
+          if (btn !== null && btn !== void 0 && !btn.disabled) btn.click();
         };
         // Search the session catalog and open the best match: first by
         // display title (exact > prefix > substring), then by message
@@ -1256,6 +1469,31 @@ button[aria-label="New session"] {
             void openByQuery(trimmed.slice("/session".length));
             return "handled";
           }
+          if (trimmed === "/trajectory") {
+            consume(session, { kind: "bare-token", token: trimmed });
+            toggleView("trajectory");
+            return "handled";
+          }
+          if (trimmed === "/sidebar") {
+            consume(session, { kind: "bare-token", token: trimmed });
+            toggleSidebar();
+            return "handled";
+          }
+          if (trimmed === "/details") {
+            consume(session, { kind: "bare-token", token: trimmed });
+            toggleDetails();
+            return "handled";
+          }
+          if (trimmed === "/panels") {
+            consume(session, { kind: "bare-token", token: trimmed });
+            togglePanels();
+            return "handled";
+          }
+          if (trimmed === "/settings") {
+            consume(session, { kind: "bare-token", token: trimmed });
+            openSettings();
+            return "handled";
+          }
           return void 0;
         };
         const COMMANDS = [
@@ -1263,6 +1501,11 @@ button[aria-label="New session"] {
           { name: "session", description: "перейти к сессии по имени: /session <имя>" },
           { name: "next", description: "следующая сессия" },
           { name: "prev", description: "предыдущая сессия" },
+          { name: "trajectory", description: "переключить вид: траектория/чат" },
+          { name: "sidebar", description: "показать/скрыть левую панель" },
+          { name: "details", description: "показать/скрыть правую панель" },
+          { name: "panels", description: "скрыть/показать все панели" },
+          { name: "settings", description: "открыть настройки" },
         ];
         const disposer = scope.inputTriggers.registerSource({
           trigger: "/",
@@ -1283,6 +1526,11 @@ button[aria-label="New session"] {
             if (name === "new") scope.workspaces.startSession();
             else if (name === "next") cycle(1);
             else if (name === "prev") cycle(-1);
+            else if (name === "trajectory") toggleView("trajectory");
+            else if (name === "sidebar") toggleSidebar();
+            else if (name === "details") toggleDetails();
+            else if (name === "panels") togglePanels();
+            else if (name === "settings") openSettings();
             return "handled";
           },
           matchEnter: (session, line) => dispatchLine(session, line),
