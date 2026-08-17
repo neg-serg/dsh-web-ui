@@ -324,6 +324,27 @@ body[data-ds-dark-theme] {
   /* material: payments — session cost in money */
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23c8a8ef'%3E%3Cpath d='M11.8 10.9c-2.27-.59-3-1.2-3-2.15 0-1.09 1.01-1.85 2.7-1.85 1.78 0 2.44.85 2.5 2.1h2.21c-.07-1.72-1.12-3.3-3.21-3.81V3h-3v2.16c-1.94.42-3.5 1.68-3.5 3.61 0 2.31 1.91 3.46 4.7 4.13 2.5.6 3 1.48 3 2.41 0 .69-.49 1.79-2.7 1.79-2.06 0-2.87-.92-2.98-2.1h-2.2c.12 2.19 1.76 3.42 3.68 3.83V21h3v-2.15c1.95-.37 3.5-1.5 3.5-3.55 0-2.84-2.43-3.81-4.7-4.4z'/%3E%3C/svg%3E");
 }
+.FJxK0a_root.tui-docked-stats > span[data-stat="model"]::before {
+  /* material: memory — current model chip */
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23367bbf'%3E%3Cpath d='M15 9H9v6h6V9zm-2 4h-2v-2h2v2zm8-2V9h-2V7c0-1.1-.9-2-2-2h-2V3h-2v2h-2V3H9v2H7c-1.1 0-2 .9-2 2v2H3v2h2v2H3v2h2v2c0 1.1.9 2 2 2h2v2h2v-2h2v2h2v-2h2c1.1 0 2-.9 2-2v-2h2v-2h-2v-2h2zm-4 6H7V7h10v10z'/%3E%3C/svg%3E");
+}
+/* the model chip is a real button (opens the composer's model picker):
+   interactive affordances — pointer, hover tint and a focus ring — so the
+   status row reads as a control, not a static readout */
+.FJxK0a_root.tui-docked-stats > span[data-stat="model"] {
+  cursor: pointer;
+  border-radius: 4px;
+  margin: 0 2px;
+  padding: 0 2px;
+}
+.FJxK0a_root.tui-docked-stats > span[data-stat="model"]:hover {
+  background: var(--dsw-alias-interactive-bg-hover);
+  color: var(--dsw-alias-label-primary);
+}
+.FJxK0a_root.tui-docked-stats > span[data-stat="model"]:focus-visible {
+  outline: 2px solid var(--dsw-alias-button-info-fill);
+  outline-offset: -1px;
+}
 
 /* ── context meter: same borderless segment as the stats cluster ──
    The round context-load ball (JObwrW_trigger) keeps its progress ring and
@@ -1673,6 +1694,7 @@ button[aria-label="Check for updates"] {
               [/[$\u20bd\u20ac\u00a3]/i, "cost"],
             ];
             for (const span of stats.querySelectorAll(":scope > span:not(.FJxK0a_sep)")) {
+              if (span.getAttribute("data-stat") === "model") continue; // model chip is renderModel-owned
               const text = span.textContent || "";
               let kind = "";
               for (const [re, k] of kinds) {
@@ -1681,10 +1703,11 @@ button[aria-label="Check for updates"] {
               if (kind !== "" && span.getAttribute("data-stat") !== kind) span.setAttribute("data-stat", kind);
             }
           };
-          // Importance order for the status row: the most useful readouts go
-          // left (turns/steps, LLM/tool time, tokens, cost), the least
-          // interesting right (cache share, TTFT).
-          const STAT_ORDER = ["counts", "durations", "tokens", "cost", "cache", "speeds"];
+          // Importance order for the status row: the active model goes
+          // first (the row identifies the model at a glance), then the token
+          // in/out, the session cost, and the cache hit-rate go left (neg's
+          // picks); the rest trails in the stock order.
+          const STAT_ORDER = ["model", "tokens", "cost", "cache", "counts", "durations", "speeds"];
           // Reorder the group spans into STAT_ORDER, keeping a slash
           // separator between every pair. The stock render alternates
           // group/sep/text; the appended cost group has no separator of its
@@ -1777,10 +1800,10 @@ button[aria-label="Check for updates"] {
             return Number.isFinite(n) ? n * mult : 0;
           };
           const formatCost = (usd) => {
-            if (!(usd > 0)) return "$0";
+            if (!(usd > 0)) return "0";
             // adaptive decimals: show enough digits so a small cost is never 0
             const decimals = usd >= 1 ? 2 : usd >= 0.01 ? 3 : 4;
-            return "$" + usd.toFixed(decimals).replace(/0+$/, "").replace(/\.$/, "");
+            return usd.toFixed(decimals).replace(/0+$/, "").replace(/\.$/, "");
           };
           const renderCost = (stats) => {
             const tokensSpan = stats.querySelector('span[data-stat="tokens"]');
@@ -1810,11 +1833,50 @@ button[aria-label="Check for updates"] {
             // append after the tokens group (kept in the row by reorder)
             stats.appendChild(existing);
           };
+          // Current model readout: the composer's model seat (the button in
+          // the trailing cluster, `conversation.input.model` slot) carries the
+          // live selection in its title ("DeepSeek-V4-Flash · High"). Mirror
+          // it as the leading status group so the row shows which model the
+          // session runs on, like a shell prompt prefix. The chip is a real
+          // button: clicking it clicks the composer's model seat, opening the
+          // same model picker the /model command raises — the picker logic
+          // stays upstream-owned. React owns the seat, so re-read on every
+          // mutation (same self-healing pattern as the stats dock and context
+          // meter below).
+          const renderModel = (stats) => {
+            const seat = document.querySelector('.uV2eYG_trailing button[aria-haspopup="menu"]');
+            const label = (seat?.getAttribute("title") || seat?.getAttribute("aria-label") || "").trim();
+            let existing = stats.querySelector('span[data-stat="model"]');
+            if (label === "") {
+              if (existing !== null) existing.remove();
+              return;
+            }
+            if (existing !== null) {
+              if (existing.textContent !== label) existing.textContent = label;
+              return;
+            }
+            existing = document.createElement("span");
+            existing.setAttribute("data-stat", "model");
+            existing.setAttribute("role", "button");
+            existing.setAttribute("tabindex", "0");
+            existing.title = "Select model";
+            existing.textContent = label;
+            const openPicker = () => seat?.click();
+            existing.addEventListener("click", openPicker);
+            existing.addEventListener("keydown", (event) => {
+              if (event.key === "Enter" || event.key === " ") {
+                event.preventDefault();
+                openPicker();
+              }
+            });
+            stats.appendChild(existing); // reorderStats places it per STAT_ORDER
+          };
           const dock = () => {
             const stats = document.querySelector(".FJxK0a_root");
             if (stats !== null) {
               stats.classList.add("tui-docked-stats");
               tagStats(stats);
+              renderModel(stats);
               renderCost(stats);
               reorderStats(stats);
               rewriteLabels(stats);
