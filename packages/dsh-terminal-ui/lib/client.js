@@ -186,7 +186,7 @@ body[data-ds-dark-theme] {
 [data-variant="think"] .QWLzlG_thinkBody {
   margin: 6px 0 10px;
   padding: 12px 14px;
-  background: rgba(10, 24, 42, 0.8);
+  background: rgba(2, 8, 15, 0.92);
   border: 1px solid var(--dsw-alias-border-l1);
   border-left: 3px solid var(--dsw-alias-state-business-primary);
   border-radius: 10px;
