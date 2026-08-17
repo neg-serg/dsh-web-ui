@@ -1017,6 +1017,15 @@ button[aria-label="Check for updates"] {
   display: none;
 }
 
+/* ── buttons-to-commands (step 12): memory panel button → command ──
+   dsh-memento mounts a floating "#mem-open" button (bottom-right) that
+   toggles the memory observer drawer. /memory clicks the hidden button
+   (same dispatch as /settings); CSS hides it. The panel itself (#mem-drawer)
+   is untouched — it opens on command and closes via its own ✕/Refresh. */
+#mem-open {
+  display: none;
+}
+
 /* workspace command feedback: transient status line above the composer
    (success green / error red border), same family as tui-search */
 .tui-ws-status {
@@ -2344,6 +2353,15 @@ button[aria-label="Check for updates"] {
           const btn = document.querySelector('button[aria-label="' + label + '"]');
           if (btn !== null && btn !== void 0 && !btn.disabled) btn.click();
         };
+        // /memory: toggle the dsh-memento observer panel. dsh-memento mounts
+        // a floating "#mem-open" button (bottom-right) that toggles the
+        // drawer; its header comment mentions an F9 shortcut, but the shipped
+        // client only wires click listeners — so the button is the sole real
+        // trigger. We click the (CSS-hidden) button, same as /settings.
+        const toggleMemory = () => {
+          const btn = document.getElementById("mem-open");
+          if (btn !== null && btn !== void 0 && !btn.disabled) btn.click();
+        };
         // Search the session catalog and open the best match: first by
         // display title (exact > prefix > substring), then by message
         // content (sessions.search returns {items:[{sessionId,snippet}]}).
@@ -2456,6 +2474,11 @@ button[aria-label="Check for updates"] {
             clickByLabel("Check for updates");
             return "handled";
           }
+          if (trimmed === "/memory") {
+            consume(session, { kind: "bare-token", token: trimmed });
+            toggleMemory();
+            return "handled";
+          }
           return void 0;
         };
         const COMMANDS = [
@@ -2472,6 +2495,7 @@ button[aria-label="Check for updates"] {
           { name: "settings", description: "открыть настройки" },
           { name: "phone", description: "открыть панель мобильного управления (QR)" },
           { name: "update", description: "проверить обновления" },
+          { name: "memory", description: "открыть/закрыть панель памяти (dsh-memento)" },
         ];
         const disposer = scope.inputTriggers.registerSource({
           trigger: "/",
@@ -2505,6 +2529,7 @@ button[aria-label="Check for updates"] {
             else if (name === "settings") openSettings();
             else if (name === "phone") clickByLabel("Mobile remote control");
             else if (name === "update") clickByLabel("Check for updates");
+            else if (name === "memory") toggleMemory();
             return "handled";
           },
           matchEnter: (session, line) => dispatchLine(session, line),
