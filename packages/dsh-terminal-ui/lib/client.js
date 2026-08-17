@@ -1907,6 +1907,45 @@ button[aria-label="Check for updates"] {
                 stats.after(meter);
               }
             }
+            // Model picker menu: the seat's menu is React-owned and renders
+            // inside its root in the trailing cluster, so it would open at
+            // the far right of the composer card — far from the status chip
+            // the user clicked. Keep the menu in place (React's close-on-
+            // outside-click checks the seat root, so reparenting would break
+            // it) but re-position it fixed, anchored above the chip. The
+            // chip's click handler opens the picker; the observer re-anchors
+            // while the menu is open (its height changes as the model list
+            // loads, so re-measure on every mutation).
+            const chip = stats?.querySelector('span[data-stat="model"]');
+            const menu = document.querySelector('._7KE1Ra_root [role="menu"]');
+            if (menu !== null) {
+              if (chip !== null) {
+                // `position: fixed` anchors to the nearest ancestor that
+                // creates a containing block (backdrop-filter on the
+                // conversation pane does), not to the viewport — so measure
+                // the menu's own origin (its rect at 0,0) and offset the
+                // chip's viewport coordinates by it. Order matters: switch to
+                // fixed at 0,0 FIRST, then measure, then apply the offset.
+                // Re-measure on every mutation: the menu height changes as
+                // the model list loads.
+                menu.style.position = "fixed";
+                menu.style.bottom = "auto";
+                menu.style.right = "auto";
+                menu.style.left = "0px";
+                menu.style.top = "0px";
+                const origin = menu.getBoundingClientRect();
+                const chipRect = chip.getBoundingClientRect();
+                const h = menu.offsetHeight || 320;
+                menu.style.left = `${Math.max(0, chipRect.left - origin.left)}px`;
+                menu.style.top = `${Math.max(0, chipRect.top - h - 8 - origin.top)}px`;
+              } else {
+                menu.style.position = "";
+                menu.style.left = "";
+                menu.style.top = "";
+                menu.style.bottom = "";
+                menu.style.right = "";
+              }
+            }
           };
           dock();
           const mo = new MutationObserver(dock);
