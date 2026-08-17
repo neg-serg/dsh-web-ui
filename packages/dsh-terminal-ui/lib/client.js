@@ -1666,9 +1666,9 @@ button[aria-label="Check for updates"] {
           const tagStats = (stats) => {
             const kinds = [
               [/turn|step/i, "counts"],
-              [/LLM|Tool call/i, "durations"],
+              [/LLM|Tool/i, "durations"],
               [/TTFT|tok\/s/i, "speeds"],
-              [/cache/i, "cache"],
+              [/cache|HIT-RATE/i, "cache"],
               [/tok/i, "tokens"],
               [/[$\u20bd\u20ac\u00a3]/i, "cost"],
             ];
@@ -1733,6 +1733,33 @@ button[aria-label="Check for updates"] {
             });
             stats.appendChild(frag);
           };
+          // Short labels for the status row: the stock strings ("Tool call",
+          // "Input … tok", "Output … tok", "Cache hit N%") are too verbose for
+          // a single status line. Rewrite the group text to terse terminal
+          // style. Runs on every mutation — React rewrites the text back on
+          // re-render, so re-apply here (the regexes in tagStats/renderCost
+          // accept both the original and the shortened forms).
+          const rewriteLabels = (stats) => {
+            const replace = (span, pairs) => {
+              if (span === null) return;
+              const text = span.textContent ?? "";
+              let next = text;
+              for (const [from, to] of pairs) {
+                next = next.split(from).join(to);
+              }
+              if (next !== text) span.textContent = next;
+            };
+            for (const span of stats.querySelectorAll(":scope > span:not(.FJxK0a_sep)")) {
+              const kind = span.getAttribute("data-stat");
+              if (kind === "durations") {
+                replace(span, [["Tool call", "Tool"]]);
+              } else if (kind === "tokens") {
+                replace(span, [["Input", "IN"], ["Output", "OUT"]]);
+              } else if (kind === "cache") {
+                replace(span, [["Cache hit", "HIT-RATE"]]);
+              }
+            }
+          };
           // Self-implemented cost readout: fold the visible session figures
           // (billed input/output tokens, cache-hit share) through the official
           // DeepSeek per-1M-token prices. Only the pricing MATH is borrowed
@@ -1761,8 +1788,8 @@ button[aria-label="Check for updates"] {
             let existing = stats.querySelector('span[data-stat="cost"]');
             if (tokensSpan === null) return; // no tokens yet — nothing to price
             const tokensText = tokensSpan.textContent || "";
-            const inTok = parseCount(/Input\s+([0-9.]+[KM]?)\s*tok/i.exec(tokensText)?.[1]);
-            const outTok = parseCount(/Output\s+([0-9.]+[KM]?)\s*tok/i.exec(tokensText)?.[1]);
+            const inTok = parseCount(/(?:Input|IN)\s+([0-9.]+[KM]?)\s*tok/i.exec(tokensText)?.[1]);
+            const outTok = parseCount(/(?:Output|OUT)\s+([0-9.]+[KM]?)\s*tok/i.exec(tokensText)?.[1]);
             const cachePct = /([0-9]+)%/.exec(cacheSpan?.textContent ?? "")?.[1];
             const cacheShare = cachePct === void 0 ? 0 : Math.min(100, Math.max(0, Number(cachePct))) / 100;
             const model = document.querySelector('.uV2eYG_trailing button[aria-haspopup="menu"]')?.getAttribute("aria-label") ?? "";
@@ -1790,6 +1817,7 @@ button[aria-label="Check for updates"] {
               tagStats(stats);
               renderCost(stats);
               reorderStats(stats);
+              rewriteLabels(stats);
               const row = document.querySelector(".uV2eYG_row");
               if (row !== null && !row.contains(stats)) {
                 const tools = row.querySelector(".uV2eYG_tools");
