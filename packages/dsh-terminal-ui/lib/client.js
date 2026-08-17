@@ -301,6 +301,21 @@ select {
   padding-left: 0;
   padding-right: 0;
 }
+/* composer seat: edge-to-edge terminal input bar — span the whole center
+   column (flush with the sidebar on the left, the viewport edge on the
+   right). The seat sits in the conversation scrollport whose
+   scrollbar-gutter reserves 8px on the right, so widen by that gutter and
+   pull the extra width back with a negative margin (the scrollport's
+   overflow-x:hidden would otherwise clip it). Zeroing
+   --dsh-composer-side-clearance drops the base theme's 16px side padding
+   on .uV2eYG_root/.uV2eYG_hero so the black card touches both edges. */
+[data-composer-seat] {
+  --dsh-composer-side-clearance: 0px;
+  width: calc(100% + var(--dsh-scrollbar-width, 8px));
+  max-width: none;
+  margin-left: 0;
+  margin-right: calc(-1 * var(--dsh-scrollbar-width, 8px));
+}
 ._7yHdaG_dock {
   max-width: var(--dsh-chat-content-width);
 }
