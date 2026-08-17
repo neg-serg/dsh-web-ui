@@ -39,7 +39,7 @@ body::before {
 body,
 body[data-ds-dark-theme] {
   /* surfaces */
-  --dsw-alias-bg-base: rgba(4, 15, 28, 0.9);
+  --dsw-alias-bg-base: rgb(4, 15, 28);
   --dsw-alias-bg-layer-1: rgba(12, 28, 48, 0.86);
   --dsw-alias-bg-layer-2: rgba(16, 35, 58, 0.82);
   --dsw-alias-bg-layer-3: rgba(22, 45, 72, 0.78);
@@ -135,7 +135,7 @@ body[data-ds-dark-theme] {
   --dsw-alias-tooltip-bg: rgba(12, 28, 48, 0.92);
 
   /* specific surfaces */
-  --dsw-specific-sidebar-fill: rgba(4, 15, 28, 0.85);
+  --dsw-specific-sidebar-fill: rgb(4, 15, 28);
   --dsw-specific-sidebar-nav-item-active: rgba(16, 35, 58, 0.85);
   --dsw-specific-sidebar-nav-item-active-accent: rgba(22, 45, 72, 0.85);
   --dsw-specific-sidebar-nav-item-hover: rgba(28, 51, 78, 0.7);
