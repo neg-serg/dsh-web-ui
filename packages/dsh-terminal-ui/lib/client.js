@@ -2364,11 +2364,15 @@ button[aria-label="Check for updates"] {
           const btn = document.querySelector('button[aria-label="' + label + '"]');
           if (btn !== null && btn !== void 0 && !btn.disabled) btn.click();
         };
-        // /memory: toggle the dsh-memento observer panel. dsh-memento mounts
+        // /mem: toggle the dsh-memento observer panel. dsh-memento mounts
         // a floating "#mem-open" button (bottom-right) that toggles the
         // drawer; its header comment mentions an F9 shortcut, but the shipped
         // client only wires click listeners — so the button is the sole real
         // trigger. We click the (CSS-hidden) button, same as /settings.
+        // Named /mem, not /memory: dsh-memento already registers a host
+        // /memory command (list/add/remove/budgets/audit/…), which loads
+        // before the skin and wins the Enter adjudication — /memory would
+        // collide with it in the "/" menu.
         const toggleMemory = () => {
           const btn = document.getElementById("mem-open");
           if (btn !== null && btn !== void 0 && !btn.disabled) btn.click();
@@ -2483,11 +2487,6 @@ button[aria-label="Check for updates"] {
           if (trimmed === "/update") {
             consume(session, { kind: "bare-token", token: trimmed });
             clickByLabel("Check for updates");
-            return "handled";
-          }
-          if (trimmed === "/memory") {
-            consume(session, { kind: "bare-token", token: trimmed });
-            toggleMemory();
             return "handled";
           }
           if (trimmed === "/mem") {
