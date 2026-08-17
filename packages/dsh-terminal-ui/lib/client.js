@@ -1649,6 +1649,7 @@ button[aria-label="Check for updates"] {
             // injected-content marker inside the row itself
             return row.querySelector("[data-context-source]") !== null;
           };
+          let expandTimer = null;
           const expand = () => {
             const column = document.querySelector(".Md3f7G_column");
             if (!column) return;
@@ -1658,10 +1659,21 @@ button[aria-label="Check for updates"] {
               row.click();
             }
           };
+          // Debounce through a macrotask: the observer fires once per mutation
+          // batch, and row.click() re-renders the list (new DOM nodes, new
+          // childList mutations). Running expand() synchronously from the
+          // callback turns that into an infinite microtask loop that starves
+          // the event loop (100% CPU, unbounded memory). A 120ms timeout
+          // collapses the storm: React settles aria-expanded between runs, so
+          // the backlog drains and the loop converges.
+          const scheduleExpand = () => {
+            if (expandTimer !== null) return;
+            expandTimer = setTimeout(() => { expandTimer = null; expand(); }, 120);
+          };
           expand();
-          const mo = new MutationObserver(expand);
+          const mo = new MutationObserver(scheduleExpand);
           mo.observe(document.body, { childList: true, subtree: true });
-          cleanups.push(() => mo.disconnect());
+          cleanups.push(() => { if (expandTimer !== null) clearTimeout(expandTimer); mo.disconnect(); });
         }
         // ── feature: auto-reload on plugin/skin update ──
         // Prevents the stale-page trap: after a client.js edit the server
@@ -1983,10 +1995,19 @@ button[aria-label="Check for updates"] {
               }
             }
           };
+          // Same debounce as the disclosure auto-expand above: dock() moves
+          // nodes and sets attributes/text, which is itself a childList
+          // mutation on document.body — a synchronous observer callback would
+          // re-trigger itself endlessly. Run it on a macrotask instead.
+          let dockTimer = null;
+          const scheduleDock = () => {
+            if (dockTimer !== null) return;
+            dockTimer = setTimeout(() => { dockTimer = null; dock(); }, 120);
+          };
           dock();
-          const mo = new MutationObserver(dock);
+          const mo = new MutationObserver(scheduleDock);
           mo.observe(document.body, { childList: true, subtree: true });
-          cleanups.push(() => mo.disconnect());
+          cleanups.push(() => { if (dockTimer !== null) clearTimeout(dockTimer); mo.disconnect(); });
         }
 
         // ── feature: kill the 56px sidebar rail on collapse ──
