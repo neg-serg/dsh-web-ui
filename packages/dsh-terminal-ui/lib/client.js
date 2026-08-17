@@ -177,6 +177,22 @@ body[data-ds-dark-theme] {
   --dsw-static-blue-500: #2f6ca8;
 }
 
+/* ── thinking block: wrap reasoning text in a card for readability ── */
+[data-variant="think"] .QWLzlG_thinkBody {
+  margin: 6px 0 10px;
+  padding: 12px 14px;
+  background: rgba(10, 24, 42, 0.8);
+  border: 1px solid var(--dsw-alias-border-l1);
+  border-left: 3px solid var(--dsw-alias-state-business-primary);
+  border-radius: 10px;
+  color: var(--dsw-alias-label-primary-dimmed);
+  font-size: 13.5px;
+  line-height: 22px;
+}
+[data-variant="think"] .QWLzlG_row {
+  margin: 0;
+}
+
 /* sidebar icons: force theme color — some render with a hardcoded white
    SVG fill/stroke that looks unpainted on the navy glass */
 /* sidebar icons: force theme color — but keep the brand logo's own
