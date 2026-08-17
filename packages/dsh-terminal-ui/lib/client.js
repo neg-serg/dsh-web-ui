@@ -362,6 +362,11 @@ body[data-ds-dark-theme] {
   outline: 2px solid var(--dsw-alias-button-info-fill);
   outline-offset: -1px;
 }
+/* cwd prefix: the active session's directory, dimmed like a shell prompt */
+.FJxK0a_root.tui-docked-stats > span[data-stat="dir"] {
+  color: var(--dsw-alias-label-primary-dimmed);
+  cursor: default;
+}
 
 /* ── context meter: same borderless segment as the stats cluster ──
    The round context-load ball (JObwrW_trigger) keeps its progress ring and
@@ -1167,6 +1172,23 @@ button[aria-label="Check for updates"] {
         }
       };
 
+      // ── feature: current-directory readout for the docked stats row ──
+      // The active session's cwd (its workspace directory) is mirrored at the
+      // left edge of the status row like a shell prompt. The sessions store
+      // carries `cwd` per record; the stats dock (above) reads this variable
+      // on every pass, and the inject keeps it in sync across session
+      // switches. Client lives for the page lifetime — no teardown needed.
+      let tuiCwd = "";
+      ctx.inject(["sessions"], (scope) => {
+        const syncCwd = () => {
+          const snap = scope.sessions.list.getSnapshot();
+          const rec = snap.current !== void 0 ? snap.byId?.[snap.current] : void 0;
+          tuiCwd = rec?.cwd ?? "";
+        };
+        syncCwd();
+        scope.sessions.list.subscribe(syncCwd);
+      });
+
       ctx.effect(() => {
         const style = document.createElement("style");
         style.setAttribute("data-dsh-terminal-ui", "");
@@ -1749,7 +1771,7 @@ button[aria-label="Check for updates"] {
           // first (the row identifies the model at a glance), then the token
           // in/out, the session cost, and the cache hit-rate go left (neg's
           // picks); the rest trails in the stock order.
-          const STAT_ORDER = ["model", "tokens", "cost", "cache", "counts", "durations", "speeds"];
+          const STAT_ORDER = ["dir", "model", "tokens", "cost", "cache", "counts", "durations", "speeds"];
           // Reorder the group spans into STAT_ORDER, keeping a slash
           // separator between every pair. The stock render alternates
           // group/sep/text; the appended cost group has no separator of its
@@ -1919,12 +1941,43 @@ button[aria-label="Check for updates"] {
             });
             stats.appendChild(existing); // reorderStats places it per STAT_ORDER
           };
+          // Current-directory readout: the active session's cwd (its workspace
+          // directory) mirrored at the left edge of the status row like a
+          // shell prompt. `tuiCwd` is kept in sync by the sessions inject
+          // below; the path is shortened with "~" for the home prefix.
+          const renderDir = (stats) => {
+            let existing = stats.querySelector('span[data-stat="dir"]');
+            if (tuiCwd === "") {
+              if (existing !== null) {
+                const sep = existing.nextElementSibling;
+                existing.remove();
+                if (sep?.classList?.contains("FJxK0a_sep")) sep.remove();
+              }
+              return;
+            }
+            const short = tuiCwd.replace(/^\/home\/[^/]+/, "~");
+            if (existing !== null) {
+              if (existing.textContent !== short) existing.textContent = short;
+              return;
+            }
+            existing = document.createElement("span");
+            existing.setAttribute("data-stat", "dir");
+            existing.textContent = short;
+            existing.title = tuiCwd;
+            const sep = document.createElement("span");
+            sep.className = "FJxK0a_sep";
+            sep.setAttribute("aria-hidden", "true");
+            sep.textContent = "|";
+            stats.insertBefore(existing, stats.firstChild);
+            stats.insertBefore(sep, existing.nextSibling);
+          };
           const dock = () => {
             const stats = document.querySelector(".FJxK0a_root");
             if (stats !== null) {
               stats.classList.add("tui-docked-stats");
               tagStats(stats);
               renderModel(stats);
+              renderDir(stats);
               renderCost(stats);
               reorderStats(stats);
               rewriteLabels(stats);
