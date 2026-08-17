@@ -239,6 +239,8 @@ body[data-ds-dark-theme] {
   display: inline-flex !important;
   align-items: center;
   flex-wrap: wrap;
+  width: auto;
+  max-width: none;
   border-top: none;
   background: rgba(4, 15, 28, 0.72);
   border: 1px solid var(--dsw-alias-border-l1);
@@ -247,7 +249,6 @@ body[data-ds-dark-theme] {
   margin: 0;
   flex: 0 1 auto;
   min-width: 0;
-  max-width: none;
   overflow: visible;
   white-space: normal;
   font-family: var(--ds-font-family-code);
@@ -780,15 +781,20 @@ button[aria-label="New session"] {
   display: none;
 }
 
-/* ── trigger autocomplete ("/" menu): strict terminal dropdown ──
-   The base theme renders it with 12px rounded corners, a heavy lv3 shadow
-   and pill-shaped rows; square it off and give rows a blue-tinted active
-   state with a left rail — matching the custom /session & /workspace
-   autocomplete popups below. */
-[data-composer-card] [role="listbox"] {
+/* ── autocomplete: neg.nvim Pmenu style ──
+   Mirrors the popup menu of the neg.nvim theme (lua/neg/groups/editor.lua
+   + palette.lua): pure black Pmenu on a #121212 frame, text #6c7e96,
+   selected row #131e30 with deep blue #005faf text (PmenuSel), scrollbar
+   with #131e30 track / #005faf thumb. Applies to the native "/" menu
+   (listbox) and to the custom /session & /workspace autocomplete popups
+   (rows carry the .tui-ac-* classes below). */
+[data-composer-card] [role="listbox"],
+[data-tui-autocomplete] {
+  background: #000000;
+  border: 1px solid #121212;
   border-radius: 0;
-  border-color: var(--dsw-alias-border-l2);
-  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.4);
+  color: #6c7e96;
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.55);
   padding: 2px;
   font-family: var(--ds-font-family-code);
 }
@@ -799,18 +805,86 @@ button[aria-label="New session"] {
   font-family: var(--ds-font-family-code);
   font-size: 13px;
   line-height: 20px;
+  color: #6c7e96;
+  font-style: italic;
 }
 [data-composer-card] [role="listbox"] [class$="_item"]:hover,
 [data-composer-card] [role="listbox"] [class$="_item"][class$="_active"] {
-  background: rgba(54, 123, 191, 0.22);
-  box-shadow: inset 2px 0 0 var(--dsw-alias-state-business-primary);
+  background: #131e30;
+  color: #005faf;
+  box-shadow: none;
+}
+[data-composer-card] [role="listbox"] [class$="_itemName"] {
+  color: inherit;
+}
+[data-composer-card] [role="listbox"] [class$="_itemDescription"] {
+  color: #3c4754;
+  font-style: normal;
 }
 [data-composer-card] [role="listbox"] [class$="_groupTitle"] {
   font-family: var(--ds-font-family-code);
   font-size: 11px;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: var(--dsw-alias-label-tertiary);
+  color: #3c4754;
+}
+/* custom popup rows (Pmenu items) */
+[data-tui-autocomplete] .tui-ac-row {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  padding: 4px 10px;
+  cursor: pointer;
+  border-radius: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  color: #6c7e96;
+}
+[data-tui-autocomplete] .tui-ac-row.tui-ac-active {
+  background: #131e30;
+  color: #005faf;
+}
+[data-tui-autocomplete] .tui-ac-mark {
+  flex: none;
+  width: 1em;
+  color: #3c4754;
+}
+[data-tui-autocomplete] .tui-ac-row.tui-ac-active .tui-ac-mark {
+  color: #005faf;
+}
+[data-tui-autocomplete] .tui-ac-name {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-style: italic;
+}
+[data-tui-autocomplete] .tui-ac-name.tui-ac-archived {
+  color: #3c4754;
+}
+[data-tui-autocomplete] .tui-ac-row.tui-ac-active .tui-ac-name {
+  color: #005faf;
+}
+[data-tui-autocomplete] .tui-ac-sub {
+  flex: none;
+  max-width: 45%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: #3c4754;
+  font-size: 11px;
+  font-style: normal;
+}
+/* Pmenu scrollbar: #131e30 track, #005faf thumb */
+[data-tui-autocomplete]::-webkit-scrollbar,
+[data-composer-card] [role="listbox"] ::-webkit-scrollbar {
+  width: 8px;
+}
+[data-tui-autocomplete]::-webkit-scrollbar-track,
+[data-composer-card] [role="listbox"] ::-webkit-scrollbar-track {
+  background: #131e30;
+}
+[data-tui-autocomplete]::-webkit-scrollbar-thumb,
+[data-composer-card] [role="listbox"] ::-webkit-scrollbar-thumb {
+  background: #005faf;
 }
 
 /* ── buttons-to-commands (step 6): header/sidebar leftovers → commands ──
@@ -2140,18 +2214,16 @@ button[aria-label="Check for updates"] {
         // Subcommand words (add/rename/delete) suppress the listing.
         const wsPopup = document.createElement("div");
         wsPopup.setAttribute("data-tui-autocomplete", "workspace");
+        // visual styling (black Pmenu + #131e30 selection) lives in the CSS
         wsPopup.style.cssText = [
           "position:fixed", "z-index:200", "display:none", "box-sizing:border-box",
           "min-width:280px", "max-width:520px", "max-height:280px", "overflow-y:auto",
-          "background:var(--dsw-specific-menu)", "border:1px solid var(--dsw-alias-border-l2)",
-          "border-radius:0", "box-shadow:0 4px 18px rgba(0,0,0,.4)",
-          "font-family:var(--ds-font-family-code)", "font-size:13px", "padding:2px",
         ].join(";");
         document.body.appendChild(wsPopup);
         // key-hint footer — persistent child; dismiss removes only the rows
         const wsHint = document.createElement("div");
         wsHint.textContent = "↑↓ choose · Tab/Enter switch · Esc dismiss";
-        wsHint.style.cssText = "padding:3px 10px 4px;color:var(--dsw-alias-label-tertiary);font-size:11px;border-top:1px solid var(--dsw-alias-border-l1);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis";
+        wsHint.style.cssText = "padding:3px 10px 4px;color:#3c4754;font-size:11px;border-top:1px solid rgba(108,126,150,0.25);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis";
         let wsRows = [];
         let wsActive = 0;
         let wsBlurTimer = 0;
@@ -2160,8 +2232,7 @@ button[aria-label="Check for updates"] {
         const wsPaint = () => {
           const rows = Array.from(wsPopup.children).filter((el) => el !== wsHint);
           rows.forEach((el, i) => {
-            el.style.background = i === wsActive ? "rgba(54, 123, 191, 0.22)" : "";
-            el.style.boxShadow = i === wsActive ? "inset 2px 0 0 var(--dsw-alias-state-business-primary)" : "";
+            el.classList.toggle("tui-ac-active", i === wsActive);
           });
         };
         const wsDismiss = () => {
@@ -2201,13 +2272,9 @@ button[aria-label="Check for updates"] {
           }
           items.forEach((item, i) => {
             const row = document.createElement("div");
+            row.className = "tui-ac-row" + (i === 0 ? " tui-ac-active" : "");
             row.textContent = item.label;
             row.title = item.path;
-            row.style.cssText = "padding:4px 10px;cursor:pointer;border-radius:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis";
-            if (i === 0) {
-              row.style.background = "rgba(54, 123, 191, 0.22)";
-              row.style.boxShadow = "inset 2px 0 0 var(--dsw-alias-state-business-primary)";
-            }
             row.addEventListener("mousedown", (e) => { e.preventDefault(); wsOpen(item.id); });
             wsPopup.appendChild(row);
           });
@@ -2333,18 +2400,16 @@ button[aria-label="Check for updates"] {
       ctx.inject(["sessions", "workspaces"], (scope) => {
         const popup = document.createElement("div");
         popup.setAttribute("data-tui-autocomplete", "session");
+        // visual styling (black Pmenu + #131e30 selection) lives in the CSS
         popup.style.cssText = [
           "position:fixed", "z-index:200", "display:none", "box-sizing:border-box",
           "min-width:280px", "max-width:520px", "max-height:280px", "overflow-y:auto",
-          "background:var(--dsw-specific-menu)", "border:1px solid var(--dsw-alias-border-l2)",
-          "border-radius:0", "box-shadow:0 4px 18px rgba(0,0,0,.4)",
-          "font-family:var(--ds-font-family-code)", "font-size:13px", "padding:2px",
         ].join(";");
         document.body.appendChild(popup);
         // key-hint footer — persistent child; dismiss removes only the rows
         const hint = document.createElement("div");
         hint.textContent = "↑↓ choose · Tab/Enter open · Esc dismiss";
-        hint.style.cssText = "padding:3px 10px 4px;color:var(--dsw-alias-label-tertiary);font-size:11px;border-top:1px solid var(--dsw-alias-border-l1);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis";
+        hint.style.cssText = "padding:3px 10px 4px;color:#3c4754;font-size:11px;border-top:1px solid rgba(108,126,150,0.25);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis";
         let rows = [];
         let active = 0;
         let blurTimer = 0;
@@ -2380,8 +2445,7 @@ button[aria-label="Check for updates"] {
         const paint = () => {
           const rowsEl = Array.from(popup.children).filter((el) => el !== hint);
           rowsEl.forEach((el, i) => {
-            el.style.background = i === active ? "rgba(54, 123, 191, 0.22)" : "";
-            el.style.boxShadow = i === active ? "inset 2px 0 0 var(--dsw-alias-state-business-primary)" : "";
+            el.classList.toggle("tui-ac-active", i === active);
           });
         };
         const dismiss = () => {
@@ -2420,27 +2484,21 @@ button[aria-label="Check for updates"] {
           }
           items.forEach((item, i) => {
             const row = document.createElement("div");
-            row.style.cssText = "display:flex;align-items:baseline;gap:6px;padding:4px 10px;cursor:pointer;border-radius:0;white-space:nowrap;overflow:hidden";
+            row.className = "tui-ac-row" + (i === 0 ? " tui-ac-active" : "");
             if (item.archived) row.title = "archived session";
             const mark = document.createElement("span");
+            mark.className = "tui-ac-mark";
             mark.textContent = item.archived ? "◫" : "";
-            mark.style.cssText = "flex:none;width:1em;color:var(--dsw-alias-label-tertiary)";
             const name = document.createElement("span");
+            name.className = "tui-ac-name" + (item.archived ? " tui-ac-archived" : "");
             name.textContent = item.label;
-            name.style.cssText = item.archived
-              ? "min-width:0;overflow:hidden;text-overflow:ellipsis;color:var(--dsw-alias-label-secondary)"
-              : "min-width:0;overflow:hidden;text-overflow:ellipsis";
             row.appendChild(mark);
             row.appendChild(name);
             if (item.path !== "") {
               const sub = document.createElement("span");
+              sub.className = "tui-ac-sub";
               sub.textContent = item.path;
-              sub.style.cssText = "flex:none;max-width:45%;overflow:hidden;text-overflow:ellipsis;color:var(--dsw-alias-label-tertiary);font-size:11px";
               row.appendChild(sub);
-            }
-            if (i === 0) {
-              row.style.background = "rgba(54, 123, 191, 0.22)";
-              row.style.boxShadow = "inset 2px 0 0 var(--dsw-alias-state-business-primary)";
             }
             row.addEventListener("mousedown", (e) => { e.preventDefault(); open(item.id); });
             popup.appendChild(row);
