@@ -1,4 +1,4 @@
-# The `liangshen` (梁神模式) agent preset: phase 1 exposes the builtin Minimal
+# The `liangshen` (LiangShen mode) agent preset: phase 1 exposes the builtin Minimal
 # preset's exact two tools (persistent `bash` plus `str_replace_editor`) and
 # the same one-line persona, with no runtime contexts and no injected pre-step
 # messages, anchoring the Minimal trajectory; after a stabilized anchor the
