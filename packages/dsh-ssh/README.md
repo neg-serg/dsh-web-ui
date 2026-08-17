@@ -49,6 +49,19 @@ After installing, **restart `dsh web`**: a "SSH" entry appears in the sidebar; t
 
 The settings panel (plugin config) toggles `announceToAgent` (whether to announce the plugin to the Agent) and `enabled` (master switch).
 
+## Slash commands
+
+The same engine is reachable from the chat input without opening the panel: type `/` in the GUI input to see the command menu, then pick one (or type it fully). Commands execute directly on the host, no model round-trip.
+
+| Command | Description |
+| --- | --- |
+| `/ssh <alias> <command>` | run one command on a host (stdout/stderr + exit code) |
+| `/ssh-hosts [query]` | list configured hosts (optional search query) |
+| `/ssh-tunnel start <alias> <remotePort> [localPort]` | open a local port-forward tunnel (listens on 127.0.0.1 only) |
+| `/ssh-tunnel list` | list active tunnels |
+| `/ssh-tunnel stop <id>` / `/ssh-tunnel stop-all [alias]` | stop one tunnel / all tunnels |
+| `/ssh-cluster <command> [--alias a[,b]] [--env <env>] [--tag <tag>]` | run one command across many hosts (no filter = every configured host) |
+
 ## Data
 
 - Host config: `~/.dsh/dsh-ssh.json` (versioned JSON, atomic write)

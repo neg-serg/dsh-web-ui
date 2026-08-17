@@ -15,7 +15,7 @@ function text(value: string): ContentBlock[] {
 }
 
 /** Host table render shared by list surfaces. */
-function renderHosts(hosts: SshHostSummary[]): string {
+export function renderHosts(hosts: SshHostSummary[]): string {
   if (hosts.length === 0) return 'no hosts configured'
   const rows = hosts.map(host => [
     host.alias,
@@ -31,7 +31,7 @@ function renderHosts(hosts: SshHostSummary[]): string {
 }
 
 /** Render one exec result (mirrors the bash-tool exit-code convention). */
-function renderExec(result: ExecResult): string {
+export function renderExec(result: ExecResult): string {
   const marker = result.timedOut
     ? '[timed out]'
     : `[exit code: ${result.exitCode ?? 'null'}]`
@@ -44,7 +44,7 @@ function renderExec(result: ExecResult): string {
 }
 
 /** Render cluster outcomes compactly. */
-function renderCluster(results: ClusterResult[]): string {
+export function renderCluster(results: ClusterResult[]): string {
   if (results.length === 0) return 'no hosts matched'
   return results.map(result => {
     const status = result.ok ? 'ok' : result.timedOut === true ? 'timed out' : 'failed'
@@ -54,7 +54,7 @@ function renderCluster(results: ClusterResult[]): string {
 }
 
 /** One tunnel line. */
-function renderTunnel(tunnel: TunnelInfo): string {
+export function renderTunnel(tunnel: TunnelInfo): string {
   return `${tunnel.id} ${tunnel.alias} 127.0.0.1:${tunnel.localPort} -> ${tunnel.remoteHost}:${tunnel.remotePort} [${tunnel.state}]`
 }
 

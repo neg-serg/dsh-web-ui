@@ -49,6 +49,19 @@ dsh plugin --profile web add link:$(pwd)/packages/dsh-ssh
 
 设置面板（插件配置）可开关 `announceToAgent`（是否向 Agent 宣告插件）与 `enabled`（总开关）。
 
+## 斜杠命令
+
+同一引擎无需打开面板即可从聊天输入框直达：在 GUI 输入框输入 `/` 即可看到命令菜单，选择（或完整输入）命令。命令直接在宿主进程执行，不走模型。
+
+| 命令 | 说明 |
+| --- | --- |
+| `/ssh <alias> <command>` | 在某个主机上执行一条命令（stdout/stderr + 退出码） |
+| `/ssh-hosts [query]` | 列出已配置主机（可带搜索词） |
+| `/ssh-tunnel start <alias> <remotePort> [localPort]` | 开启本地端口转发隧道（仅监听 127.0.0.1） |
+| `/ssh-tunnel list` | 列出活动隧道 |
+| `/ssh-tunnel stop <id>` / `/ssh-tunnel stop-all [alias]` | 停止某条隧道 / 停止全部隧道 |
+| `/ssh-cluster <command> [--alias a[,b]] [--env <env>] [--tag <tag>]` | 在多台主机上并发执行一条命令（不加过滤条件 = 全部已配置主机） |
+
 ## 数据
 
 - 主机配置：`~/.dsh/dsh-ssh.json`（版本化 JSON，原子写入）
