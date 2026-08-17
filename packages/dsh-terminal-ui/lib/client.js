@@ -274,7 +274,7 @@ select {
    exact chat-column width and are centered on the same axis, so left/right
    edges line up everywhere ── */
 .wSkVaW_root {
-  --dsh-chat-content-width: min(1184px, 100%);
+  --dsh-chat-content-width: min(1440px, 100%);
   --dsh-composer-card-max-width: var(--dsh-chat-content-width);
   margin: 0 auto;
   width: 100%;
@@ -583,7 +583,7 @@ body.tui-resizing {
   gap: 8px;
   flex: none;
   width: 100%;
-  max-width: var(--dsh-chat-content-width, 1184px);
+  max-width: var(--dsh-chat-content-width, 1440px);
   margin: 0 auto;
   padding: 2px 8px 4px;
   box-sizing: border-box;
