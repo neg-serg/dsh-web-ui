@@ -189,7 +189,7 @@ body[data-ds-dark-theme] {
   background: rgba(2, 8, 15, 0.92);
   border: 1px solid var(--dsw-alias-border-l1);
   border-left: 3px solid var(--dsw-alias-state-business-primary);
-  border-radius: 10px;
+  border-radius: 0;
   color: var(--dsw-alias-label-primary-dimmed);
   font-size: 14px;
   line-height: 23px;
