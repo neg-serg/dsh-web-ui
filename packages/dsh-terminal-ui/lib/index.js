@@ -7,7 +7,7 @@ import { readFileSync, existsSync } from "node:fs";
 import { homedir } from "node:os";
 import { join } from "node:path";
 
-const inject = ["webServer"];
+const inject = ["webServer", "commands"];
 
 const WALLPAPER_HINT = join(homedir(), ".cache/quickshell-wallpaper-path");
 const FALLBACK = "/home/neg/pic/wl/wallhaven-jek6kq.jpg";
@@ -55,6 +55,20 @@ function apply(ctx) {
         }
       },
     }),
+  );
+
+  // /export-md: Markdown export slash command. The browser half observes
+  // "command/executed" and clicks the (CSS-hidden) "⬇ md" header button, so
+  // the export handler itself stays in the client bundle unchanged.
+  ctx.effect(
+    () =>
+      ctx.commands.register({
+        name: "export-md",
+        description: "Export this conversation as Markdown",
+        handler: () =>
+          Promise.resolve({ kind: "success", text: "Markdown export started." }),
+      }),
+    "terminal-ui: /export-md command",
   );
 }
 

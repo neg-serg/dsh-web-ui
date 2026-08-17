@@ -672,9 +672,67 @@ button[aria-label="New session"] {
   display: none;
 }
 
+/* ── buttons-to-commands (step 6): header/sidebar leftovers → commands ──
+   Session log header button → /export  (dsh-session-log-export)
+   "⬇ md" header button       → /export-md (host command, step 7)
+   SSH sidebar entry          → ssh / ssh-hosts / ssh-cluster / ssh-tunnel
+   Sidebar rail toggle + wordmark → Ctrl+Alt+N / /new (both create sessions)
+   Hashed classes of the pinned dsh release + the fork build; re-derive
+   them from the served bundles if a rebuild changes the hashes. */
+.nL4_yW_sessionLogButton,
+.tui-export-btn,
+.mL8Uca_entry,
+.hHd-Xa_toggle,
+.hHd-Xa_brand {
+  display: none;
+}
+
 `;
 
     function apply(ctx) {
+      // ── feat-9: Markdown export, shared by the "⬇ md" header button and the
+      // /export-md slash command (step 7). Defined at apply level so both the
+      // button (inside ctx.effect) and the command listener can call it.
+      const exportMarkdown = () => {
+        try {
+          const titleEl = document.querySelector('.wSkVaW_header [class$="_title"]');
+          const title = titleEl ? titleEl.textContent.replace(/\s+/g, " ").trim() : "dsh conversation";
+          const parts = [];
+          const push = (t) => { const x = t.replace(/\s+/g, " ").trim(); if (x) parts.push(x); };
+
+          document.querySelectorAll(".Md3f7G_flowItem").forEach((item) => {
+            const userRow = item.querySelector(".gdEzaW_userRow");
+            const asstRoot = item.querySelector(".Sxvs8a_root");
+            if (userRow) push("\u276f " + userRow.textContent);
+            else if (asstRoot) push(asstRoot.textContent);
+            // tool rows inside the item that are NOT part of the assistant body
+            item.querySelectorAll(".Md3f7G_callRow").forEach((row) => {
+              if (row.closest(".Sxvs8a_root")) return;
+              push("$ " + row.textContent);
+            });
+          });
+          // standalone tool rows (direct children of the message column)
+          document.querySelectorAll(".Md3f7G_column > .Md3f7G_callRow").forEach((row) => {
+            push("$ " + row.textContent);
+          });
+
+          if (parts.length === 0) return;
+          const stamp = new Date().toISOString().replace(/[:.]/g, "-").slice(0, 19);
+          const md = "# " + title + "\n\n" + parts.join("\n\n") + "\n";
+          const blob = new Blob([md], { type: "text/markdown;charset=utf-8" });
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement("a");
+          a.href = url;
+          a.download = "dsh-export-" + stamp + ".md";
+          document.body.appendChild(a);
+          a.click();
+          a.remove();
+          setTimeout(() => URL.revokeObjectURL(url), 1000);
+        } catch (e) {
+          /* export failed silently — no messages or DOM changed mid-click */
+        }
+      };
+
       ctx.effect(() => {
         const style = document.createElement("style");
         style.setAttribute("data-dsh-terminal-ui", "");
@@ -844,45 +902,9 @@ button[aria-label="New session"] {
     cleanups.push(() => mo.disconnect());
   }
 
-  btn.addEventListener("click", () => {
-    try {
-      const titleEl = document.querySelector('.wSkVaW_header [class$="_title"]');
-      const title = titleEl ? titleEl.textContent.replace(/\s+/g, " ").trim() : "dsh conversation";
-      const parts = [];
-      const push = (t) => { const x = t.replace(/\s+/g, " ").trim(); if (x) parts.push(x); };
-
-      document.querySelectorAll(".Md3f7G_flowItem").forEach((item) => {
-        const userRow = item.querySelector(".gdEzaW_userRow");
-        const asstRoot = item.querySelector(".Sxvs8a_root");
-        if (userRow) push("\u276f " + userRow.textContent);
-        else if (asstRoot) push(asstRoot.textContent);
-        // tool rows inside the item that are NOT part of the assistant body
-        item.querySelectorAll(".Md3f7G_callRow").forEach((row) => {
-          if (row.closest(".Sxvs8a_root")) return;
-          push("$ " + row.textContent);
-        });
-      });
-      // standalone tool rows (direct children of the message column)
-      document.querySelectorAll(".Md3f7G_column > .Md3f7G_callRow").forEach((row) => {
-        push("$ " + row.textContent);
-      });
-
-      if (parts.length === 0) return;
-      const stamp = new Date().toISOString().replace(/[:.]/g, "-").slice(0, 19);
-      const md = "# " + title + "\n\n" + parts.join("\n\n") + "\n";
-      const blob = new Blob([md], { type: "text/markdown;charset=utf-8" });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = "dsh-export-" + stamp + ".md";
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-      setTimeout(() => URL.revokeObjectURL(url), 1000);
-    } catch (e) {
-      /* export failed silently — no messages or DOM changed mid-click */
-    }
-  });
+  // The button stays mounted (hidden by CSS, step 6); both it and the
+  // /export-md command (step 7) run the shared exportMarkdown() above.
+  btn.addEventListener("click", exportMarkdown);
 }
         }
         {
@@ -1089,16 +1111,17 @@ button[aria-label="New session"] {
         // collapsed (their bodies are NOT in the DOM until opened), so CSS
         // cannot reveal them. Rows get opened once (WeakSet memory: a row the
         // user collapses later stays collapsed; brand-new rows from new turns
-        // get expanded again). Scoped to think / others / context-injection —
-        // tool-call cards (search/read/edit/write variants) keep their
-        // collapsed summaries so file contents don't flood the column.
+        // get expanded again). Scoped to think / others / context-injection
+        // plus code & file EDIT tool rows (edit/write/code) — the user wants
+        // edits visible; read/search/bash rows keep their collapsed summaries
+        // so file contents don't flood the column.
         {
           const opened = new WeakSet();
           const isTarget = (row) => {
             const root = row.closest("[data-variant]");
             if (root !== null) {
               const variant = root.getAttribute("data-variant");
-              return variant === "think" || variant === "others";
+              return variant === "think" || variant === "others" || variant === "edit" || variant === "write" || variant === "code";
             }
             // context-injection rows carry no data-variant; they have an
             // injected-content marker inside the row itself
@@ -1118,53 +1141,204 @@ button[aria-label="New session"] {
           mo.observe(document.body, { childList: true, subtree: true });
           cleanups.push(() => mo.disconnect());
         }
+        // ── feature: auto-reload on plugin/skin update ──
+        // Prevents the stale-page trap: after a client.js edit the server
+        // serves a new rev, but the open tab keeps the old bundle (and the
+        // slash palette keeps the old command list) until a manual F5. This
+        // polls the served boot page and reloads when any client-plugin rev
+        // changes — or when the dsh service restarts (fetch fails and then
+        // succeeds again, which also re-registers host commands like
+        // /export-md). Fetching "/" is a few KB locally; 8s is fine.
+        {
+          const boot = window.__DSH_BOOT__;
+          const currentRevs = new Map((boot?.entries || []).map((e) => [e.id, e.rev]));
+          const BOOT_RE = /window\.__DSH_BOOT__ = (\{.*?\});<\/script>/s;
+          let serverWasDown = false;
+          let stopped = false;
+          const check = async () => {
+            if (stopped) return;
+            try {
+              const res = await fetch("/", { cache: "no-store" });
+              if (!res.ok) throw new Error("http " + res.status);
+              const html = await res.text();
+              const wasDown = serverWasDown;
+              serverWasDown = false;
+              const m = html.match(BOOT_RE);
+              if (m) {
+                const fresh = JSON.parse(m[1]);
+                const freshRevs = new Map((fresh.entries || []).map((e) => [e.id, e.rev]));
+                const changed =
+                  freshRevs.size !== currentRevs.size ||
+                  [...currentRevs].some(([id, rev]) => freshRevs.get(id) !== rev);
+                if (wasDown || changed) { location.reload(); return; }
+              }
+            } catch {
+              serverWasDown = true; // server restarting — reload when it returns
+            }
+          };
+          const timer = setInterval(check, 8000);
+          check();
+          cleanups.push(() => { stopped = true; clearInterval(timer); });
+        }
         return () => {
           cleanups.forEach((fn) => fn());
           style.remove();
         };
       });
 
-      // ── feature: buttons-to-commands (step 5b): /new slash command ──
-      // A client-side "/" source: /new starts a new session. The host
-      // `commands` service cannot click GUI buttons, but `inputTriggers`
-      // accepts extra client sources for the "/" trigger — the candidate
-      // joins the menu under its own group (title hidden by CSS above) and
-      // matchEnter claims the bare "/new" line (the host "command" source
-      // returns void for unknown names, so registration order doesn't matter).
+      // ── feature: buttons-to-commands (step 5b+): client slash commands ──
+      // Client-side "/" source: /new starts a new session, /session <query>
+      // switches to a session by title/query, /next and /prev cycle the
+      // sidebar list. The host `commands` service cannot click GUI buttons or
+      // open sessions, but `inputTriggers` accepts extra client sources for
+      // the "/" trigger — candidates join the menu under their own group
+      // (title hidden by CSS above) and matchEnter claims the bare lines
+      // (the host "command" source returns void for unknown names, so
+      // registration order doesn't matter).
       ctx.inject(["inputTriggers", "workspaces", "sessions"], (scope) => {
-        const NEW_NAME = "new";
         const consume = (session, guard) => {
           const actx = scope.sessions.scope(session.sessionId);
           if (actx === void 0 || typeof actx.bail !== "function") return;
           actx.bail(actx, "slash/input-consume-token", { guard });
         };
+        // Sidebar session rows (folders are treeitems with aria-expanded).
+        const sessionRows = () => Array.from(document.querySelectorAll('[role="treeitem"][aria-selected]'));
+        const cycle = (dir) => {
+          const items = sessionRows();
+          if (items.length === 0) return;
+          const cur = items.findIndex((el) => el.getAttribute("aria-selected") === "true");
+          const idx = cur === -1 ? (dir === 1 ? 0 : items.length - 1) : (cur + dir + items.length) % items.length;
+          items[idx]?.click();
+        };
+        // Search the session catalog and open the best match: first by
+        // display title (exact > prefix > substring), then by message
+        // content (sessions.search returns {items:[{sessionId,snippet}]}).
+        const openByQuery = async (rawQuery) => {
+          const q = (rawQuery ?? "").trim();
+          if (q === "") return;
+          const lower = q.toLowerCase();
+          const byId = scope.sessions.list.getSnapshot().byId ?? {};
+          const entries = Object.values(byId);
+          const byTitle = (kind, title) => entries.filter((s) => {
+            const label = (s.displayTitle ?? s.title ?? "").toLowerCase();
+            return kind === "exact" ? label === lower : kind === "prefix" ? label.startsWith(lower) : label.includes(lower);
+          });
+          const pick = byTitle("exact")[0] ?? byTitle("prefix")[0] ?? byTitle("includes")[0];
+          if (pick !== void 0) {
+            scope.sessions.open(pick.id);
+            return;
+          }
+          const res = await scope.sessions.search(q);
+          if (res.ok) {
+            const first = (res.value?.items ?? [])[0];
+            if (first !== void 0) scope.sessions.open(first.sessionId);
+          }
+        };
+        const dispatchLine = (session, line) => {
+          const trimmed = line.trim();
+          if (trimmed === "/new" || trimmed.startsWith("/new ")) {
+            consume(session, { kind: "bare-token", token: trimmed });
+            scope.workspaces.startSession();
+            return "handled";
+          }
+          if (trimmed === "/next") {
+            consume(session, { kind: "bare-token", token: trimmed });
+            cycle(1);
+            return "handled";
+          }
+          if (trimmed === "/prev") {
+            consume(session, { kind: "bare-token", token: trimmed });
+            cycle(-1);
+            return "handled";
+          }
+          if (trimmed === "/session" || trimmed.startsWith("/session ")) {
+            // Bare "/session" is consumed but does nothing; with a query it
+            // opens the best match. Consumed either way — the line is a
+            // command, not a chat message.
+            consume(session, { kind: "bare-token", token: trimmed });
+            void openByQuery(trimmed.slice("/session".length));
+            return "handled";
+          }
+          return void 0;
+        };
+        const COMMANDS = [
+          { name: "new", description: "новый чат / новая сессия" },
+          { name: "session", description: "перейти к сессии по имени: /session <имя>" },
+          { name: "next", description: "следующая сессия" },
+          { name: "prev", description: "предыдущая сессия" },
+        ];
         const disposer = scope.inputTriggers.registerSource({
           trigger: "/",
           name: "local",
           candidates: (session, req) => {
             const query = (req?.query ?? "").toLowerCase();
-            if (query !== "" && !NEW_NAME.startsWith(query)) return Promise.resolve([]);
-            return Promise.resolve([
-              { name: NEW_NAME, description: "новый чат / новая сессия" },
-            ]);
+            const list = query === "" ? COMMANDS : COMMANDS.filter((c) => c.name.startsWith(query));
+            return Promise.resolve(list);
           },
           onPick: (pick) => {
+            const name = pick.candidate.name;
+            if (name === "session") {
+              // Leave "/session" in the draft so the user types the query
+              // (the command only fires on Enter with an argument).
+              return "handled";
+            }
             consume(pick.session, { kind: "span", span: pick.span });
-            scope.workspaces.startSession();
+            if (name === "new") scope.workspaces.startSession();
+            else if (name === "next") cycle(1);
+            else if (name === "prev") cycle(-1);
             return "handled";
           },
-          matchEnter: (session, line) => {
-            const trimmed = line.trim();
-            if (trimmed !== "/" + NEW_NAME && !trimmed.startsWith("/" + NEW_NAME + " ")) return void 0;
-            consume(session, { kind: "bare-token", token: trimmed });
-            scope.workspaces.startSession();
-            return "handled";
-          },
+          matchEnter: (session, line) => dispatchLine(session, line),
         });
         ctx.effect(() => disposer, "tui: /new source");
+      });
+
+      // ── feature: buttons-to-commands (step 6): always land at the end ──
+      // The chat restores each session's saved scroll position on open,
+      // which leaves you mid-conversation. Whenever the active session id
+      // changes — sidebar click, Ctrl+Alt+J/K, /session, /next, /prev, /new,
+      // any method — jump the conversation scrollport to the end and keep it
+      // pinned briefly while the new session streams its first content.
+      // (The app's own scroll handler then sees "at bottom" and keeps
+      // following while the session runs.)
+      ctx.inject(["sessions"], (scope) => {
+        const list = scope.sessions.list;
+        let prev = list.getSnapshot().current;
+        let settle = 0;
+        const scrollEnd = () => {
+          const host = document.querySelector("[data-conversation-scroll]");
+          if (host instanceof HTMLElement) host.scrollTop = host.scrollHeight;
+        };
+        const unsub = list.subscribe(() => {
+          const cur = list.getSnapshot().current;
+          if (cur === prev) return;
+          prev = cur;
+          // After React renders the new session (double rAF), then once more
+          // after a short settle window to catch async-loaded content.
+          requestAnimationFrame(() => requestAnimationFrame(scrollEnd));
+          clearTimeout(settle);
+          settle = setTimeout(scrollEnd, 700);
+        });
+        ctx.effect(() => () => {
+          clearTimeout(settle);
+          unsub();
+        }, "tui: session-end scroll");
+      });
+
+      // ── buttons-to-commands (step 7): /export-md slash command ──
+      // The hidden "⬇ md" header button (feat-9) stays mounted for the
+      // toolbar-less fallback; both it and this command run the shared
+      // exportMarkdown() above. The command itself is registered by the
+      // host half (lib/index.js).
+      ctx.on("command/executed", (_sessionId, commandName, result) => {
+        if (commandName === "export-md" && result.kind === "success") {
+          exportMarkdown();
+        }
       });
     }
 
     return { apply, inject };
   },
 });
+
+// auto-reload test marker
