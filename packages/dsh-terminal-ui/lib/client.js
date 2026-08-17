@@ -2490,6 +2490,11 @@ button[aria-label="Check for updates"] {
             toggleMemory();
             return "handled";
           }
+          if (trimmed === "/mem") {
+            consume(session, { kind: "bare-token", token: trimmed });
+            toggleMemory();
+            return "handled";
+          }
           return void 0;
         };
         const COMMANDS = [
@@ -2506,7 +2511,7 @@ button[aria-label="Check for updates"] {
           { name: "settings", description: "открыть настройки" },
           { name: "phone", description: "открыть панель мобильного управления (QR)" },
           { name: "update", description: "проверить обновления" },
-          { name: "memory", description: "открыть/закрыть панель памяти (dsh-memento)" },
+          { name: "mem", description: "открыть/закрыть панель памяти (dsh-memento)" },
         ];
         const disposer = scope.inputTriggers.registerSource({
           trigger: "/",
@@ -2540,7 +2545,7 @@ button[aria-label="Check for updates"] {
             else if (name === "settings") openSettings();
             else if (name === "phone") clickByLabel("Mobile remote control");
             else if (name === "update") clickByLabel("Check for updates");
-            else if (name === "memory") toggleMemory();
+            else if (name === "mem") toggleMemory();
             return "handled";
           },
           matchEnter: (session, line) => dispatchLine(session, line),
