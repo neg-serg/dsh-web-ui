@@ -621,13 +621,9 @@ input {
 
 /* ── buttons-to-commands (step 2): hide send/stop + model seat ──
    Enter sends, Esc stops, Ctrl+M opens the model picker (JS feature below).
-   The aria-labels come in two flavors: zh-CN strings of the pinned dsh
-   release ("发送消息" / "停止生成") and the English UI this profile runs
-   ("Send message" / "Stop generating"); both are listed so the hides hold
-   whichever locale the browser negotiates. */
-[data-composer-card] button[aria-label="发送消息"],
+   The GUI runs the English locale, so the aria-labels are the en strings
+   ("Send message" / "Stop generating"). */
 [data-composer-card] button[aria-label="Send message"],
-[data-composer-card] button[aria-label="停止生成"],
 [data-composer-card] button[aria-label="Stop generating"],
 [data-composer-card] button[aria-haspopup="menu"] {
   display: none;
@@ -637,30 +633,20 @@ input {
    Ctrl+Alt+C copies the last message, Ctrl+Alt+B branches it,
    Ctrl+Alt+E / Ctrl+Alt+Backspace edit/remove the last queued message
    (JS feature below). Scope [data-time-hover-root] × [class$="_actions"]
-   keeps code-block copy buttons (deep inside the body) intact. Labels in
-   both zh-CN ("复制"/"在新对话中分支"/…) and the live English UI
-   ("Copy"/"Branch into a new conversation"/…) are listed. */
-[data-time-hover-root] [class$="_actions"] [aria-label="复制"],
-[data-time-hover-root] [class$="_actions"] [aria-label="复制成功"],
+   keeps code-block copy buttons (deep inside the body) intact. */
 [data-time-hover-root] [class$="_actions"] [aria-label="Copy"],
 [data-time-hover-root] [class$="_actions"] [aria-label="Copied"],
-[data-time-hover-root] [class$="_actions"] [aria-label="在新对话中分支"],
 [data-time-hover-root] [class$="_actions"] [aria-label="Branch into a new conversation"],
-button[aria-label="编辑排队消息"],
 button[aria-label="Edit queued message"],
-button[aria-label="删除排队消息"],
 button[aria-label="Remove queued message"],
-button[aria-label="插话发送"],
 button[aria-label="Steer queued message"] {
   display: none;
 }
 
 /* ── buttons-to-commands (step 5): hide sidebar new-session buttons ──
    Both the brand wordmark and the labeled New Chat button carry the same
-   aria-label in each locale ("新建会话" zh / "New session" en) and both
-   start a new session; Ctrl+Alt+N / the /new command replace them
-   (JS feature below). */
-button[aria-label="新建会话"],
+   "New session" aria-label and both start a new session; Ctrl+Alt+N / the
+   /new command replace them (JS feature below). */
 button[aria-label="New session"] {
   display: none;
 }
@@ -963,13 +949,13 @@ button[aria-label="New session"] {
         {
           // Keyboard replacements for the hidden composer buttons:
           //   Esc      → stop the run (stop button is rendered only while a
-          //              run is in flight; both locale labels are matched)
+          //              run is in flight)
           //   Ctrl+M   → open the model picker (the hidden [aria-haspopup="menu"]
           //              trigger; arrows/Enter work inside the picker)
           // Bubble-phase listener: React's own key handlers (popup dismissal,
           // etc.) run first, so Esc closes open menus before we stop.
-          const STOP = 'button[aria-label="停止生成"], button[aria-label="Stop generating"]';
-          const EDIT_LABELS = ["\u7f16\u8f91\u6392\u961f\u6d88\u606f", "Edit queued message"];
+          const STOP = 'button[aria-label="Stop generating"]';
+          const EDIT_LABELS = ["Edit queued message"];
           const onKey = (e) => {
             if (e.repeat) return;
             if (e.key === "Escape") {
@@ -1008,10 +994,10 @@ button[aria-label="New session"] {
           // Modifier combos only — plain letters must keep typing in the
           // composer. The hidden buttons are dispatched via .click() so the
           // app's own handlers (clipboard write, fork, queue ops) run as usual.
-          // Labels matched in both zh-CN and the live English UI.
-          const BRANCH = 'button[aria-label="在新对话中分支"], button[aria-label="Branch into a new conversation"]';
-          const EDIT = 'button[aria-label="编辑排队消息"], button[aria-label="Edit queued message"]';
-          const REMOVE = 'button[aria-label="删除排队消息"], button[aria-label="Remove queued message"]';
+          // aria-labels are the English strings of the running UI.
+          const BRANCH = 'button[aria-label="Branch into a new conversation"]';
+          const EDIT = 'button[aria-label="Edit queued message"]';
+          const REMOVE = 'button[aria-label="Remove queued message"]';
           const lastOf = (sel) => {
             const all = document.querySelectorAll(sel);
             return all.length ? all[all.length - 1] : null;
@@ -1067,15 +1053,14 @@ button[aria-label="New session"] {
         }
         // ── feature: buttons-to-commands (step 5): sidebar hotkeys ──
         {
-          // Ctrl+Alt+N → new session (both 新建会话 buttons are hidden by CSS)
+          // Ctrl+Alt+N → new session (the "New session" buttons are hidden by CSS)
           // Ctrl+Alt+J → next session in the sidebar list (treeitem w/ aria-selected)
           // Ctrl+Alt+K → previous session
           // Ctrl+Alt+W → open the workspace picker while the composer shows
-          //              the "选择工作区" trigger (inert session, no workspace)
+          //              the "Choose workspace" trigger (inert session, no workspace)
           // e.code again: RU layout must not break these.
-          // Labels matched in both zh-CN and the live English UI.
-          const NEW = 'button[aria-label="新建会话"], button[aria-label="New session"]';
-          const WORKSPACE = "\u9009\u62e9\u5de5\u4f5c\u533a"; // 选择工作区
+          const NEW = 'button[aria-label="New session"]';
+          const WORKSPACE = "Choose workspace";
           const sessions = () => Array.from(document.querySelectorAll('[role="treeitem"][aria-selected]'));
           const onKey = (e) => {
             if (e.repeat) return;
@@ -1087,8 +1072,8 @@ button[aria-label="New session"] {
               return;
             }
             if (code === "KeyW") {
-              // While inert (no workspace), the composer is a 选择工作区 trigger:
-              // the textarea click bubbles to the card's onClick → picker opens.
+              // While inert (no workspace), the composer is a "Choose workspace"
+              // trigger: the textarea click bubbles to the card's onClick → picker opens.
               const trigger = document.querySelector('textarea[aria-label="' + WORKSPACE + '"]');
               if (trigger) { e.preventDefault(); trigger.click(); }
               return;
