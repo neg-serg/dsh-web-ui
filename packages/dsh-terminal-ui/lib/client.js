@@ -340,6 +340,18 @@ body[data-ds-dark-theme] {
   -webkit-backdrop-filter: blur(14px) saturate(1.15);
 }
 
+/* ── HoverCard (dsh-client-ui-primitives) — keep the popover in the
+   neg palette ──
+   The component declares its own --dsw-hovercard-bg (#2C2C2E) on
+   ._card_1b2ny_13, so the body-level theme tokens can't reach it and the
+   card renders as opaque neutral gray that pops out of the navy glass
+   palette. Re-declare the variable on the card with higher specificity.
+   Hashed class is for the pinned dsh release; re-derive on upgrade
+   (grep the served web bundle for "--dsw-hovercard-bg"). */
+body ._card_1b2ny_13 {
+  --dsw-hovercard-bg: rgba(16, 35, 58, 0.94);
+}
+
 /* ── fonts: Iosevka family everywhere, uniform width ── */
 :root {
   --dsw-font-family: "Iosevka Proportional", "Iosevka", "Iosevka Medium", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
