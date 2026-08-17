@@ -271,7 +271,7 @@ select {
    exact chat-column width and are centered on the same axis, so left/right
    edges line up everywhere ── */
 .wSkVaW_root {
-  --dsh-chat-content-width: min(1440px, 100%);
+  --dsh-chat-content-width: 100%;
   --dsh-composer-card-max-width: var(--dsh-chat-content-width);
   margin: 0 auto;
   width: 100%;
@@ -342,14 +342,31 @@ select {
 .gdEzaW_userRow {
   align-items: stretch;
 }
-.gdEzaW_bubble {
-  background: transparent;
-  border: none;
-  border-radius: 0;
-  padding: 8px 0;
+/* user messages span the whole chat column (stock caps them at 525px) */
+.gdEzaW_userStack {
+  width: 100%;
   max-width: 100%;
-  font-size: 14px;
-  line-height: 22px;
+  align-items: stretch;
+}
+/* user messages: near-black terminal block, bold Fira Code */
+.gdEzaW_bubble {
+  background: linear-gradient(180deg, rgba(0, 0, 0, 0.92), rgba(0, 0, 0, 0.84));
+  border: 1px solid #0d2b40;
+  border-left: 3px solid var(--dsw-alias-state-success-primary);
+  border-radius: 0;
+  padding: 10px 16px;
+  max-width: 100%;
+  color: #dce8f5;
+  font-family: "FiraCode Nerd Font", "Fira Code", var(--ds-font-family-code);
+  font-weight: 600;
+  font-size: 15px;
+  line-height: 24px;
+  letter-spacing: 0.02em;
+}
+.gdEzaW_bubble a {
+  color: var(--dsw-alias-state-business-primary);
+  text-decoration: underline;
+  text-underline-offset: 2px;
 }
 
 /* prompt markers by message type, in a fixed left gutter:
@@ -516,38 +533,6 @@ input {
 }
 
 
-/* ── feature: feat-8.json ── */
-/* chat column drag-resize handle (console style) */
-.wSkVaW_root {
-  position: relative;
-}
-.tui-resize-handle {
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  width: 6px;
-  cursor: col-resize;
-  z-index: 1000;
-  background: transparent;
-}
-.tui-resize-handle::after {
-  content: "";
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  left: 2px;
-  width: 2px;
-  background: var(--dsw-alias-border-l1);
-  transition: background 0.15s ease;
-}
-.tui-resize-handle:hover::after,
-body.tui-resizing .tui-resize-handle::after {
-  background: var(--dsw-alias-brand-primary);
-}
-body.tui-resizing {
-  cursor: col-resize;
-  user-select: none;
-}
 /* ── feature: feat-9.json ── */
 .tui-export-btn {
   margin-left: auto;
@@ -624,6 +609,54 @@ body.tui-resizing {
 .Md3f7G_flowItem.tui-match-current {
   background: rgba(54, 123, 191, 0.40);
   box-shadow: inset 3px 0 0 var(--dsw-alias-state-business-primary);
+}
+
+/* ── buttons-to-commands (step 1): hide composer "+" ──
+   The + button in the input bar only toggles the command menu; typing "/"
+   in the input opens the same menu, so the button is redundant. CSS-only
+   hide (DOM stays intact). Selector: the input card (stable data-* hook
+   from @deepseek-ai/dsh-client-ui-conversation) × the only listbox button. */
+[data-composer-card] button[aria-haspopup="listbox"] {
+  display: none;
+}
+
+/* ── buttons-to-commands (step 2): hide send/stop + model seat ──
+   Enter sends, Esc stops, Ctrl+M opens the model picker (JS feature below).
+   The aria-labels are zh-CN strings of the pinned dsh release
+   ("发送消息" / "停止生成"); update them if the GUI locale changes. */
+[data-composer-card] button[aria-label="发送消息"],
+[data-composer-card] button[aria-label="停止生成"],
+[data-composer-card] button[aria-haspopup="menu"] {
+  display: none;
+}
+
+/* ── buttons-to-commands (step 4): hide message + queue action buttons ──
+   Ctrl+Alt+C copies the last message, Ctrl+Alt+B branches it,
+   Ctrl+Alt+E / Ctrl+Alt+Backspace edit/remove the last queued message
+   (JS feature below). Scope [data-time-hover-root] × [class$="_actions"]
+   keeps code-block copy buttons (deep inside the body) intact. zh-CN
+   labels again; update them if the GUI locale changes. */
+[data-time-hover-root] [class$="_actions"] [aria-label="复制"],
+[data-time-hover-root] [class$="_actions"] [aria-label="复制成功"],
+[data-time-hover-root] [class$="_actions"] [aria-label="在新对话中分支"],
+button[aria-label="编辑排队消息"],
+button[aria-label="删除排队消息"],
+button[aria-label="插话发送"] {
+  display: none;
+}
+
+/* ── buttons-to-commands (step 5): hide sidebar new-session buttons ──
+   Both the brand wordmark and the labeled New Chat button carry
+   新建会话; Ctrl+Alt+N starts a new session (JS feature below). */
+button[aria-label="新建会话"] {
+  display: none;
+}
+
+/* ── buttons-to-commands (step 5b): /new menu group title ──
+   The client /new source renders as its own "/" menu group ("local");
+   hide its title row so /new reads as part of the commands group. */
+[data-source="local"] {
+  display: none;
 }
 
 `;
@@ -776,103 +809,6 @@ body.tui-resizing {
 }
 
         }
-        // ── feature: feat-8.json ──
-        {
-{
-  const STORAGE_KEY = "tui-chat-width";
-  const MIN = 520;
-  const MAX = 1600;
-  let root = document.querySelector(".wSkVaW_root");
-  let handle = null;
-
-  const clamp = (v) => Math.min(MAX, Math.max(MIN, v));
-
-  const applyWidth = (w) => {
-    if (!root) return;
-    root.style.setProperty("--dsh-chat-content-width", clamp(w) + "px");
-  };
-
-  const column = () => root ? root.querySelector(".Md3f7G_column") : null;
-
-  const currentWidth = () => {
-    const col = column();
-    if (col) return col.getBoundingClientRect().width;
-    return root ? root.getBoundingClientRect().width : MIN;
-  };
-
-  // keep the handle glued to the column's right edge (column is centered)
-  const positionHandle = () => {
-    if (!root || !handle) return;
-    const col = column();
-    const ref = col || root;
-    const rr = root.getBoundingClientRect();
-    handle.style.left = Math.round(ref.getBoundingClientRect().right - rr.left - 3) + "px";
-  };
-
-  const ensureHandle = () => {
-    if (!root || handle) return;
-    handle = document.createElement("div");
-    handle.className = "tui-resize-handle";
-    root.appendChild(handle);
-
-    const onDown = (e) => {
-      e.preventDefault();
-      document.body.classList.add("tui-resizing");
-      const startX = e.clientX;
-      const startW = currentWidth();
-      const onMove = (ev) => {
-        applyWidth(startW + (ev.clientX - startX));
-        positionHandle();
-      };
-      const onUp = () => {
-        document.body.classList.remove("tui-resizing");
-        document.removeEventListener("mousemove", onMove);
-        document.removeEventListener("mouseup", onUp);
-        const cur = root.style.getPropertyValue("--dsh-chat-content-width");
-        if (cur) localStorage.setItem(STORAGE_KEY, cur.replace("px", ""));
-      };
-      document.addEventListener("mousemove", onMove);
-      document.addEventListener("mouseup", onUp);
-      cleanups.push(() => {
-        document.removeEventListener("mousemove", onMove);
-        document.removeEventListener("mouseup", onUp);
-      });
-    };
-    handle.addEventListener("mousedown", onDown);
-    cleanups.push(() => handle.removeEventListener("mousedown", onDown));
-  };
-
-  const init = () => {
-    root = document.querySelector(".wSkVaW_root");
-    if (!root) return;
-    const saved = localStorage.getItem(STORAGE_KEY);
-    if (saved) applyWidth(parseInt(saved, 10));
-    ensureHandle();
-    positionHandle();
-  };
-
-  // the root mounts late (React); retry briefly, then keep watching
-  let tries = 0;
-  const attempt = () => {
-    if (root || tries++ >= 40) return init();
-    setTimeout(attempt, 500);
-  };
-  attempt();
-
-  const mo = new MutationObserver(() => {
-    if (!root) {
-      root = document.querySelector(".wSkVaW_root");
-      if (root) init();
-    }
-  });
-  mo.observe(document.body, { childList: true, subtree: true });
-  cleanups.push(() => mo.disconnect());
-
-  const onResize = () => positionHandle();
-  window.addEventListener("resize", onResize);
-  cleanups.push(() => window.removeEventListener("resize", onResize));
-}
-        }
         // ── feature: feat-9.json ──
         {
 {
@@ -988,10 +924,227 @@ body.tui-resizing {
   });
 }
         }
+        // ── feature: buttons-to-commands (steps 2-3) ──
+        {
+          // Keyboard replacements for the hidden composer buttons:
+          //   Esc      → stop the run (stop button is rendered only while a
+          //              run is in flight; "停止生成" is the zh-CN label)
+          //   Ctrl+M   → open the model picker (the hidden [aria-haspopup="menu"]
+          //              trigger; arrows/Enter work inside the picker)
+          // Bubble-phase listener: React's own key handlers (popup dismissal,
+          // etc.) run first, so Esc closes open menus before we stop.
+          const STOP_LABEL = "\u505c\u6b62\u751f\u6210";
+          const onKey = (e) => {
+            if (e.repeat) return;
+            if (e.key === "Escape") {
+              // If any popup/menu/modal is still open, Esc belongs to it.
+              if (document.querySelector('[role="listbox"][aria-expanded="true"], [role="menu"][aria-expanded="true"], [aria-modal="true"]')) return;
+              // While editing a queued message, Esc cancels the edit, not the run.
+              const ae = document.activeElement;
+              if (ae && ae.tagName === "INPUT" && ae.getAttribute("aria-label") === "\u7f16\u8f91\u6392\u961f\u6d88\u606f") return;
+              const composer = document.querySelector("[data-composer-card]");
+              const stop = composer && composer.querySelector('button[aria-label="' + STOP_LABEL + '"]');
+              if (stop && !stop.disabled) {
+                e.preventDefault();
+                stop.click();
+              }
+              return;
+            }
+            if ((e.ctrlKey || e.metaKey) && e.code === "KeyM") {
+              const composer = document.querySelector("[data-composer-card]");
+              const trigger = composer && composer.querySelector('button[aria-haspopup="menu"]');
+              if (trigger && !trigger.disabled) {
+                e.preventDefault();
+                if (trigger.getAttribute("aria-expanded") !== "true") trigger.click();
+              }
+            }
+          };
+          document.addEventListener("keydown", onKey, false);
+          cleanups.push(() => document.removeEventListener("keydown", onKey, false));
+        }
+        // ── feature: buttons-to-commands (step 4): last-message hotkeys ──
+        {
+          // Ctrl+Alt+C        → copy the last message's text
+          // Ctrl+Alt+B        → branch the last message (assistant only)
+          // Ctrl+Alt+E        → edit the last queued message
+          // Ctrl+Alt+Backspace→ remove the last queued message
+          // Modifier combos only — plain letters must keep typing in the
+          // composer. The hidden buttons are dispatched via .click() so the
+          // app's own handlers (clipboard write, fork, queue ops) run as usual.
+          const BRANCH = "\u5728\u65b0\u5bf9\u8bdd\u4e2d\u5206\u652f"; // 在新对话中分支
+          const EDIT = "\u7f16\u8f91\u6392\u961f\u6d88\u606f";       // 编辑排队消息
+          const REMOVE = "\u5220\u9664\u6392\u961f\u6d88\u606f";     // 删除排队消息
+          const lastOf = (sel) => {
+            const all = document.querySelectorAll(sel);
+            return all.length ? all[all.length - 1] : null;
+          };
+          const copyText = (text) => {
+            const fallback = () => {
+              const ta = document.createElement("textarea");
+              ta.value = text;
+              ta.style.position = "fixed";
+              ta.style.opacity = "0";
+              document.body.appendChild(ta);
+              ta.select();
+              try { document.execCommand("copy"); } catch (e) { /* ignore */ }
+              ta.remove();
+            };
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+              navigator.clipboard.writeText(text).catch(fallback);
+            } else fallback();
+          };
+          const onKey = (e) => {
+            if (e.repeat) return;
+            if (!(e.ctrlKey || e.metaKey) || !e.altKey) return;
+            // e.code (physical key), not e.key: the user types on a RU layout,
+            // where e.key would report Cyrillic letters for these positions.
+            const code = e.code;
+            if (code === "KeyC") {
+              const item = lastOf(".Md3f7G_flowItem");
+              if (!item) return;
+              const userRow = item.querySelector(".gdEzaW_userRow");
+              const asstRoot = item.querySelector(".Sxvs8a_root");
+              const text = ((userRow || asstRoot || item).textContent || "").replace(/\s+/g, " ").trim();
+              if (text) { e.preventDefault(); copyText(text); }
+              return;
+            }
+            if (code === "KeyB") {
+              const item = lastOf(".Md3f7G_flowItem");
+              const btn = item && item.querySelector('button[aria-label="' + BRANCH + '"]');
+              if (btn && !btn.disabled) { e.preventDefault(); btn.click(); }
+              return;
+            }
+            if (code === "KeyE") {
+              const btn = lastOf('button[aria-label="' + EDIT + '"]');
+              if (btn && !btn.disabled) { e.preventDefault(); btn.click(); }
+              return;
+            }
+            if (code === "Backspace") {
+              const btn = lastOf('button[aria-label="' + REMOVE + '"]');
+              if (btn && !btn.disabled) { e.preventDefault(); btn.click(); }
+            }
+          };
+          document.addEventListener("keydown", onKey, false);
+          cleanups.push(() => document.removeEventListener("keydown", onKey, false));
+        }
+        // ── feature: buttons-to-commands (step 5): sidebar hotkeys ──
+        {
+          // Ctrl+Alt+N → new session (both 新建会话 buttons are hidden by CSS)
+          // Ctrl+Alt+J → next session in the sidebar list (treeitem w/ aria-selected)
+          // Ctrl+Alt+K → previous session
+          // Ctrl+Alt+W → open the workspace picker while the composer shows
+          //              the "选择工作区" trigger (inert session, no workspace)
+          // e.code again: RU layout must not break these.
+          const NEW = "\u65b0\u5efa\u4f1a\u8bdd";            // 新建会话
+          const WORKSPACE = "\u9009\u62e9\u5de5\u4f5c\u533a"; // 选择工作区
+          const sessions = () => Array.from(document.querySelectorAll('[role="treeitem"][aria-selected]'));
+          const onKey = (e) => {
+            if (e.repeat) return;
+            if (!(e.ctrlKey || e.metaKey) || !e.altKey) return;
+            const code = e.code;
+            if (code === "KeyN") {
+              const btn = document.querySelector('button[aria-label="' + NEW + '"]');
+              if (btn && !btn.disabled) { e.preventDefault(); btn.click(); }
+              return;
+            }
+            if (code === "KeyW") {
+              // While inert (no workspace), the composer is a 选择工作区 trigger:
+              // the textarea click bubbles to the card's onClick → picker opens.
+              const trigger = document.querySelector('textarea[aria-label="' + WORKSPACE + '"]');
+              if (trigger) { e.preventDefault(); trigger.click(); }
+              return;
+            }
+            if (code === "KeyJ" || code === "KeyK") {
+              const items = sessions();
+              if (items.length === 0) return;
+              const cur = items.findIndex((el) => el.getAttribute("aria-selected") === "true");
+              const dir = code === "KeyJ" ? 1 : -1;
+              const idx = cur === -1 ? (dir === 1 ? 0 : items.length - 1) : (cur + dir + items.length) % items.length;
+              const target = items[idx];
+              if (target) { e.preventDefault(); target.click(); }
+            }
+          };
+          document.addEventListener("keydown", onKey, false);
+          cleanups.push(() => document.removeEventListener("keydown", onKey, false));
+        }
+        // ── feature: auto-expand disclosure rows (Think, commands, context) ──
+        // ReasoningRow, GenericCommandCard and ContextInjectionRow all mount
+        // collapsed (their bodies are NOT in the DOM until opened), so CSS
+        // cannot reveal them. Rows get opened once (WeakSet memory: a row the
+        // user collapses later stays collapsed; brand-new rows from new turns
+        // get expanded again). Scoped to think / others / context-injection —
+        // tool-call cards (search/read/edit/write variants) keep their
+        // collapsed summaries so file contents don't flood the column.
+        {
+          const opened = new WeakSet();
+          const isTarget = (row) => {
+            const root = row.closest("[data-variant]");
+            if (root !== null) {
+              const variant = root.getAttribute("data-variant");
+              return variant === "think" || variant === "others";
+            }
+            // context-injection rows carry no data-variant; they have an
+            // injected-content marker inside the row itself
+            return row.querySelector("[data-context-source]") !== null;
+          };
+          const expand = () => {
+            const column = document.querySelector(".Md3f7G_column");
+            if (!column) return;
+            for (const row of column.querySelectorAll('[data-disclosure-row][role="button"][aria-expanded="false"]')) {
+              if (opened.has(row) || !isTarget(row)) continue;
+              opened.add(row);
+              row.click();
+            }
+          };
+          expand();
+          const mo = new MutationObserver(expand);
+          mo.observe(document.body, { childList: true, subtree: true });
+          cleanups.push(() => mo.disconnect());
+        }
         return () => {
           cleanups.forEach((fn) => fn());
           style.remove();
         };
+      });
+
+      // ── feature: buttons-to-commands (step 5b): /new slash command ──
+      // A client-side "/" source: /new starts a new session. The host
+      // `commands` service cannot click GUI buttons, but `inputTriggers`
+      // accepts extra client sources for the "/" trigger — the candidate
+      // joins the menu under its own group (title hidden by CSS above) and
+      // matchEnter claims the bare "/new" line (the host "command" source
+      // returns void for unknown names, so registration order doesn't matter).
+      ctx.inject(["inputTriggers", "workspaces", "sessions"], (scope) => {
+        const NEW_NAME = "new";
+        const consume = (session, guard) => {
+          const actx = scope.sessions.scope(session.sessionId);
+          if (actx === void 0 || typeof actx.bail !== "function") return;
+          actx.bail(actx, "slash/input-consume-token", { guard });
+        };
+        const disposer = scope.inputTriggers.registerSource({
+          trigger: "/",
+          name: "local",
+          candidates: (session, req) => {
+            const query = (req?.query ?? "").toLowerCase();
+            if (query !== "" && !NEW_NAME.startsWith(query)) return Promise.resolve([]);
+            return Promise.resolve([
+              { name: NEW_NAME, description: "новый чат / новая сессия" },
+            ]);
+          },
+          onPick: (pick) => {
+            consume(pick.session, { kind: "span", span: pick.span });
+            scope.workspaces.startSession();
+            return "handled";
+          },
+          matchEnter: (session, line) => {
+            const trimmed = line.trim();
+            if (trimmed !== "/" + NEW_NAME && !trimmed.startsWith("/" + NEW_NAME + " ")) return void 0;
+            consume(session, { kind: "bare-token", token: trimmed });
+            scope.workspaces.startSession();
+            return "handled";
+          },
+        });
+        ctx.effect(() => disposer, "tui: /new source");
       });
     }
 
