@@ -491,15 +491,12 @@ textarea,
 input {
   caret-color: var(--dsw-alias-label-primary);
 }
-/* composer card: fully black input surface with a dark color25 frame */
+/* composer card: fully black input surface with a dark color25 frame;
+   the frame stays the same when the input is focused (no accent recolor) */
 .uV2eYG_card,
 .bqrRRG_card {
   background: #000000;
   border: 1px solid #002c52;
-}
-/* focused composer: accent frame */
-.uV2eYG_card:focus-within {
-  border-color: var(--dsw-alias-brand-primary);
 }
 
 /* terminal status readouts: turn status as a console status line
