@@ -2701,7 +2701,10 @@ button[aria-label="Check for updates"] {
       // navigate, Enter/Tab opens the highlighted session (the line is
       // consumed like the bare /session command), Esc dismisses. Keys are
       // intercepted in the capture phase so React's Enter-submit never fires.
-      ctx.inject(["sessions"], (scope) => {
+      // Rows follow the sidebar's visibility rules (no subagent or blank
+      // placeholders, except the current one); archived sessions are marked
+      // with a glyph and sorted last.
+      ctx.inject(["sessions", "workspaces"], (scope) => {
         const popup = document.createElement("div");
         popup.setAttribute("data-tui-autocomplete", "session");
         popup.style.cssText = [
@@ -2720,14 +2723,32 @@ button[aria-label="Check for updates"] {
         let active = 0;
         let blurTimer = 0;
         const composer = () => document.querySelector("[data-composer-card] textarea");
+        // Same visibility rules as the sidebar tree: no subagent
+        // pseudo-sessions, no blank placeholders (except the current one),
+        // no raw-id fallback labels. Archived sessions stay in the list but
+        // are marked and sorted last; untitled sessions (label falls back to
+        // the project basename) carry their full path so identical basenames
+        // remain distinguishable.
         const sessionLabels = () => {
-          const byId = scope.sessions.list.getSnapshot().byId ?? {};
+          const snapshot = scope.sessions.list.getSnapshot();
+          const byId = snapshot.byId ?? {};
+          const current = snapshot.current;
+          const archived = new Set(scope.workspaces?.list.getSnapshot().archivedSessionIds ?? []);
           const out = [];
           for (const s of Object.values(byId)) {
+            if (s.origin === "subagent") continue;
+            if (s.blank && s.id !== current) continue;
             const label = s.displayTitle ?? s.title;
             if (!label || label === s.id) continue; // id-fallback labels are noise
-            out.push({ id: s.id, label });
+            out.push({
+              id: s.id,
+              label,
+              path: s.title === void 0 ? (s.cwd ?? "") : "",
+              archived: archived.has(s.id),
+            });
           }
+          // archived sessions last, host order preserved inside each group
+          out.sort((a, b) => Number(a.archived) - Number(b.archived));
           return out;
         };
         const paint = () => {
@@ -2763,7 +2784,8 @@ button[aria-label="Check for updates"] {
           if (m === null || ta.selectionStart !== text.length) { dismiss(); return; }
           const q = m[1].toLowerCase();
           const all = sessionLabels();
-          const items = q === "" ? all.slice(0, 8) : all.filter((s) => s.label.toLowerCase().includes(q)).slice(0, 8);
+          const haystack = (s) => (s.label + " " + s.path).toLowerCase();
+          const items = q === "" ? all.slice(0, 8) : all.filter((s) => haystack(s).includes(q)).slice(0, 8);
           rows = items;
           active = 0;
           if (items.length === 0) { dismiss(); return; }
@@ -2772,8 +2794,24 @@ button[aria-label="Check for updates"] {
           }
           items.forEach((item, i) => {
             const row = document.createElement("div");
-            row.textContent = item.label;
-            row.style.cssText = "padding:4px 10px;cursor:pointer;border-radius:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis";
+            row.style.cssText = "display:flex;align-items:baseline;gap:6px;padding:4px 10px;cursor:pointer;border-radius:0;white-space:nowrap;overflow:hidden";
+            if (item.archived) row.title = "archived session";
+            const mark = document.createElement("span");
+            mark.textContent = item.archived ? "◫" : "";
+            mark.style.cssText = "flex:none;width:1em;color:var(--dsw-alias-label-tertiary)";
+            const name = document.createElement("span");
+            name.textContent = item.label;
+            name.style.cssText = item.archived
+              ? "min-width:0;overflow:hidden;text-overflow:ellipsis;color:var(--dsw-alias-label-secondary)"
+              : "min-width:0;overflow:hidden;text-overflow:ellipsis";
+            row.appendChild(mark);
+            row.appendChild(name);
+            if (item.path !== "") {
+              const sub = document.createElement("span");
+              sub.textContent = item.path;
+              sub.style.cssText = "flex:none;max-width:45%;overflow:hidden;text-overflow:ellipsis;color:var(--dsw-alias-label-tertiary);font-size:11px";
+              row.appendChild(sub);
+            }
             if (i === 0) {
               row.style.background = "rgba(54, 123, 191, 0.22)";
               row.style.boxShadow = "inset 2px 0 0 var(--dsw-alias-state-business-primary)";
