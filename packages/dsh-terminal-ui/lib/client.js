@@ -1152,7 +1152,7 @@ button[aria-label="New session"] {
         {
           const boot = window.__DSH_BOOT__;
           const currentRevs = new Map((boot?.entries || []).map((e) => [e.id, e.rev]));
-          const BOOT_RE = /window\.__DSH_BOOT__ = (\{.*?\});<\/script>/s;
+          const BOOT_RE = /window\.__DSH_BOOT__ = (\{.*?\})<\/script>/s;
           let serverWasDown = false;
           let stopped = false;
           const check = async () => {
@@ -1325,6 +1325,105 @@ button[aria-label="New session"] {
         }, "tui: session-end scroll");
       });
 
+      // ── feature: buttons-to-commands (step 8): /session name autocomplete ──
+      // The native "/" menu completes command NAMES but not their arguments.
+      // While the composer line is "/session <partial>", show a small popup
+      // above the input with matching session display titles; ArrowUp/Down
+      // navigate, Enter/Tab opens the highlighted session (the line is
+      // consumed like the bare /session command), Esc dismisses. Keys are
+      // intercepted in the capture phase so React's Enter-submit never fires.
+      ctx.inject(["sessions"], (scope) => {
+        const popup = document.createElement("div");
+        popup.style.cssText = [
+          "position:fixed", "z-index:200", "display:none", "box-sizing:border-box",
+          "min-width:280px", "max-width:520px", "max-height:280px", "overflow-y:auto",
+          "background:var(--dsw-specific-menu)", "border:1px solid var(--dsw-alias-border-l1)",
+          "border-radius:8px", "box-shadow:0 8px 28px rgba(0,0,0,.5)",
+          "font-family:var(--ds-font-family-code)", "font-size:13px", "padding:4px",
+        ].join(";");
+        document.body.appendChild(popup);
+        let rows = [];
+        let active = 0;
+        let blurTimer = 0;
+        const composer = () => document.querySelector("[data-composer-card] textarea");
+        const sessionLabels = () => {
+          const byId = scope.sessions.list.getSnapshot().byId ?? {};
+          const out = [];
+          for (const s of Object.values(byId)) {
+            const label = s.displayTitle ?? s.title;
+            if (!label || label === s.id) continue; // id-fallback labels are noise
+            out.push({ id: s.id, label });
+          }
+          return out;
+        };
+        const paint = () => {
+          for (let i = 0; i < popup.children.length; i++) {
+            popup.children[i].style.background = i === active ? "var(--dsw-alias-interactive-bg-hover)" : "";
+          }
+        };
+        const dismiss = () => { popup.style.display = "none"; popup.textContent = ""; rows = []; };
+        const open = (id) => {
+          dismiss();
+          const ta = composer();
+          const line = ta !== null ? ta.value.trim() : "";
+          const cur = scope.sessions.list.getSnapshot().current;
+          const actx = cur !== void 0 ? scope.sessions.scope(cur) : void 0;
+          if (actx !== void 0 && typeof actx.bail === "function" && line !== "") {
+            actx.bail(actx, "slash/input-consume-token", { guard: { kind: "bare-token", token: line } });
+          }
+          scope.sessions.open(id);
+        };
+        const refresh = () => {
+          const ta = composer();
+          if (ta === null || document.activeElement !== ta) { dismiss(); return; }
+          const text = ta.value;
+          const m = /^\/session\s+(\S*)$/.exec(text);
+          if (m === null || ta.selectionStart !== text.length) { dismiss(); return; }
+          const q = m[1].toLowerCase();
+          const all = sessionLabels();
+          const items = q === "" ? all.slice(0, 8) : all.filter((s) => s.label.toLowerCase().includes(q)).slice(0, 8);
+          rows = items;
+          active = 0;
+          if (items.length === 0) { dismiss(); return; }
+          popup.textContent = "";
+          items.forEach((item, i) => {
+            const row = document.createElement("div");
+            row.textContent = item.label;
+            row.style.cssText = "padding:5px 10px;cursor:pointer;border-radius:5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis";
+            if (i === 0) row.style.background = "var(--dsw-alias-interactive-bg-hover)";
+            row.addEventListener("mousedown", (e) => { e.preventDefault(); open(item.id); });
+            popup.appendChild(row);
+          });
+          const r = ta.getBoundingClientRect();
+          popup.style.left = Math.max(8, r.left) + "px";
+          popup.style.width = Math.min(r.width, 520) + "px";
+          popup.style.bottom = Math.max(8, window.innerHeight - r.top + 8) + "px";
+          popup.style.display = "block";
+        };
+        const onInput = () => refresh();
+        const onKey = (e) => {
+          if (popup.style.display === "none" || rows.length === 0) return;
+          const ta = composer();
+          if (ta === null || e.target !== ta) return;
+          switch (e.key) {
+            case "ArrowDown": e.preventDefault(); e.stopPropagation(); active = (active + 1) % rows.length; paint(); break;
+            case "ArrowUp": e.preventDefault(); e.stopPropagation(); active = (active - 1 + rows.length) % rows.length; paint(); break;
+            case "Enter":
+            case "Tab": e.preventDefault(); e.stopPropagation(); open(rows[active].id); break;
+            case "Escape": e.preventDefault(); e.stopPropagation(); dismiss(); break;
+          }
+        };
+        document.addEventListener("input", onInput, true);
+        document.addEventListener("keydown", onKey, true);
+        document.addEventListener("blur", () => { clearTimeout(blurTimer); blurTimer = setTimeout(dismiss, 150); }, true);
+        ctx.effect(() => () => {
+          document.removeEventListener("input", onInput, true);
+          document.removeEventListener("keydown", onKey, true);
+          clearTimeout(blurTimer);
+          popup.remove();
+        }, "tui: session autocomplete");
+      });
+
       // ── buttons-to-commands (step 7): /export-md slash command ──
       // The hidden "⬇ md" header button (feat-9) stays mounted for the
       // toolbar-less fallback; both it and this command run the shared
@@ -1340,5 +1439,3 @@ button[aria-label="New session"] {
     return { apply, inject };
   },
 });
-
-// auto-reload test marker
