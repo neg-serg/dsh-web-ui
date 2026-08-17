@@ -228,23 +228,103 @@ body[data-ds-dark-theme] {
    The stock stats line (turns/steps/LLM·tool time/TTFT/cache) renders as a
    full-width bar under the composer card; the JS feature below moves it into
    the input card's bottom row (uV2eYG_row), at the left where the "Full
-   access" button sits, so it reads as part of the terminal status row. */
+   access" button sits, so it reads as part of the terminal status row.
+   Restyled as a single-row chip in the "Full access" badge style: dark
+   translucent plaque, hairline frame, squared corners (strict), Iosevka, a
+   Nerd Font pictogram per stat group (heirline-style) with the blue "/"
+   separators. Fully visible: no max-width cap, no ellipsis — the row wraps
+   only when the column is genuinely too narrow. The context meter is docked
+   right after it as a matching chip (see the dock feature below). */
 .FJxK0a_root.tui-docked-stats {
   display: inline-flex !important;
   align-items: center;
+  flex-wrap: wrap;
   border-top: none;
-  background: transparent;
-  padding: 0 10px 0 0;
+  background: rgba(4, 15, 28, 0.72);
+  border: 1px solid var(--dsw-alias-border-l1);
+  border-radius: 0; /* strict: squared, like the theme's other chips */
+  padding: 2px 6px;
   margin: 0;
   flex: 0 1 auto;
   min-width: 0;
-  max-width: 45%;
-  overflow: hidden;
-  white-space: nowrap;
-  text-overflow: ellipsis;
+  max-width: none;
+  overflow: visible;
+  white-space: normal;
+  font-family: var(--ds-font-family-code);
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 20px;
+  color: var(--dsw-alias-label-secondary);
 }
 .FJxK0a_root.tui-docked-stats::before {
   content: "";
+}
+/* stat group cells: pictogram + value, "·" subgroups stay inline */
+.FJxK0a_root.tui-docked-stats > span:not(.FJxK0a_sep) {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0 2px;
+  white-space: nowrap;
+}
+/* Nerd Font pictogram per group (tagged by the dock feature) */
+.FJxK0a_root.tui-docked-stats > span[data-stat]::before {
+  font-family: "FiraCode Nerd Font", "Iosevka Nerd Font", var(--ds-font-family-code);
+  font-size: 13px;
+  line-height: 1;
+}
+.FJxK0a_root.tui-docked-stats > span[data-stat="counts"]::before {
+  content: "󰔄"; /* nf-md-autorenew — turns/steps cycle */
+  color: var(--dsw-alias-state-success-primary);
+}
+.FJxK0a_root.tui-docked-stats > span[data-stat="durations"]::before {
+  content: "󰅐"; /* nf-md-timer — LLM / tool wall time */
+  color: var(--dsw-alias-state-business-primary);
+}
+.FJxK0a_root.tui-docked-stats > span[data-stat="speeds"]::before {
+  content: "󰥔"; /* nf-md-clock-outline — TTFT latency */
+  color: var(--dsw-alias-state-warn-primary);
+}
+.FJxK0a_root.tui-docked-stats > span[data-stat="cache"]::before {
+  content: "󰚲"; /* nf-md-database-outline — cache hit share */
+  color: #9bb1ce;
+}
+.FJxK0a_root.tui-docked-stats > span[data-stat="tokens"]::before {
+  content: "󰈙"; /* nf-md-file-document — token counts */
+  color: var(--dsw-alias-label-secondary);
+}
+
+/* ── context meter: same chip treatment as the stats cluster ──
+   The round context-load ball (JObwrW_trigger) becomes a matching dark chip
+   with the progress ring and a visible percent readout (data-pct set by the
+   dock feature), docked right after the stats cluster in the same row. */
+.JObwrW_root .JObwrW_trigger {
+  width: auto;
+  height: 28px;
+  border-radius: 0;
+  background: rgba(4, 15, 28, 0.72);
+  border: 1px solid var(--dsw-alias-border-l1);
+  padding: 0 10px;
+  gap: 6px;
+  display: inline-flex;
+  align-items: center;
+  font-family: var(--ds-font-family-code);
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 20px;
+  color: var(--dsw-alias-label-secondary);
+}
+.JObwrW_root .JObwrW_trigger svg {
+  width: 14px;
+  height: 14px;
+}
+.JObwrW_root .JObwrW_trigger[data-pct]::after {
+  content: attr(data-pct) "%";
+  font-family: var(--ds-font-family-code);
+  font-size: 12px;
+}
+.JObwrW_root .JObwrW_fill {
+  stroke: var(--dsw-alias-state-business-primary);
 }
 
 /* workspace hover tooltip: theme text instead of hardcoded white */
@@ -386,20 +466,23 @@ select {
   max-width: 100%;
   align-items: stretch;
 }
-/* user messages: near-black terminal block, bold Fira Code */
+/* user messages: near-black terminal block, Fira Code — calmer than the
+   previous 15px/600 slabs: 14px/500 (aligned with the markdown base size),
+   tighter padding and leading. The black block + green left rail still make
+   it the loudest element in the column. */
 .gdEzaW_bubble {
-  background: linear-gradient(180deg, rgba(0, 0, 0, 0.92), rgba(0, 0, 0, 0.84));
+  background: linear-gradient(180deg, rgba(0, 0, 0, 0.82), rgba(0, 0, 0, 0.72));
   border: 1px solid #0d2b40;
   border-left: 3px solid var(--dsw-alias-state-success-primary);
   border-radius: 0;
-  padding: 10px 16px;
+  padding: 6px 14px;
   max-width: 100%;
   color: #dce8f5;
   font-family: "FiraCode Nerd Font", "Fira Code", var(--ds-font-family-code);
-  font-weight: 600;
-  font-size: 15px;
-  line-height: 24px;
-  letter-spacing: 0.02em;
+  font-weight: 500;
+  font-size: 14px;
+  line-height: 21px;
+  letter-spacing: 0.01em;
 }
 .gdEzaW_bubble a {
   color: var(--dsw-alias-state-business-primary);
@@ -693,6 +776,39 @@ button[aria-label="New session"] {
   display: none;
 }
 
+/* ── trigger autocomplete ("/" menu): strict terminal dropdown ──
+   The base theme renders it with 12px rounded corners, a heavy lv3 shadow
+   and pill-shaped rows; square it off and give rows a blue-tinted active
+   state with a left rail — matching the custom /session & /workspace
+   autocomplete popups below. */
+[data-composer-card] [role="listbox"] {
+  border-radius: 0;
+  border-color: var(--dsw-alias-border-l2);
+  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.4);
+  padding: 2px;
+  font-family: var(--ds-font-family-code);
+}
+[data-composer-card] [role="listbox"] [class$="_item"] {
+  border-radius: 0;
+  min-height: 30px;
+  padding: 5px 10px;
+  font-family: var(--ds-font-family-code);
+  font-size: 13px;
+  line-height: 20px;
+}
+[data-composer-card] [role="listbox"] [class$="_item"]:hover,
+[data-composer-card] [role="listbox"] [class$="_item"][class$="_active"] {
+  background: rgba(54, 123, 191, 0.22);
+  box-shadow: inset 2px 0 0 var(--dsw-alias-state-business-primary);
+}
+[data-composer-card] [role="listbox"] [class$="_groupTitle"] {
+  font-family: var(--ds-font-family-code);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--dsw-alias-label-tertiary);
+}
+
 /* ── buttons-to-commands (step 6): header/sidebar leftovers → commands ──
    Session log header button → /export  (dsh-session-log-export)
    "⬇ md" header button       → /export-md (host command, step 7)
@@ -769,6 +885,151 @@ button[aria-label="Check for updates"] {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+/* ── tui-jsondock: system-status chips under the composer ──
+   A row of compact chips (Nerd Font pictogram + short value), one per JSON
+   source served by the host half at /terminal-ui/json/<name>. Clicking a
+   chip opens the .tui-jsondock-popup panel with a rendered detail view.
+   Chips get data-state="ok|warn|error" (set by the JS feature) to tint the
+   frame — e.g. red when a systemd unit failed or a sensor is hot. */
+.tui-jsondock {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  align-items: center;
+  box-sizing: border-box;
+  width: 100%;
+  max-width: var(--dsh-chat-content-width, 1184px);
+  margin: 0 auto;
+  padding: 4px 12px 0;
+}
+.tui-jsondock-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 1px 8px;
+  background: rgba(4, 15, 28, 0.72);
+  border: 1px solid var(--dsw-alias-border-l1);
+  border-radius: 0; /* strict: squared, like the theme's other chips */
+  font-family: var(--ds-font-family-code);
+  font-size: 11px;
+  line-height: 18px;
+  color: var(--dsw-alias-label-secondary);
+  cursor: pointer;
+  white-space: nowrap;
+  user-select: none;
+}
+.tui-jsondock-chip:hover {
+  color: var(--dsw-alias-label-primary);
+  border-color: var(--dsw-alias-state-business-primary);
+  background: rgba(16, 35, 58, 0.85);
+}
+.tui-jsondock-chip .tui-jsondock-ico {
+  font-family: "FiraCode Nerd Font", "Iosevka Nerd Font", var(--ds-font-family-code);
+  font-size: 13px;
+  line-height: 1;
+  color: var(--dsw-alias-state-business-primary);
+}
+.tui-jsondock-chip[data-state="ok"] .tui-jsondock-ico {
+  color: var(--dsw-alias-state-success-primary);
+}
+.tui-jsondock-chip[data-state="warn"] {
+  border-color: rgba(200, 168, 239, 0.55);
+}
+.tui-jsondock-chip[data-state="warn"] .tui-jsondock-ico {
+  color: var(--dsw-alias-state-warn-primary);
+}
+.tui-jsondock-chip[data-state="error"] {
+  border-color: var(--dsw-alias-state-error-primary);
+  color: var(--dsw-alias-state-error-primary);
+}
+.tui-jsondock-chip[data-state="error"] .tui-jsondock-ico {
+  color: var(--dsw-alias-state-error-primary);
+}
+.tui-jsondock-chip[data-loading] .tui-jsondock-val {
+  opacity: 0.5;
+}
+
+/* popup: detail panel for the clicked chip — fixed, above the composer,
+   same family as the autocomplete popups */
+.tui-jsondock-popup {
+  position: fixed;
+  z-index: 300;
+  display: none;
+  box-sizing: border-box;
+  min-width: 320px;
+  max-width: 560px;
+  max-height: 60vh;
+  overflow-y: auto;
+  padding: 8px 10px;
+  background: var(--dsw-specific-menu);
+  border: 1px solid var(--dsw-alias-border-l1);
+  border-radius: 4px;
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.55);
+  font-family: var(--ds-font-family-code);
+  font-size: 12px;
+  line-height: 18px;
+  color: var(--dsw-alias-label-primary);
+}
+.tui-jsondock-popup h3 {
+  margin: 0 0 6px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--dsw-alias-label-primary);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+.tui-jsondock-popup h3 .tui-jsondock-popup-ico {
+  margin-right: 4px;
+  color: var(--dsw-alias-state-business-primary);
+}
+.tui-jsondock-popup table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 11px;
+}
+.tui-jsondock-popup td,
+.tui-jsondock-popup th {
+  padding: 2px 6px;
+  text-align: left;
+  vertical-align: top;
+  border-bottom: 1px solid rgba(43, 68, 98, 0.35);
+  white-space: nowrap;
+}
+.tui-jsondock-popup td.tui-jsondock-pad {
+  white-space: normal;
+  word-break: break-word;
+}
+.tui-jsondock-popup th {
+  color: var(--dsw-alias-label-caption);
+  font-weight: 500;
+}
+.tui-jsondock-popup tr:last-child td {
+  border-bottom: none;
+}
+.tui-jsondock-popup .tui-jsondock-bar {
+  display: inline-block;
+  height: 8px;
+  vertical-align: middle;
+  background: var(--dsw-alias-state-business-primary);
+  border-radius: 2px;
+}
+.tui-jsondock-popup .tui-jsondock-bar-wrap {
+  background: rgba(43, 68, 98, 0.35);
+  border-radius: 2px;
+}
+.tui-jsondock-popup .tui-jsondock-err {
+  color: var(--dsw-alias-state-error-primary);
+}
+.tui-jsondock-popup .tui-jsondock-muted {
+  color: var(--dsw-alias-label-tertiary);
+}
+.tui-jsondock-popup .tui-jsondock-hot {
+  color: var(--dsw-alias-state-warn-primary);
+}
+.tui-jsondock-popup .tui-jsondock-cold {
+  color: var(--dsw-alias-state-success-primary);
 }
 
 `;
@@ -1360,14 +1621,59 @@ button[aria-label="Check for updates"] {
         // status row. React updates the node in place; the observer re-docks
         // it after full re-mounts (session switches, re-renders).
         {
+          // Tag each stat group span with its kind (counts/durations/speeds/
+          // cache/tokens) so the CSS can draw the matching Nerd Font
+          // pictogram. Runs on every mutation — React rewrites the group text
+          // in place, so re-tag after each re-render.
+          const tagStats = (stats) => {
+            const kinds = [
+              [/turn|step/i, "counts"],
+              [/LLM|Tool call/i, "durations"],
+              [/TTFT|tok\/s/i, "speeds"],
+              [/cache/i, "cache"],
+              [/tok/i, "tokens"],
+            ];
+            for (const span of stats.querySelectorAll(":scope > span:not(.FJxK0a_sep)")) {
+              const text = span.textContent || "";
+              let kind = "";
+              for (const [re, k] of kinds) {
+                if (re.test(text)) { kind = k; break; }
+              }
+              if (kind !== "" && span.getAttribute("data-stat") !== kind) span.setAttribute("data-stat", kind);
+            }
+          };
           const dock = () => {
             const stats = document.querySelector(".FJxK0a_root");
-            if (!stats) return;
-            const row = document.querySelector(".uV2eYG_row");
-            if (!row || row.contains(stats)) return;
-            stats.classList.add("tui-docked-stats");
-            const tools = row.querySelector(".uV2eYG_tools");
-            (tools || row).insertBefore(stats, (tools || row).firstChild);
+            if (stats !== null) {
+              stats.classList.add("tui-docked-stats");
+              tagStats(stats);
+              const row = document.querySelector(".uV2eYG_row");
+              if (row !== null && !row.contains(stats)) {
+                const tools = row.querySelector(".uV2eYG_tools");
+                (tools || row).insertBefore(stats, (tools || row).firstChild);
+              }
+            }
+            // Context meter: expose the percent on the trigger (the stock
+            // button only shows the ring) and dock the ball right after the
+            // stats cluster so both read as one status chip row. The meter
+            // stays React-owned; the observer re-places it after re-mounts
+            // (same self-healing pattern as the stats dock above).
+            const meter = document.querySelector(".JObwrW_root");
+            if (meter === null) return;
+            const trig = meter.querySelector(".JObwrW_trigger");
+            if (trig !== null) {
+              const m = (trig.getAttribute("aria-label") || "").match(/(\d+)%/);
+              if (m !== null && trig.getAttribute("data-pct") !== m[1]) trig.setAttribute("data-pct", m[1]);
+            }
+            const row2 = document.querySelector(".uV2eYG_row");
+            const tools2 = row2 !== null ? row2.querySelector(".uV2eYG_tools") : null;
+            if (tools2 !== null && stats !== null && stats.parentElement === tools2) {
+              if (meter.parentElement !== tools2) {
+                stats.after(meter);
+              } else if (meter.previousElementSibling !== stats) {
+                stats.after(meter);
+              }
+            }
           };
           dock();
           const mo = new MutationObserver(dock);
@@ -1412,6 +1718,439 @@ button[aria-label="Check for updates"] {
           cleanups.push(() => {
             clearInterval(railTimer);
             railMo.disconnect();
+          });
+        }
+        // ── feature: tui-jsondock — system-status chips under the composer ──
+        // One compact chip per JSON source served by the host half at
+        // /terminal-ui/json/<name> (sensors, systemd, network, hyprland,
+        // disks, torrents, MPD, flake metadata, generations, fastfetch,
+        // weather, pet, plugin registry). Each chip polls its source on its
+        // own interval, shows a short summary (pictogram + value), and opens
+        // a .tui-jsondock-popup with a rendered detail view on click.
+        // The dock row is parked right after the composer seat; a
+        // MutationObserver re-parks it after React re-mounts the composer.
+        {
+          const dock = document.createElement("div");
+          dock.className = "tui-jsondock";
+          dock.setAttribute("data-tui-jsondock", "");
+
+          const esc = (s) =>
+            String(s ?? "").replace(/[&<>"']/g, (c) =>
+              ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
+
+          // Shared popup panel (one instance for all chips).
+          const popup = document.createElement("div");
+          popup.className = "tui-jsondock-popup";
+          document.body.appendChild(popup);
+          let popupSource = null;
+          const hidePopup = () => { popup.style.display = "none"; popupSource = null; };
+          const showPopup = (source, ico, title, html) => {
+            popupSource = source;
+            popup.innerHTML = "";
+            const h = document.createElement("h3");
+            h.innerHTML = `<span class="tui-jsondock-popup-ico">${ico}</span>${esc(title)}`;
+            popup.appendChild(h);
+            if (typeof html === "string") {
+              const wrap = document.createElement("div");
+              wrap.innerHTML = html;
+              popup.appendChild(wrap);
+            } else {
+              const wrap = document.createElement("div");
+              wrap.appendChild(html);
+              popup.appendChild(wrap);
+            }
+            popup.style.display = "block";
+          };
+          const positionPopup = (chip) => {
+            const r = chip.getBoundingClientRect();
+            popup.style.left = Math.max(8, Math.min(r.left, window.innerWidth - 580)) + "px";
+            const above = r.top - popup.offsetHeight - 8;
+            popup.style.bottom = "";
+            popup.style.top = (above >= 8 ? above : r.bottom + 8) + "px";
+          };
+
+          // ── per-source renderers ──
+          const fmtBytes = (n) => {
+            if (n == null || Number.isNaN(Number(n))) return "—";
+            const v = Number(n);
+            if (v >= 1 << 30) return (v / (1 << 30)).toFixed(1) + "G";
+            if (v >= 1 << 20) return (v / (1 << 20)).toFixed(1) + "M";
+            if (v >= 1 << 10) return (v / (1 << 10)).toFixed(1) + "K";
+            return String(Math.round(v));
+          };
+          const bar = (pct) =>
+            `<span class="tui-jsondock-bar-wrap" style="display:inline-block;width:90px"><span class="tui-jsondock-bar" style="width:${Math.max(0, Math.min(100, pct))}%"></span></span>`;
+
+          const SOURCES = {
+            // temperatures: max of every temp*_input across chips
+            sensors: {
+              ico: "󰔐", // nf-md-thermometer
+              interval: 15000,
+              label: (d) => {
+                const rows = [];
+                const walk = (o, path) => {
+                  if (o === null || typeof o !== "object") return;
+                  for (const [k, v] of Object.entries(o)) {
+                    if (typeof v === "object" && v !== null) walk(v, [...path, k]);
+                    else if (/^temp\d*_input$/.test(k) && typeof v === "number") rows.push([path.join("/"), v]);
+                  }
+                };
+                walk(d, []);
+                if (rows.length === 0) return { label: "—", state: "error" };
+                const hot = Math.max(...rows.map((r) => r[1]));
+                return { label: `${Math.round(hot)}°C`, state: hot > 80 ? "warn" : hot > 90 ? "error" : "ok" };
+              },
+              detail: (d) => {
+                const rows = [];
+                const walk = (o, path) => {
+                  if (o === null || typeof o !== "object") return;
+                  for (const [k, v] of Object.entries(o)) {
+                    if (typeof v === "object" && v !== null) walk(v, [...path, k]);
+                    else if (/^temp\d*_input$/.test(k) && typeof v === "number") rows.push([path.join("/"), v]);
+                  }
+                };
+                walk(d, []);
+                if (rows.length === 0) return `<div class="tui-jsondock-err">нет данных</div>`;
+                const hot = Math.max(...rows.map((r) => r[1]));
+                const cls = (t) => (t > 90 ? "tui-jsondock-err" : t > 80 ? "tui-jsondock-hot" : t > 55 ? "" : "tui-jsondock-cold");
+                const body = rows
+                  .sort((a, b) => b[1] - a[1])
+                  .map(([name, t]) => `<tr><td class="tui-jsondock-pad">${esc(name)}</td><td class="${cls(t)}">${Math.round(t)}°C</td></tr>`)
+                  .join("");
+                return `<div class="tui-jsondock-muted">пик: ${Math.round(hot)}°C</div><table><tbody>${body}</tbody></table>`;
+              },
+            },
+            // systemd: running/failed service counts
+            system: {
+              ico: "󰓧", // nf-md-server
+              interval: 30000,
+              label: (d) => {
+                const c = d?.counts ?? { running: 0, failed: 0 };
+                const base = `sys ${c.running}`;
+                return c.failed > 0
+                  ? { label: `${base} ⚠${c.failed}`, state: "error" }
+                  : { label: base, state: "ok" };
+              },
+              detail: (d) => {
+                const c = d?.counts ?? { running: 0, failed: 0 };
+                const failed = (d?.failed ?? []).slice(0, 12)
+                  .map((u) => `<tr><td class="tui-jsondock-pad">${esc(u.unit)}</td><td class="tui-jsondock-err">${esc(u.sub ?? u.active ?? "")}</td></tr>`)
+                  .join("");
+                return `<div class="tui-jsondock-muted">${c.running} запущено · ${c.failed} сбоев</div>${
+                  c.failed > 0 ? `<table><tbody>${failed}</tbody></table>` : ""
+                }`;
+              },
+            },
+            // network interfaces
+            net: {
+              ico: "󰛳", // nf-md-lan
+              interval: 30000,
+              label: (d) => {
+                const ifaces = d?.Interfaces ?? [];
+                const up = ifaces.filter((i) => i.OperationalState === "carrier" || i.OperationalState === "routable").length;
+                return { label: `net ${up}/${ifaces.length}`, state: ifaces.length === 0 ? "warn" : "ok" };
+              },
+              detail: (d) => {
+                const ifaces = d?.Interfaces ?? [];
+                const rows = ifaces.map((i) =>
+                  `<tr><td>${esc(i.Name)}</td><td class="tui-jsondock-pad">${esc(i.KernelOperationalStateString ?? i.OperationalState ?? "")}</td><td class="tui-jsondock-muted">${esc(i.Type ?? "")} · MTU ${i.MTU ?? "—"}</td></tr>`)
+                  .join("");
+                return `<table><tbody>${rows || '<tr><td class="tui-jsondock-muted">нет интерфейсов</td></tr>'}</tbody></table>`;
+              },
+            },
+            // hyprland: active monitor + window count
+            hypr: {
+              ico: "󰍹", // nf-md-monitor
+              interval: 10000,
+              label: (d) => {
+                const mon = (d?.monitors ?? [])[0];
+                const wins = (d?.clients ?? []).filter((c) => c.mapped && !c.hidden).length;
+                if (mon === undefined) return { label: "hypr —", state: "warn" };
+                const ws = mon.activeWorkspace?.name ?? mon.activeWorkspace?.id ?? "?";
+                return { label: `${ws} · ${wins} ок`, state: "ok" };
+              },
+              detail: (d) => {
+                const mons = (d?.monitors ?? []).map((m) =>
+                  `<tr><td>${esc(m.name)}</td><td>${m.width}×${m.height}${m.refreshRate ? ` @${Math.round(m.refreshRate)}` : ""}</td><td class="tui-jsondock-muted">ws ${esc(m.activeWorkspace?.name ?? m.activeWorkspace?.id ?? "?")}</td></tr>`)
+                  .join("");
+                const aw = d?.activewindow;
+                const awLine = aw && aw.class
+                  ? `<div class="tui-jsondock-muted">активное окно: ${esc(aw.class)} — ${esc(aw.title ?? "")}</div>`
+                  : "";
+                return `${awLine}<table><tbody>${mons || '<tr><td class="tui-jsondock-muted">нет мониторов</td></tr>'}</tbody></table>`;
+              },
+            },
+            // disks: used % of the root mount
+            duf: {
+              ico: "󰋊", // nf-md-harddisk
+              interval: 60000,
+              label: (d) => {
+                const rows = Array.isArray(d) ? d : [];
+                const root = rows.find((r) => r.mount_point === "/") ?? rows[0];
+                if (root === undefined) return { label: "disk —", state: "warn" };
+                const pct = root.total > 0 ? Math.round((100 * root.used) / root.total) : 0;
+                return { label: `${pct}%`, state: pct > 90 ? "error" : pct > 75 ? "warn" : "ok" };
+              },
+              detail: (d) => {
+                const rows = Array.isArray(d) ? d : [];
+                const body = rows.map((r) => {
+                  const pct = r.total > 0 ? (100 * r.used) / r.total : 0;
+                  return `<tr><td>${esc(r.mount_point)}</td><td>${bar(pct)}</td><td>${fmtBytes(r.used)} / ${fmtBytes(r.total)}</td><td class="tui-jsondock-muted">${esc(r.fs_type ?? "")}</td></tr>`;
+                }).join("");
+                return `<table><tbody>${body || '<tr><td class="tui-jsondock-muted">нет дисков</td></tr>'}</tbody></table>`;
+              },
+            },
+            // transmission: torrent count + aggregate speeds
+            torrents: {
+              ico: "󰈦", // nf-md-download
+              interval: 60000,
+              label: (d) => {
+                const list = d?.result?.torrents ?? [];
+                const active = list.filter((t) => (t.rateDownload ?? 0) > 0 || (t.rateUpload ?? 0) > 0);
+                if (list.length === 0) return { label: "tor 0", state: "ok" };
+                return { label: `tor ${list.length}${active.length ? ` · ${active.length}↕` : ""}`, state: "ok" };
+              },
+              detail: (d) => {
+                const list = d?.result?.torrents ?? [];
+                const body = list.slice(0, 15).map((t) => {
+                  const pct = (t.percentDone ?? 0) * 100;
+                  return `<tr><td class="tui-jsondock-pad">${esc(t.name)}</td><td>${bar(pct)}</td><td>${Math.round(pct)}%</td><td class="tui-jsondock-muted">↓${fmtBytes(t.rateDownload ?? 0)}/s ↑${fmtBytes(t.rateUpload ?? 0)}/s</td></tr>`;
+                }).join("");
+                return `<table><tbody>${body || '<tr><td class="tui-jsondock-muted">нет торрентов</td></tr>'}</tbody></table>`;
+              },
+            },
+            // MPD: current track
+            mpc: {
+              ico: "󰎆", // nf-md-music-note
+              interval: 10000,
+              label: (d) => {
+                const cur = d?.current ?? "";
+                if (cur === "") return { label: "mpd —", state: "ok" };
+                return { label: cur.length > 34 ? cur.slice(0, 33) + "…" : cur, state: "ok" };
+              },
+              detail: (d) => `<div class="tui-jsondock-pad">${esc(d?.current ?? "")}</div><div class="tui-jsondock-muted">${esc(d?.status ?? "")}</div>`,
+            },
+            // nix flake metadata
+            flake: {
+              ico: "󰋼", // nf-md-package-variant-closed
+              interval: 300000,
+              label: (d) => {
+                const rev = d?.locked?.rev ?? d?.locked?.shortRev;
+                const short = typeof rev === "string" && rev.length > 7 ? rev.slice(0, 7) : rev;
+                return { label: short ? `flake ${short}` : "flake —", state: "ok" };
+              },
+              detail: (d) => {
+                if (d === null || typeof d !== "object") return `<div class="tui-jsondock-err">нет данных</div>`;
+                const when = d.lastModified ? new Date(d.lastModified * 1000).toLocaleString() : "—";
+                return `<table><tbody>
+                  <tr><th>описание</th><td class="tui-jsondock-pad">${esc(d.description ?? "—")}</td></tr>
+                  <tr><th>rev</th><td class="tui-jsondock-pad">${esc(d.locked?.rev ?? "—")}</td></tr>
+                  <tr><th>ревизий</th><td>${esc(String(d.locked?.revCount ?? d.revCount ?? "—"))}</td></tr>
+                  <tr><th>изменено</th><td>${esc(when)}</td></tr>
+                  <tr><th>url</th><td class="tui-jsondock-pad">${esc(d.locked?.url ?? "—")}</td></tr>
+                </tbody></table>`;
+              },
+            },
+            // NixOS generations
+            generations: {
+              ico: "󰖟", // nf-md-history
+              interval: 300000,
+              label: (d) => {
+                const list = Array.isArray(d) ? d : [];
+                const cur = list[0];
+                return { label: cur ? `gen ${cur.generation}` : "gen —", state: "ok" };
+              },
+              detail: (d) => {
+                const list = Array.isArray(d) ? d : [];
+                const body = list.slice(0, 12).map((g) =>
+                  `<tr><td>#${g.generation}</td><td class="tui-jsondock-pad">${esc(g.version ?? "—")}</td><td class="tui-jsondock-muted">${g.mtime ? new Date(g.mtime).toLocaleString() : "—"}</td></tr>`)
+                  .join("");
+                return `<table><tbody>${body || '<tr><td class="tui-jsondock-muted">нет поколений</td></tr>'}</tbody></table>`;
+              },
+            },
+            // fastfetch system summary
+            fastfetch: {
+              ico: "󰇥", // nf-md-information-outline
+              interval: 300000,
+              label: (d) => {
+                const os = (Array.isArray(d) ? d : []).find((e) => e.type === "OS");
+                return { label: os?.result?.prettyName ?? "system", state: "ok" };
+              },
+              detail: (d) => {
+                const arr = Array.isArray(d) ? d : [];
+                const rows = arr.map((e) => {
+                  const v = e.result;
+                  let text;
+                  if (v === null || v === undefined) text = "—";
+                  else if (typeof v === "object") text = JSON.stringify(v);
+                  else text = String(v);
+                  return `<tr><th>${esc(e.type)}</th><td class="tui-jsondock-pad">${esc(text)}</td></tr>`;
+                }).join("");
+                return `<table><tbody>${rows || '<tr><td class="tui-jsondock-muted">нет данных</td></tr>'}</tbody></table>`;
+              },
+            },
+            // weather: wttr.in current conditions
+            weather: {
+              ico: "󰖕", // nf-md-weather-partly-cloudy
+              interval: 600000,
+              label: (d) => {
+                const cur = d?.current_condition?.[0];
+                if (cur === undefined) return { label: "wthr —", state: "warn" };
+                const t = Math.round(Number(cur.temp_C ?? NaN));
+                return { label: Number.isNaN(t) ? "wthr —" : `${t}°C`, state: "ok" };
+              },
+              detail: (d) => {
+                const cur = d?.current_condition?.[0];
+                if (cur === undefined) return `<div class="tui-jsondock-err">нет данных</div>`;
+                const desc = cur.weatherDesc?.[0]?.value ?? "";
+                return `<table><tbody>
+                  <tr><th>температура</th><td>${Math.round(Number(cur.temp_C ?? NaN))}°C (ощущается ${Math.round(Number(cur.FeelsLikeC ?? NaN))}°C)</td></tr>
+                  <tr><th>погода</th><td>${esc(desc)}</td></tr>
+                  <tr><th>влажность</th><td>${esc(String(cur.humidity ?? "—"))}%</td></tr>
+                  <tr><th>ветер</th><td>${esc(String(cur.windspeedKmph ?? "—"))} км/ч</td></tr>
+                  <tr><th>давление</th><td>${esc(String(cur.pressure ?? "—"))} гПа</td></tr>
+                </tbody></table>`;
+              },
+            },
+            // dshmarket pet state
+            pet: {
+              ico: "󰈞", // nf-md-heart
+              interval: 60000,
+              label: (d) => {
+                const p = d?.affinity?.points ?? d?.affinity?.affinity;
+                return { label: p !== undefined ? `pet ♥${p}` : "pet —", state: "ok" };
+              },
+              detail: (d) => {
+                if (d === null || typeof d !== "object") return `<div class="tui-jsondock-muted">питомец не настроен</div>`;
+                const aff = d.affinity ?? {};
+                const tr = d.treats ?? {};
+                return `<table><tbody>
+                  <tr><th>имя</th><td class="tui-jsondock-pad">${esc(Object.values(d.names ?? {})[0] ?? "—")}</td></tr>
+                  <tr><th>очки</th><td>${esc(String(aff.points ?? "—"))}</td></tr>
+                  <tr><th>поглаживания</th><td>${esc(String(aff.pets ?? "—"))}</td></tr>
+                  <tr><th>кормёжки</th><td>${esc(String(aff.feeds ?? "—"))}</td></tr>
+                  <tr><th>лакомства</th><td>${esc(String(tr.treats ?? "—"))}</td></tr>
+                  <tr><th>ходы</th><td>${esc(String(aff.turns ?? tr.turnsAtLastTreatGrant ?? "—"))}</td></tr>
+                </tbody></table>`;
+              },
+            },
+            // dshmarket plugin registry
+            registry: {
+              ico: "󰇙", // nf-md-puzzle
+              interval: 600000,
+              label: (d) => {
+                const n = d?.count;
+                return { label: n !== undefined ? `plg ${n}` : "plg —", state: "ok" };
+              },
+              detail: (d) => {
+                if (d === null || typeof d !== "object") return `<div class="tui-jsondock-muted">реестр не найден</div>`;
+                const cats = d.categories ?? {};
+                const rows = Object.entries(cats).map(([k, v]) =>
+                  `<tr><td class="tui-jsondock-pad">${esc(v.en ?? v.zh ?? k)}</td><td class="tui-jsondock-muted">${esc(k)}</td></tr>`)
+                  .join("");
+                return `<div class="tui-jsondock-muted">всего: ${esc(String(d.count ?? "—"))} · обновлено: ${esc(String(d.updated ?? "—"))}</div><table><tbody>${rows}</tbody></table>`;
+              },
+            },
+          };
+
+          // ── chip lifecycle ──
+          const chips = new Map(); // source -> { chip, val, ico, timer }
+          for (const [key, src] of Object.entries(SOURCES)) {
+            const chip = document.createElement("button");
+            chip.type = "button";
+            chip.className = "tui-jsondock-chip";
+            chip.setAttribute("data-source", key);
+            chip.innerHTML = `<span class="tui-jsondock-ico">${src.ico}</span><span class="tui-jsondock-val">…</span>`;
+            chip.title = key;
+            const val = chip.querySelector(".tui-jsondock-val");
+            chip.addEventListener("click", (e) => {
+              e.stopPropagation();
+              if (popupSource === key && popup.style.display !== "none") {
+                hidePopup();
+                return;
+              }
+              const last = chip.__data;
+              if (last === undefined) {
+                showPopup(key, src.ico, key, `<div class="tui-jsondock-muted">загрузка…</div>`);
+              } else if (last.error) {
+                showPopup(key, src.ico, key, `<div class="tui-jsondock-err">${esc(last.error)}</div>`);
+              } else {
+                showPopup(key, src.ico, key, src.detail(last));
+              }
+              positionPopup(chip);
+            });
+            dock.appendChild(chip);
+            chips.set(key, { chip, val, ico: src.ico });
+          }
+
+          const load = async (key, src) => {
+            const entry = chips.get(key);
+            if (entry === undefined) return;
+            entry.chip.setAttribute("data-loading", "");
+            try {
+              const res = await fetch(`/terminal-ui/json/${key}`, { cache: "no-store" });
+              const body = await res.json();
+              if (body?.ok !== true) {
+                entry.chip.__data = { error: body?.error ?? "bad response" };
+                entry.val.textContent = "—";
+                entry.chip.setAttribute("data-state", "error");
+                return;
+              }
+              const data = body.data;
+              entry.chip.__data = data;
+              const { label, state } = src.label(data);
+              entry.val.textContent = label;
+              entry.chip.setAttribute("data-state", state ?? "ok");
+            } catch (e) {
+              entry.chip.__data = { error: String(e.message ?? e) };
+              entry.val.textContent = "—";
+              entry.chip.setAttribute("data-state", "error");
+            } finally {
+              entry.chip.removeAttribute("data-loading");
+            }
+          };
+
+          // Park the dock right after the composer seat; re-park when React
+          // re-mounts the composer (session switches, re-renders).
+          const park = () => {
+            const seat = document.querySelector("[data-composer-seat]");
+            if (seat !== null && dock.parentElement !== seat.parentElement) {
+              seat.insertAdjacentElement("afterend", dock);
+            }
+          };
+          park();
+          const parkMo = new MutationObserver(park);
+          parkMo.observe(document.body, { childList: true, subtree: true });
+
+          // Start polling; kick all sources once immediately.
+          const timers = [];
+          for (const [key, src] of Object.entries(SOURCES)) {
+            void load(key, src);
+            timers.push(setInterval(() => void load(key, src), src.interval));
+          }
+
+          // Click anywhere outside the dock/popup closes the popup.
+          const onDocClick = (e) => {
+            if (popup.style.display === "none") return;
+            if (popup.contains(e.target) || dock.contains(e.target)) return;
+            hidePopup();
+          };
+          document.addEventListener("click", onDocClick, true);
+          // Keep the popup inside the viewport when the window resizes.
+          const onResize = () => {
+            if (popup.style.display === "none") return;
+            const chip = dock.querySelector(`[data-source="${popupSource}"]`);
+            if (chip !== null) positionPopup(chip);
+          };
+          window.addEventListener("resize", onResize);
+
+          cleanups.push(() => {
+            timers.forEach((t) => clearInterval(t));
+            parkMo.disconnect();
+            document.removeEventListener("click", onDocClick, true);
+            window.removeEventListener("resize", onResize);
+            dock.remove();
+            popup.remove();
           });
         }
         return () => {
@@ -1774,25 +2513,38 @@ button[aria-label="Check for updates"] {
         // Esc dismisses (same capture-phase pattern as /session autocomplete).
         // Subcommand words (add/rename/delete) suppress the listing.
         const wsPopup = document.createElement("div");
+        wsPopup.setAttribute("data-tui-autocomplete", "workspace");
         wsPopup.style.cssText = [
           "position:fixed", "z-index:200", "display:none", "box-sizing:border-box",
           "min-width:280px", "max-width:520px", "max-height:280px", "overflow-y:auto",
-          "background:var(--dsw-specific-menu)", "border:1px solid var(--dsw-alias-border-l1)",
-          "border-radius:8px", "box-shadow:0 8px 28px rgba(0,0,0,.5)",
-          "font-family:var(--ds-font-family-code)", "font-size:13px", "padding:4px",
+          "background:var(--dsw-specific-menu)", "border:1px solid var(--dsw-alias-border-l2)",
+          "border-radius:0", "box-shadow:0 4px 18px rgba(0,0,0,.4)",
+          "font-family:var(--ds-font-family-code)", "font-size:13px", "padding:2px",
         ].join(";");
         document.body.appendChild(wsPopup);
+        // key-hint footer — persistent child; dismiss removes only the rows
+        const wsHint = document.createElement("div");
+        wsHint.textContent = "↑↓ choose · Tab/Enter switch · Esc dismiss";
+        wsHint.style.cssText = "padding:3px 10px 4px;color:var(--dsw-alias-label-tertiary);font-size:11px;border-top:1px solid var(--dsw-alias-border-l1);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis";
         let wsRows = [];
         let wsActive = 0;
         let wsBlurTimer = 0;
         const wsComposer = () => document.querySelector("[data-composer-card] textarea");
         const wsLabels = () => wsList().map((w) => ({ id: w.workspaceId, label: w.title ?? "", path: w.path }));
         const wsPaint = () => {
-          for (let i = 0; i < wsPopup.children.length; i++) {
-            wsPopup.children[i].style.background = i === wsActive ? "var(--dsw-alias-interactive-bg-hover)" : "";
-          }
+          const rows = Array.from(wsPopup.children).filter((el) => el !== wsHint);
+          rows.forEach((el, i) => {
+            el.style.background = i === wsActive ? "rgba(54, 123, 191, 0.22)" : "";
+            el.style.boxShadow = i === wsActive ? "inset 2px 0 0 var(--dsw-alias-state-business-primary)" : "";
+          });
         };
-        const wsDismiss = () => { wsPopup.style.display = "none"; wsPopup.textContent = ""; wsRows = []; };
+        const wsDismiss = () => {
+          wsPopup.style.display = "none";
+          for (const el of Array.from(wsPopup.children)) {
+            if (el !== wsHint) el.remove();
+          }
+          wsRows = [];
+        };
         const wsOpen = (id) => {
           wsDismiss();
           const ta = wsComposer();
@@ -1818,16 +2570,22 @@ button[aria-label="Check for updates"] {
           wsRows = items;
           wsActive = 0;
           if (items.length === 0) { wsDismiss(); return; }
-          wsPopup.textContent = "";
+          for (const el of Array.from(wsPopup.children)) {
+            if (el !== wsHint) el.remove();
+          }
           items.forEach((item, i) => {
             const row = document.createElement("div");
             row.textContent = item.label;
             row.title = item.path;
-            row.style.cssText = "padding:5px 10px;cursor:pointer;border-radius:5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis";
-            if (i === 0) row.style.background = "var(--dsw-alias-interactive-bg-hover)";
+            row.style.cssText = "padding:4px 10px;cursor:pointer;border-radius:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis";
+            if (i === 0) {
+              row.style.background = "rgba(54, 123, 191, 0.22)";
+              row.style.boxShadow = "inset 2px 0 0 var(--dsw-alias-state-business-primary)";
+            }
             row.addEventListener("mousedown", (e) => { e.preventDefault(); wsOpen(item.id); });
             wsPopup.appendChild(row);
           });
+          wsPopup.appendChild(wsHint);
           const r = ta.getBoundingClientRect();
           wsPopup.style.left = Math.max(8, r.left) + "px";
           wsPopup.style.width = Math.min(r.width, 520) + "px";
@@ -1945,14 +2703,19 @@ button[aria-label="Check for updates"] {
       // intercepted in the capture phase so React's Enter-submit never fires.
       ctx.inject(["sessions"], (scope) => {
         const popup = document.createElement("div");
+        popup.setAttribute("data-tui-autocomplete", "session");
         popup.style.cssText = [
           "position:fixed", "z-index:200", "display:none", "box-sizing:border-box",
           "min-width:280px", "max-width:520px", "max-height:280px", "overflow-y:auto",
-          "background:var(--dsw-specific-menu)", "border:1px solid var(--dsw-alias-border-l1)",
-          "border-radius:8px", "box-shadow:0 8px 28px rgba(0,0,0,.5)",
-          "font-family:var(--ds-font-family-code)", "font-size:13px", "padding:4px",
+          "background:var(--dsw-specific-menu)", "border:1px solid var(--dsw-alias-border-l2)",
+          "border-radius:0", "box-shadow:0 4px 18px rgba(0,0,0,.4)",
+          "font-family:var(--ds-font-family-code)", "font-size:13px", "padding:2px",
         ].join(";");
         document.body.appendChild(popup);
+        // key-hint footer — persistent child; dismiss removes only the rows
+        const hint = document.createElement("div");
+        hint.textContent = "↑↓ choose · Tab/Enter open · Esc dismiss";
+        hint.style.cssText = "padding:3px 10px 4px;color:var(--dsw-alias-label-tertiary);font-size:11px;border-top:1px solid var(--dsw-alias-border-l1);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis";
         let rows = [];
         let active = 0;
         let blurTimer = 0;
@@ -1968,11 +2731,19 @@ button[aria-label="Check for updates"] {
           return out;
         };
         const paint = () => {
-          for (let i = 0; i < popup.children.length; i++) {
-            popup.children[i].style.background = i === active ? "var(--dsw-alias-interactive-bg-hover)" : "";
-          }
+          const rowsEl = Array.from(popup.children).filter((el) => el !== hint);
+          rowsEl.forEach((el, i) => {
+            el.style.background = i === active ? "rgba(54, 123, 191, 0.22)" : "";
+            el.style.boxShadow = i === active ? "inset 2px 0 0 var(--dsw-alias-state-business-primary)" : "";
+          });
         };
-        const dismiss = () => { popup.style.display = "none"; popup.textContent = ""; rows = []; };
+        const dismiss = () => {
+          popup.style.display = "none";
+          for (const el of Array.from(popup.children)) {
+            if (el !== hint) el.remove();
+          }
+          rows = [];
+        };
         const open = (id) => {
           dismiss();
           const ta = composer();
@@ -1996,15 +2767,21 @@ button[aria-label="Check for updates"] {
           rows = items;
           active = 0;
           if (items.length === 0) { dismiss(); return; }
-          popup.textContent = "";
+          for (const el of Array.from(popup.children)) {
+            if (el !== hint) el.remove();
+          }
           items.forEach((item, i) => {
             const row = document.createElement("div");
             row.textContent = item.label;
-            row.style.cssText = "padding:5px 10px;cursor:pointer;border-radius:5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis";
-            if (i === 0) row.style.background = "var(--dsw-alias-interactive-bg-hover)";
+            row.style.cssText = "padding:4px 10px;cursor:pointer;border-radius:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis";
+            if (i === 0) {
+              row.style.background = "rgba(54, 123, 191, 0.22)";
+              row.style.boxShadow = "inset 2px 0 0 var(--dsw-alias-state-business-primary)";
+            }
             row.addEventListener("mousedown", (e) => { e.preventDefault(); open(item.id); });
             popup.appendChild(row);
           });
+          popup.appendChild(hint);
           const r = ta.getBoundingClientRect();
           popup.style.left = Math.max(8, r.left) + "px";
           popup.style.width = Math.min(r.width, 520) + "px";
@@ -2034,6 +2811,40 @@ button[aria-label="Check for updates"] {
           popup.remove();
         }, "tui: session autocomplete");
       });
+
+      // ── feature: Tab completes the native "/" trigger menu ──
+      // The composer's own key handler ignores Tab, so while the "/" menu
+      // (listbox) is open Tab would move focus into the menu instead of
+      // picking the highlighted command. Intercept Tab in the capture phase
+      // while the composer is focused and a trigger menu is open, and route
+      // it through the same pick path as a click (mousedown on the active
+      // option — React's onMouseDown handles it). Skipped while the custom
+      // /session or /workspace autocomplete popups are visible — those own
+      // Tab themselves (see data-tui-autocomplete).
+      {
+        const customOpen = () =>
+          Array.from(document.querySelectorAll("[data-tui-autocomplete]"))
+            .some((el) => el.style.display !== "none");
+        const onTab = (e) => {
+          if (e.key !== "Tab") return;
+          if (customOpen()) return;
+          const ta = document.querySelector("[data-composer-card] textarea");
+          if (ta === null || document.activeElement !== ta) return;
+          const menu = document.querySelector('[data-composer-card] [role="listbox"]');
+          if (menu === null) return;
+          const target =
+            menu.querySelector('button[role="option"][aria-selected="true"]') ||
+            menu.querySelector('button[role="option"]');
+          if (target === null) return;
+          e.preventDefault();
+          e.stopPropagation();
+          target.dispatchEvent(new MouseEvent("mousedown", { bubbles: true, cancelable: true, view: window }));
+        };
+        document.addEventListener("keydown", onTab, true);
+        ctx.effect(() => () => {
+          document.removeEventListener("keydown", onTab, true);
+        }, "tui: slash-menu tab complete");
+      }
 
       // ── buttons-to-commands (step 7): /export-md slash command ──
       // The hidden "⬇ md" header button (feat-9) stays mounted for the
