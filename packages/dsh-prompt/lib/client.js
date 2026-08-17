@@ -1,5 +1,5 @@
 // dsh-prompt client half — browser placeholder tweak for the dsh web profile.
-// Replaces the stock composer placeholder ("Message the agent" / "给智能体发消息")
+// Replaces the stock composer placeholder ("Message the agent")
 // with a terminal-style "❯_" prompt. Pure browser-side override; no upstream
 // bundles are touched (the @deepseek-ai store is immutable, so this lives in a
 // plain profile plugin, same as dsh-gui-tweaks).
@@ -20,7 +20,7 @@ window.__ModuleLoader__.load({
     const inject = ["locale"];
 
     // Placeholder text of the default (idle) composer state, per locale.
-    const STOCK_PLACEHOLDER_DEFAULT = new Set(["Message the agent", "给智能体发消息"]);
+    const STOCK_PLACEHOLDER_DEFAULT = new Set(["Message the agent"]);
     const PROMPT = "❯_";
 
     function apply(ctx) {
