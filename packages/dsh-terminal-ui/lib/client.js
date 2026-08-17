@@ -39,18 +39,18 @@ body::before {
 body,
 body[data-ds-dark-theme] {
   /* surfaces */
-  --dsw-alias-bg-base: rgba(4, 15, 28, 0.74);
-  --dsw-alias-bg-layer-1: rgba(12, 28, 48, 0.68);
-  --dsw-alias-bg-layer-2: rgba(16, 35, 58, 0.62);
-  --dsw-alias-bg-layer-3: rgba(22, 45, 72, 0.56);
-  --dsw-alias-bg-overlay: rgba(12, 28, 48, 0.88);
+  --dsw-alias-bg-base: rgba(4, 15, 28, 0.9);
+  --dsw-alias-bg-layer-1: rgba(12, 28, 48, 0.86);
+  --dsw-alias-bg-layer-2: rgba(16, 35, 58, 0.82);
+  --dsw-alias-bg-layer-3: rgba(22, 45, 72, 0.78);
+  --dsw-alias-bg-overlay: rgba(12, 28, 48, 0.92);
   --dsw-alias-bg-mask-1: rgba(0, 0, 0, 0.5);
   --dsw-alias-bg-mask-2: rgba(0, 0, 0, 0.2);
   --dsw-alias-bg-mask-3: rgba(0, 0, 0, 0.48);
-  --dsw-alias-bg-mask-drop: rgba(12, 28, 48, 0.7);
+  --dsw-alias-bg-mask-drop: rgba(12, 28, 48, 0.85);
   --dsw-alias-bg-mask-photo: rgba(0, 0, 0, 0.88);
-  --dsw-alias-bg-module-platform: rgba(16, 35, 58, 0.7);
-  --dsw-alias-bg-multi-select: rgba(16, 35, 58, 0.7);
+  --dsw-alias-bg-module-platform: rgba(16, 35, 58, 0.86);
+  --dsw-alias-bg-multi-select: rgba(16, 35, 58, 0.86);
   --dsw-alias-bg-skeleton: rgba(255, 255, 255, 0.08);
 
   /* borders */
@@ -116,10 +116,10 @@ body[data-ds-dark-theme] {
 
   /* markdown */
   --dsw-alias-markdown-citation: rgba(43, 68, 98, 0.6);
-  --dsw-alias-markdown-code-block: rgba(0, 0, 0, 0.35);
+  --dsw-alias-markdown-code-block: rgba(0, 0, 0, 0.5);
   --dsw-alias-markdown-code-block-banner: rgba(10, 24, 42, 0.85);
   --dsw-alias-markdown-code-segment-selected: rgba(43, 68, 98, 0.6);
-  --dsw-alias-markdown-code-segment-unselected: rgba(0, 0, 0, 0.35);
+  --dsw-alias-markdown-code-segment-unselected: rgba(0, 0, 0, 0.5);
   --dsw-alias-markdown-inline-code: rgba(16, 35, 58, 0.7);
   --dsw-alias-markdown-placeholder: rgba(16, 35, 58, 0.7);
   --dsw-alias-markdown-tag: rgba(16, 35, 58, 0.7);
@@ -135,17 +135,17 @@ body[data-ds-dark-theme] {
   --dsw-alias-tooltip-bg: rgba(12, 28, 48, 0.92);
 
   /* specific surfaces */
-  --dsw-specific-sidebar-fill: rgba(4, 15, 28, 0.55);
+  --dsw-specific-sidebar-fill: rgba(4, 15, 28, 0.85);
   --dsw-specific-sidebar-nav-item-active: rgba(16, 35, 58, 0.85);
   --dsw-specific-sidebar-nav-item-active-accent: rgba(22, 45, 72, 0.85);
   --dsw-specific-sidebar-nav-item-hover: rgba(28, 51, 78, 0.7);
-  --dsw-specific-bubble: rgba(12, 28, 48, 0.6);
-  --dsw-specific-bubble-highlight: rgba(16, 35, 58, 0.65);
-  --dsw-specific-input-major: rgba(12, 28, 48, 0.7);
-  --dsw-specific-login-input: rgba(4, 15, 28, 0.7);
-  --dsw-specific-selector: rgba(16, 35, 58, 0.7);
+  --dsw-specific-bubble: rgba(12, 28, 48, 0.8);
+  --dsw-specific-bubble-highlight: rgba(16, 35, 58, 0.83);
+  --dsw-specific-input-major: rgba(12, 28, 48, 0.88);
+  --dsw-specific-login-input: rgba(4, 15, 28, 0.88);
+  --dsw-specific-selector: rgba(16, 35, 58, 0.85);
   --dsw-specific-menu: rgba(12, 28, 48, 0.9);
-  --dsw-specific-tip: rgba(22, 45, 72, 0.7);
+  --dsw-specific-tip: rgba(22, 45, 72, 0.85);
 }
 
 /* ── stock statics → navy family: components that reference the base
@@ -632,7 +632,7 @@ select {
 .Md3f7G_callRow {
   border-radius: 2px;
   border-left: 2px solid var(--dsw-alias-state-business-primary);
-  background: rgba(4, 15, 28, 0.45);
+  background: rgba(4, 15, 28, 0.6);
   padding-left: 8px;
   font-family: var(--ds-font-family-code);
   font-size: 12px;
