@@ -2202,14 +2202,21 @@ button[aria-label="Check for updates"] {
         // Search the session catalog and open the best match: first by
         // display title (exact > prefix > substring), then by message
         // content (sessions.search returns {items:[{sessionId,snippet}]}).
-        const openByQuery = async (rawQuery) => {
+        // `all` (the /session find path) also matches the session's cwd path,
+        // so untitled/ungrouped sessions stay reachable by directory.
+        const openByQuery = async (rawQuery, opts = {}) => {
           const q = (rawQuery ?? "").trim();
           if (q === "") return;
           const lower = q.toLowerCase();
           const byId = scope.sessions.list.getSnapshot().byId ?? {};
           const entries = Object.values(byId);
-          const byTitle = (kind, title) => entries.filter((s) => {
+          const hay = (s) => {
             const label = (s.displayTitle ?? s.title ?? "").toLowerCase();
+            if (!opts.all) return label;
+            return `${label} ${(s.cwd ?? "").toLowerCase()}`;
+          };
+          const byTitle = (kind) => entries.filter((s) => {
+            const label = hay(s);
             return kind === "exact" ? label === lower : kind === "prefix" ? label.startsWith(lower) : label.includes(lower);
           });
           const pick = byTitle("exact")[0] ?? byTitle("prefix")[0] ?? byTitle("includes")[0];
@@ -2246,11 +2253,19 @@ button[aria-label="Check for updates"] {
             return "handled";
           }
           if (trimmed === "/session" || trimmed.startsWith("/session ")) {
-            // Bare "/session" is consumed but does nothing; with a query it
-            // opens the best match. Consumed either way — the line is a
-            // command, not a chat message.
+            // Bare "/session" is consumed but does nothing; "/session <query>"
+            // opens the best match among the clean list (grouped + titled);
+            // "/session find <query>" searches the FULL catalog — untitled,
+            // ungrouped and archived sessions included — by title, path and
+            // message content. Consumed either way — the line is a command,
+            // not a chat message.
             consume(session, { kind: "bare-token", token: trimmed });
-            void openByQuery(trimmed.slice("/session".length));
+            const rest = trimmed.slice("/session".length).trim();
+            if (rest === "find" || rest.startsWith("find ")) {
+              void openByQuery(rest.slice("find".length), { all: true });
+            } else {
+              void openByQuery(rest);
+            }
             return "handled";
           }
           if (trimmed === "/trajectory") {
@@ -2300,7 +2315,7 @@ button[aria-label="Check for updates"] {
         };
         const COMMANDS = [
           { name: "new", description: "новый чат / новая сессия" },
-          { name: "session", description: "перейти к сессии по имени: /session <имя>" },
+          { name: "session", description: "перейти к сессии: /session <имя>; найти любую: /session find <текст>" },
           { name: "next", description: "следующая сессия" },
           { name: "prev", description: "предыдущая сессия" },
           { name: "archive", description: "архивировать текущую сессию" },
@@ -2538,8 +2553,12 @@ button[aria-label="Check for updates"] {
       // navigate, Enter/Tab opens the highlighted session (the line is
       // consumed like the bare /session command), Esc dismisses. Keys are
       // intercepted in the capture phase so React's Enter-submit never fires.
-      // Rows follow the sidebar's visibility rules (no subagent or blank
-      // placeholders, except the current one); archived sessions are marked
+      // Plain "/session <query>" lists only grouped, titled sessions (clean
+      // mode); "/session find <query>" switches the popup to the full catalog
+      // (all mode) — untitled, ungrouped and archived rows included, matched
+      // by title, path and content. Rows follow the sidebar's visibility
+      // rules (no subagent or blank placeholders, except the current one);
+      // archived sessions are marked
       // with a glyph and sorted last.
       ctx.inject(["sessions", "workspaces"], (scope) => {
         const popup = document.createElement("div");
@@ -2564,17 +2583,34 @@ button[aria-label="Check for updates"] {
         // are marked and sorted last; untitled sessions (label falls back to
         // the project basename) carry their full path so identical basenames
         // remain distinguishable.
-        const sessionLabels = () => {
+        //
+        // Two catalog modes:
+        //  - default (`clean`): ONLY sessions that belong to a workspace
+        //    group (not Ungrouped) AND carry a real title. Everything else —
+        //    untitled path-fallback rows, Ungrouped strays, archived junk —
+        //    is hidden from the plain /session picker and reachable through
+        //    `/session find <query>` (mode `all` below).
+        //  - `all` (/session find): every session, including untitled and
+        //    ungrouped ones, with its cwd path shown for disambiguation.
+        const sessionLabels = (mode = "clean") => {
           const snapshot = scope.sessions.list.getSnapshot();
           const byId = snapshot.byId ?? {};
           const current = snapshot.current;
           const archived = new Set(scope.workspaces?.list.getSnapshot().archivedSessionIds ?? []);
+          const groupedIds = new Set();
+          for (const ws of scope.workspaces?.list.getSnapshot().items ?? []) {
+            for (const id of ws.sessionIds ?? []) groupedIds.add(id);
+          }
           const out = [];
           for (const s of Object.values(byId)) {
             if (s.origin === "subagent") continue;
             if (s.blank && s.id !== current) continue;
             const label = s.displayTitle ?? s.title;
             if (!label || label === s.id) continue; // id-fallback labels are noise
+            if (mode === "clean") {
+              if (!groupedIds.has(s.id)) continue; // Ungrouped — only via /session find
+              if (s.title === void 0) continue; // path-fallback label — only via /session find
+            }
             out.push({
               id: s.id,
               label,
@@ -2614,10 +2650,12 @@ button[aria-label="Check for updates"] {
           const ta = composer();
           if (ta === null || document.activeElement !== ta) { dismiss(); return; }
           const text = ta.value;
-          const m = /^\/session\s+(\S*)$/.exec(text);
-          if (m === null || ta.selectionStart !== text.length) { dismiss(); return; }
-          const q = m[1].toLowerCase();
-          const all = sessionLabels();
+          const findMatch = /^\/session\s+find(?:\s+(\S*))?$/.exec(text);
+          const plainMatch = findMatch === null ? /^\/session\s+(\S*)$/.exec(text) : null;
+          if ((findMatch === null && plainMatch === null) || ta.selectionStart !== text.length) { dismiss(); return; }
+          const mode = findMatch !== null ? "all" : "clean";
+          const q = ((findMatch ?? plainMatch)?.[1] ?? "").toLowerCase();
+          const all = sessionLabels(mode);
           const haystack = (s) => (s.label + " " + s.path).toLowerCase();
           const items = q === "" ? all.slice(0, 8) : all.filter((s) => haystack(s).includes(q)).slice(0, 8);
           rows = items;
