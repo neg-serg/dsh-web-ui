@@ -186,42 +186,11 @@ body[data-ds-dark-theme] {
   stroke: currentColor !important;
 }
 
-/* session stats line: console status row with a stats prefix */
+/* session stats line (StatsLine, registered into the
+   conversation.composer.dock slot as id "stats"): the second row under the
+   composer with step/token/speed (tok/s) figures — hidden entirely */
 .FJxK0a_root {
-  display: inline-block !important;
-  text-align: left;
-  font-family: var(--ds-font-family-code);
-  font-size: 11px;
-  line-height: 20px;
-  color: var(--dsw-alias-label-secondary);
-  background: rgba(4, 15, 28, 0.5);
-  border-top: 1px solid var(--dsw-alias-border-l1);
-  padding: 6px 16px;
-  overflow-x: auto;
-  white-space: nowrap;
-}
-.FJxK0a_root::before {
-  content: "stats ";
-  color: var(--dsw-alias-label-caption);
-}
-.FJxK0a_root > span:not(.FJxK0a_sep) {
-  color: var(--dsw-alias-label-secondary);
-}
-.FJxK0a_sep {
-  color: var(--dsw-alias-label-tertiary);
-  margin: 0 8px;
-}
-
-/* ── neovim-style separators: blue "/" (heirline styles.separator) ── */
-/* turn stats: the "|" separator spans become a blue "/" */
-.FJxK0a_sep {
-  font-size: 0;
-  margin: 0 4px;
-}
-.FJxK0a_sep::before {
-  content: "/";
-  font-size: 11px;
-  color: var(--dsw-alias-button-info-fill);
+  display: none !important;
 }
 
 /* workspace hover tooltip: theme text instead of hardcoded white */
