@@ -213,9 +213,6 @@ body[data-ds-dark-theme] {
 }
 
 /* ── neovim-style separators: blue "/" (heirline styles.separator) ── */
-.tui-sl-sep {
-  color: var(--dsw-alias-button-info-fill); /* #005faf — the kitty/heirline separator blue */
-}
 /* turn stats: the "|" separator spans become a blue "/" */
 .FJxK0a_sep {
   font-size: 0;
@@ -574,49 +571,6 @@ body.tui-resizing {
 .tui-export-btn:active {
   transform: translateY(1px);
 }
-/* ── feature: feat-10.json ── */
-/* ── vim-style status line above the composer (feature: active session) ── */
-.tui-statusline {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 8px;
-  flex: none;
-  width: 100%;
-  max-width: var(--dsh-chat-content-width, 1440px);
-  margin: 0 auto;
-  padding: 2px 8px 4px;
-  box-sizing: border-box;
-  font-family: var(--ds-font-family-code), monospace;
-  font-size: 11px;
-  line-height: 16px;
-  color: var(--dsw-alias-label-tertiary);
-  border-top: 1px solid var(--dsw-alias-border-l1);
-  white-space: nowrap;
-  overflow: hidden;
-  user-select: none;
-}
-.tui-statusline .tui-sl-left {
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-.tui-statusline .tui-sl-left::before {
-  content: "session";
-  color: var(--dsw-alias-label-caption);
-  margin-right: 6px;
-}
-.tui-statusline .tui-sl-right {
-  flex: none;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  color: var(--dsw-alias-label-caption);
-}
-.tui-statusline .tui-sl-sep {
-  color: var(--dsw-alias-border-l1);
-}
-
 /* ── feature: feat-5.json ── */
 /* tui-search: Ctrl+F terminal-style find */
 .tui-search {
@@ -982,92 +936,6 @@ body.tui-resizing {
   });
 }
         }
-        // ── feature: feat-10.json ──
-        {
-{
-  const mkStatus = () => {
-    let el = document.querySelector('.tui-statusline');
-    if (!el) {
-      el = document.createElement('div');
-      el.className = 'tui-statusline';
-      const left = document.createElement('span');
-      left.className = 'tui-sl-left';
-      const right = document.createElement('span');
-      right.className = 'tui-sl-right';
-      el.append(left, right);
-      document.body.appendChild(el);
-    }
-    return el;
-  };
-  const placeStatus = () => {
-    const el = mkStatus();
-    const seat = document.querySelector('[data-composer-seat]');
-    const root = document.querySelector('.wSkVaW_root');
-    if (seat) {
-      if (el.previousElementSibling !== seat) seat.parentNode.insertBefore(el, seat);
-    } else if (root && el.parentNode !== root) {
-      root.appendChild(el);
-    }
-  };
-  const pickText = (sel) => {
-    const n = document.querySelector(sel);
-    if (!n) return '';
-    return (n.textContent || '').trim();
-  };
-  const sessionName = () =>
-    pickText('.YDXeBa_sessionRow.YDXeBa_selected .YDXeBa_title')
-    || pickText('.YDXeBa_sessionRow .YDXeBa_title')
-    || pickText('.wSkVaW_header [class$="_title"]')
-    || '—';
-  const columnWidth = () => {
-    // physical pixels: CSS width x devicePixelRatio (HiDPI: 4K at scale 2
-    // doubles every on-screen pixel, so the "real" width is 2x the CSS px)
-    const col = document.querySelector('.Md3f7G_column');
-    const dpr = window.devicePixelRatio || 1;
-    if (col) return Math.round(col.getBoundingClientRect().width * dpr) + 'px';
-    const root = document.querySelector('.wSkVaW_root');
-    const v = root ? getComputedStyle(root).getPropertyValue('--dsh-chat-content-width').trim() : '';
-    const n = parseInt(v, 10);
-    return (isNaN(n) ? v : (Math.round(n * dpr) + 'px')) || 'auto';
-  };
-  const update = () => {
-    placeStatus();
-    const el = mkStatus();
-    const left = el.querySelector('.tui-sl-left');
-    const right = el.querySelector('.tui-sl-right');
-    if (!left || !right) return;
-    left.textContent = sessionName();
-    right.textContent = '';
-    const parts = ['tui', 'neg-dark', columnWidth()];
-    for (let i = 0; i < parts.length; i++) {
-      if (i > 0) {
-        const sep = document.createElement('span');
-        sep.className = 'tui-sl-sep';
-        sep.textContent = '/';
-        right.appendChild(sep);
-      }
-      const s = document.createElement('span');
-      s.textContent = parts[i];
-      right.appendChild(s);
-    }
-  };
-  let debounce = 0;
-  const schedule = () => { clearTimeout(debounce); debounce = setTimeout(update, 300); };
-  placeStatus();
-  update();
-  const sideObs = new MutationObserver(schedule);
-  const side = document.querySelector('[data-pane="sidebar"]');
-  if (side) sideObs.observe(side, { childList: true, subtree: true });
-  const bodyObs = new MutationObserver(schedule);
-  bodyObs.observe(document.body, { childList: true, subtree: true });
-  const iv = setInterval(update, 2000);
-  cleanups.push(() => {
-    clearTimeout(debounce);
-    clearInterval(iv);
-    sideObs.disconnect();
-    bodyObs.disconnect();
-  });
-}
         {
 {
   // tui-no-tps: the harness renders "tok/s" (tokens per second) in the
@@ -1119,7 +987,6 @@ body.tui-resizing {
     mo.disconnect();
   });
 }
-        }
         }
         return () => {
           cleanups.forEach((fn) => fn());
