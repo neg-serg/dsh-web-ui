@@ -231,6 +231,10 @@ body[data-ds-dark-theme] {
 .tui-statusline.tui-empty {
   display: none;
 }
+/* group separators: plain " | " in kitty color25 (#005faf) */
+.tui-statusline .tui-sep {
+  color: #005faf;
+}
 /* prompt glyph: Material folder in kitty color25 (#005faf) */
 .tui-statusline::before {
   content: "";
@@ -1660,15 +1664,30 @@ button[aria-label="Check for updates"] {
               }
               out.push(norm(t));
             }
-            return out.join(" | ");
+            return out;
           };
           const render = () => {
             const stats = document.querySelector(".FJxK0a_root");
             const line = ensureLine();
             if (stats === null || line === null) return;
-            const text = compose(stats);
-            if (line.textContent !== text) line.textContent = text;
-            line.classList.toggle("tui-empty", text === "");
+            const parts = compose(stats);
+            const joined = parts.join("|");
+            if (line.dataset.last !== joined) {
+              line.dataset.last = joined;
+              const frag = document.createDocumentFragment();
+              parts.forEach((p, i) => {
+                if (i > 0) {
+                  const sep = document.createElement("span");
+                  sep.className = "tui-sep";
+                  sep.setAttribute("aria-hidden", "true");
+                  sep.textContent = " | ";
+                  frag.appendChild(sep);
+                }
+                frag.appendChild(document.createTextNode(p));
+              });
+              line.replaceChildren(frag);
+              line.classList.toggle("tui-empty", parts.length === 0);
+            }
           };
           let dockTimer = null;
           const scheduleDock = () => {
