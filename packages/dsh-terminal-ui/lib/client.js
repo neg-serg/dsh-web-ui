@@ -737,6 +737,16 @@ button[aria-label="Add workspace"] {
   display: none;
 }
 
+/* ── buttons-to-commands (step 10): remote-control footer buttons → commands ──
+   The @linxin666/dsh-remote-web-ui plugin renders two sidebar footer
+   triggers: the phone icon ("Mobile remote control", pairing QR panel) and
+   the download icon ("Check for updates", self-update panel). /phone and
+   /update click the hidden buttons (same dispatch as /settings). */
+button[aria-label="Mobile remote control"],
+button[aria-label="Check for updates"] {
+  display: none;
+}
+
 /* workspace command feedback: transient status line above the composer
    (success green / error red border), same family as tui-search */
 .tui-ws-status {
@@ -1453,6 +1463,101 @@ button[aria-label="Add workspace"] {
             else scope.workspaces.startSession();
           });
         };
+        // ── step 10 helpers: workspace commands ──
+        // /workspace <name> switches to a workspace (opens its most recent
+        // real session, or starts a blank one); rename/delete/add act on the
+        // registry directly — the same services the sidebar menus drive.
+        // Feedback goes to a transient status line above the composer.
+        const wsList = () => scope.workspaces.list.getSnapshot().items;
+        const resolveWorkspace = (q) => {
+          const lower = q.toLowerCase();
+          const all = wsList();
+          const exactTitle = all.find((w) => (w.title ?? "").toLowerCase() === lower);
+          if (exactTitle !== void 0) return exactTitle;
+          const exactPath = all.find((w) => w.path.toLowerCase() === lower);
+          if (exactPath !== void 0) return exactPath;
+          const prefix = all.find((w) => (w.title ?? "").toLowerCase().startsWith(lower));
+          if (prefix !== void 0) return prefix;
+          return all.find((w) => (w.title ?? "").toLowerCase().includes(lower));
+        };
+        const switchWorkspace = (ws) => {
+          const byId = scope.sessions.list.getSnapshot().byId ?? {};
+          const sessions = (ws.sessionIds ?? []).map((id) => byId[id]).filter(Boolean);
+          const target = sessions.find((s) => !s.blank) ?? sessions[0];
+          if (target !== void 0) scope.sessions.open(target.id);
+          else scope.workspaces.startSession(ws.workspaceId);
+        };
+        let statusEl = null;
+        let statusTimer = 0;
+        const wsStatus = (text, isError = false) => {
+          if (statusEl === null) {
+            statusEl = document.createElement("div");
+            statusEl.className = "tui-ws-status";
+            document.body.appendChild(statusEl);
+          }
+          statusEl.textContent = text;
+          statusEl.style.borderColor = isError
+            ? "var(--dsw-alias-state-error-primary)"
+            : "var(--dsw-alias-state-success-primary)";
+          const seat = document.querySelector("[data-composer-seat]");
+          if (seat) {
+            const r = seat.getBoundingClientRect();
+            statusEl.style.bottom = Math.max(8, window.innerHeight - r.top + 12) + "px";
+          } else {
+            statusEl.style.bottom = "200px";
+          }
+          statusEl.style.display = "block";
+          clearTimeout(statusTimer);
+          statusTimer = setTimeout(() => { statusEl.style.display = "none"; }, 3200);
+        };
+        const wsAdd = async (path) => {
+          const p = path.replace(/^["']|["']$/g, "").trim();
+          if (p === "") { wsStatus("укажите путь: /workspace add <путь>", true); return; }
+          try {
+            const ws = await scope.workspaces.create({ path: p });
+            wsStatus(`воркспейс «${ws.title}» добавлен: ${ws.path}`);
+            switchWorkspace(ws);
+          } catch (e) {
+            wsStatus("не удалось добавить воркспейс: " + (e instanceof Error ? e.message : String(e)), true);
+          }
+        };
+        const wsRename = async (rest) => {
+          const all = [...wsList()].sort((a, b) => b.title.length - a.title.length);
+          const old = all.find((w) => rest.startsWith(w.title));
+          if (old === void 0) { wsStatus("не найден воркспейс: /workspace rename <имя> <новое>", true); return; }
+          const title = rest.slice(old.title.length).trim();
+          if (title === "") { wsStatus("укажите новое имя: /workspace rename <имя> <новое>", true); return; }
+          try {
+            const ws = await scope.workspaces.rename(old.workspaceId, title);
+            wsStatus(`воркспейс переименован: «${ws.title}»`);
+          } catch (e) {
+            wsStatus("не удалось переименовать: " + (e instanceof Error ? e.message : String(e)), true);
+          }
+        };
+        const wsDelete = async (q) => {
+          const ws = resolveWorkspace(q);
+          if (ws === void 0) { wsStatus(`воркспейс не найден: ${q}`, true); return; }
+          try {
+            await scope.workspaces.delete(ws.workspaceId);
+            wsStatus(`воркспейс «${ws.title}» удалён из списка (папка и логи сохранены)`);
+          } catch (e) {
+            wsStatus("не удалось удалить: " + (e instanceof Error ? e.message : String(e)), true);
+          }
+        };
+        const runWorkspaceLine = (args) => {
+          if (args === "") return;
+          if (args === "add") { wsStatus("укажите путь: /workspace add <путь>", true); return; }
+          if (args === "rename") { wsStatus("укажите имя и новое имя: /workspace rename <имя> <новое>", true); return; }
+          if (args === "delete") { wsStatus("укажите имя: /workspace delete <имя>", true); return; }
+          if (args.startsWith("add ")) void wsAdd(args.slice(4));
+          else if (args.startsWith("rename ")) void wsRename(args.slice(7).trim());
+          else if (args.startsWith("delete ")) void wsDelete(args.slice(7).trim());
+          else {
+            const ws = resolveWorkspace(args);
+            if (ws === void 0) wsStatus(`воркспейс не найден: ${args}`, true);
+            else switchWorkspace(ws);
+          }
+        };
         // ── step 9 helpers: trajectory view, panels, settings ──
         // Chat/Trajectory are plain [role="tab"] buttons (their row is CSS-
         // hidden); /trajectory clicks the matching tab, toggling back to Chat
@@ -1502,6 +1607,13 @@ button[aria-label="Add workspace"] {
           // aria-label or a bare text label — match either.
           const btn = document.querySelector('button[aria-label="Settings"]')
             ?? Array.from(document.querySelectorAll("button")).find((b) => (b.textContent || "").trim() === "Settings");
+          if (btn !== null && btn !== void 0 && !btn.disabled) btn.click();
+        };
+        // Generic click-by-aria-label for command replacements: /phone and
+        // /update dispatch the remote-control/update triggers of
+        // @linxin666/dsh-remote-web-ui (hidden by CSS below).
+        const clickByLabel = (label) => {
+          const btn = document.querySelector('button[aria-label="' + label + '"]');
           if (btn !== null && btn !== void 0 && !btn.disabled) btn.click();
         };
         // Search the session catalog and open the best match: first by
@@ -1583,6 +1695,24 @@ button[aria-label="Add workspace"] {
             openSettings();
             return "handled";
           }
+          if (trimmed === "/workspace" || trimmed.startsWith("/workspace ")) {
+            // Bare "/workspace" is consumed but does nothing; with an argument
+            // it switches to a workspace or runs add/rename/delete. Consumed
+            // either way — the line is a command, not a chat message.
+            consume(session, { kind: "bare-token", token: trimmed });
+            runWorkspaceLine(trimmed.slice("/workspace".length).trim());
+            return "handled";
+          }
+          if (trimmed === "/phone") {
+            consume(session, { kind: "bare-token", token: trimmed });
+            clickByLabel("Mobile remote control");
+            return "handled";
+          }
+          if (trimmed === "/update") {
+            consume(session, { kind: "bare-token", token: trimmed });
+            clickByLabel("Check for updates");
+            return "handled";
+          }
           return void 0;
         };
         const COMMANDS = [
@@ -1591,11 +1721,14 @@ button[aria-label="Add workspace"] {
           { name: "next", description: "следующая сессия" },
           { name: "prev", description: "предыдущая сессия" },
           { name: "archive", description: "архивировать текущую сессию" },
+          { name: "workspace", description: "переключить воркспейс: /workspace <имя>; add/rename/delete" },
           { name: "trajectory", description: "переключить вид: траектория/чат" },
           { name: "sidebar", description: "показать/скрыть левую панель" },
           { name: "details", description: "показать/скрыть правую панель" },
           { name: "panels", description: "скрыть/показать все панели" },
           { name: "settings", description: "открыть настройки" },
+          { name: "phone", description: "открыть панель мобильного управления (QR)" },
+          { name: "update", description: "проверить обновления" },
         ];
         const disposer = scope.inputTriggers.registerSource({
           trigger: "/",
@@ -1612,6 +1745,11 @@ button[aria-label="Add workspace"] {
               // (the command only fires on Enter with an argument).
               return "handled";
             }
+            if (name === "workspace") {
+              // Leave "/workspace" in the draft so the user types the name or
+              // a subcommand (add/rename/delete); Enter then dispatches.
+              return "handled";
+            }
             consume(pick.session, { kind: "span", span: pick.span });
             if (name === "new") scope.workspaces.startSession();
             else if (name === "next") cycle(1);
@@ -1622,11 +1760,105 @@ button[aria-label="Add workspace"] {
             else if (name === "details") toggleDetails();
             else if (name === "panels") togglePanels();
             else if (name === "settings") openSettings();
+            else if (name === "phone") clickByLabel("Mobile remote control");
+            else if (name === "update") clickByLabel("Check for updates");
             return "handled";
           },
           matchEnter: (session, line) => dispatchLine(session, line),
         });
         ctx.effect(() => disposer, "tui: /new source");
+
+        // ── step 10: /workspace name autocomplete ──
+        // While the composer line is "/workspace <partial>", show workspace
+        // titles above the input; ArrowUp/Down navigate, Enter/Tab switches,
+        // Esc dismisses (same capture-phase pattern as /session autocomplete).
+        // Subcommand words (add/rename/delete) suppress the listing.
+        const wsPopup = document.createElement("div");
+        wsPopup.style.cssText = [
+          "position:fixed", "z-index:200", "display:none", "box-sizing:border-box",
+          "min-width:280px", "max-width:520px", "max-height:280px", "overflow-y:auto",
+          "background:var(--dsw-specific-menu)", "border:1px solid var(--dsw-alias-border-l1)",
+          "border-radius:8px", "box-shadow:0 8px 28px rgba(0,0,0,.5)",
+          "font-family:var(--ds-font-family-code)", "font-size:13px", "padding:4px",
+        ].join(";");
+        document.body.appendChild(wsPopup);
+        let wsRows = [];
+        let wsActive = 0;
+        let wsBlurTimer = 0;
+        const wsComposer = () => document.querySelector("[data-composer-card] textarea");
+        const wsLabels = () => wsList().map((w) => ({ id: w.workspaceId, label: w.title ?? "", path: w.path }));
+        const wsPaint = () => {
+          for (let i = 0; i < wsPopup.children.length; i++) {
+            wsPopup.children[i].style.background = i === wsActive ? "var(--dsw-alias-interactive-bg-hover)" : "";
+          }
+        };
+        const wsDismiss = () => { wsPopup.style.display = "none"; wsPopup.textContent = ""; wsRows = []; };
+        const wsOpen = (id) => {
+          wsDismiss();
+          const ta = wsComposer();
+          const line = ta !== null ? ta.value.trim() : "";
+          const cur = scope.sessions.list.getSnapshot().current;
+          const actx = cur !== void 0 ? scope.sessions.scope(cur) : void 0;
+          if (actx !== void 0 && typeof actx.bail === "function" && line !== "") {
+            actx.bail(actx, "slash/input-consume-token", { guard: { kind: "bare-token", token: line } });
+          }
+          const ws = wsList().find((w) => w.workspaceId === id);
+          if (ws !== void 0) switchWorkspace(ws);
+        };
+        const wsRefresh = () => {
+          const ta = wsComposer();
+          if (ta === null || document.activeElement !== ta) { wsDismiss(); return; }
+          const text = ta.value;
+          const m = /^\/workspace\s+(\S*)$/.exec(text);
+          if (m === null || ta.selectionStart !== text.length) { wsDismiss(); return; }
+          const q = m[1].toLowerCase();
+          if (q === "add" || q === "rename" || q === "delete") { wsDismiss(); return; }
+          const all = wsLabels().filter((w) => w.label !== "");
+          const items = q === "" ? all.slice(0, 8) : all.filter((w) => w.label.toLowerCase().includes(q)).slice(0, 8);
+          wsRows = items;
+          wsActive = 0;
+          if (items.length === 0) { wsDismiss(); return; }
+          wsPopup.textContent = "";
+          items.forEach((item, i) => {
+            const row = document.createElement("div");
+            row.textContent = item.label;
+            row.title = item.path;
+            row.style.cssText = "padding:5px 10px;cursor:pointer;border-radius:5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis";
+            if (i === 0) row.style.background = "var(--dsw-alias-interactive-bg-hover)";
+            row.addEventListener("mousedown", (e) => { e.preventDefault(); wsOpen(item.id); });
+            wsPopup.appendChild(row);
+          });
+          const r = ta.getBoundingClientRect();
+          wsPopup.style.left = Math.max(8, r.left) + "px";
+          wsPopup.style.width = Math.min(r.width, 520) + "px";
+          wsPopup.style.bottom = Math.max(8, window.innerHeight - r.top + 8) + "px";
+          wsPopup.style.display = "block";
+        };
+        const wsOnInput = () => wsRefresh();
+        const wsOnKey = (e) => {
+          if (wsPopup.style.display === "none" || wsRows.length === 0) return;
+          const ta = wsComposer();
+          if (ta === null || e.target !== ta) return;
+          switch (e.key) {
+            case "ArrowDown": e.preventDefault(); e.stopPropagation(); wsActive = (wsActive + 1) % wsRows.length; wsPaint(); break;
+            case "ArrowUp": e.preventDefault(); e.stopPropagation(); wsActive = (wsActive - 1 + wsRows.length) % wsRows.length; wsPaint(); break;
+            case "Enter":
+            case "Tab": e.preventDefault(); e.stopPropagation(); wsOpen(wsRows[wsActive].id); break;
+            case "Escape": e.preventDefault(); e.stopPropagation(); wsDismiss(); break;
+          }
+        };
+        const wsOnBlur = () => { clearTimeout(wsBlurTimer); wsBlurTimer = setTimeout(wsDismiss, 150); };
+        document.addEventListener("input", wsOnInput, true);
+        document.addEventListener("keydown", wsOnKey, true);
+        document.addEventListener("blur", wsOnBlur, true);
+        ctx.effect(() => () => {
+          document.removeEventListener("input", wsOnInput, true);
+          document.removeEventListener("keydown", wsOnKey, true);
+          document.removeEventListener("blur", wsOnBlur, true);
+          clearTimeout(wsBlurTimer);
+          wsPopup.remove();
+          if (statusEl !== null) { clearTimeout(statusTimer); statusEl.remove(); }
+        }, "tui: workspace commands");
       });
 
       // ── feature: buttons-to-commands (step 6): always land at the end ──
