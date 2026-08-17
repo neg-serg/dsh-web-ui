@@ -224,6 +224,28 @@ body[data-ds-dark-theme] {
   color: var(--dsw-alias-button-info-fill);
 }
 
+/* docked: bold slash crossing the full panel height, in the same dark
+   color as the composer input frame (#002c52, see .uV2eYG_card) */
+.FJxK0a_root.tui-docked-stats .FJxK0a_sep {
+  position: relative;
+  align-self: stretch;
+  width: 16px;
+  margin: 0 2px;
+  overflow: hidden;
+}
+.FJxK0a_root.tui-docked-stats .FJxK0a_sep::before {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: -3px;
+  bottom: -3px;
+  width: 3px;
+  transform: translateX(-50%) rotate(28deg);
+  background: linear-gradient(180deg, transparent, #002c52 25%, #002c52 75%, transparent);
+  border-radius: 2px;
+  box-shadow: 0 0 6px rgba(0, 44, 82, 0.35);
+}
+
 /* ── session stats line docked into the composer row ──
    The stock stats line (turns/steps/LLM·tool time/TTFT/cache) renders as a
    full-width bar under the composer card; the JS feature below moves it into
@@ -234,18 +256,22 @@ body[data-ds-dark-theme] {
    Nerd Font pictogram per stat group (heirline-style) with the blue "/"
    separators. Fully visible: no max-width cap, no ellipsis — the row wraps
    only when the column is genuinely too narrow. The context meter is docked
-   right after it as a matching chip (see the dock feature below). */
+   right after it as a matching chip (see the dock feature below). Both sit
+   at the row's 28px control height (border-box), so the stats cluster, the
+   context meter and the neighboring buttons read as one panel row. */
 .FJxK0a_root.tui-docked-stats {
   display: inline-flex !important;
   align-items: center;
   flex-wrap: wrap;
+  box-sizing: border-box;
+  min-height: 28px;
   width: auto;
   max-width: none;
   border-top: none;
   background: rgba(4, 15, 28, 0.72);
   border: 1px solid var(--dsw-alias-border-l1);
   border-radius: 0; /* strict: squared, like the theme's other chips */
-  padding: 2px 6px;
+  padding: 0 4px 0 0; /* flush to the left edge of the composer */
   margin: 0;
   flex: 0 1 auto;
   min-width: 0;
@@ -264,17 +290,17 @@ body[data-ds-dark-theme] {
 .FJxK0a_root.tui-docked-stats > span:not(.FJxK0a_sep) {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  gap: 5px;
   padding: 0 2px;
   white-space: nowrap;
 }
 /* Material icon per group (tagged by the dock feature). Inline SVG data
-   URIs — crisp at any size, same 24px Material grid scaled to 14px, one
+   URIs — crisp at any size, same 24px Material grid scaled to 16px, one
    consistent glyph language across the whole status chip. */
 .FJxK0a_root.tui-docked-stats > span[data-stat]::before {
   content: "";
-  width: 14px;
-  height: 14px;
+  width: 16px;
+  height: 16px;
   flex: none;
   background: center / contain no-repeat;
 }
@@ -298,12 +324,20 @@ body[data-ds-dark-theme] {
   /* material: token — token counts */
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%236d839e'%3E%3Cpath d='M12 2l7 4v6c0 4.5-3 8-7 10-4-2-7-5.5-7-10V6l7-4zm0 4.5L7.5 8.5V12c0 2.9 1.9 5.4 4.5 6.4 2.6-1 4.5-3.5 4.5-6.4V8.5L12 6.5z'/%3E%3C/svg%3E");
 }
+.FJxK0a_root.tui-docked-stats > span[data-stat="cost"]::before {
+  /* material: payments — session cost in money */
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23c8a8ef'%3E%3Cpath d='M11.8 10.9c-2.27-.59-3-1.2-3-2.15 0-1.09 1.01-1.85 2.7-1.85 1.78 0 2.44.85 2.5 2.1h2.21c-.07-1.72-1.12-3.3-3.21-3.81V3h-3v2.16c-1.94.42-3.5 1.68-3.5 3.61 0 2.31 1.91 3.46 4.7 4.13 2.5.6 3 1.48 3 2.41 0 .69-.49 1.79-2.7 1.79-2.06 0-2.87-.92-2.98-2.1h-2.2c.12 2.19 1.76 3.42 3.68 3.83V21h3v-2.15c1.95-.37 3.5-1.5 3.5-3.55 0-2.84-2.43-3.81-4.7-4.4z'/%3E%3C/svg%3E");
+}
 
 /* ── context meter: same chip treatment as the stats cluster ──
    The round context-load ball (JObwrW_trigger) becomes a matching dark chip
    with the progress ring and a visible percent readout (data-pct set by the
-   dock feature), docked right after the stats cluster in the same row. */
+   dock feature), docked right after the stats cluster in the same row.
+   Box-sizing is border-box and the height matches the row's 28px buttons,
+   so the chip sits flush with the stats cluster and the neighboring
+   controls as one panel row. */
 .JObwrW_root .JObwrW_trigger {
+  box-sizing: border-box;
   width: auto;
   height: 28px;
   border-radius: 0;
@@ -423,6 +457,11 @@ select {
   max-width: none;
   margin-left: 0;
   margin-right: calc(-1 * var(--dsh-scrollbar-width, 8px));
+}
+/* composer bottom row: flush to the left edge — the docked stats chip is
+   the first child and should touch the card edge (no side padding) */
+.uV2eYG_row {
+  padding-left: 0;
 }
 ._7yHdaG_dock {
   max-width: var(--dsh-chat-content-width);
@@ -1605,7 +1644,7 @@ button[aria-label="Check for updates"] {
         // it after full re-mounts (session switches, re-renders).
         {
           // Tag each stat group span with its kind (counts/durations/speeds/
-          // cache/tokens) so the CSS can draw the matching Nerd Font
+          // cache/tokens/cost) so the CSS can draw the matching Material
           // pictogram. Runs on every mutation — React rewrites the group text
           // in place, so re-tag after each re-render.
           const tagStats = (stats) => {
@@ -1615,6 +1654,7 @@ button[aria-label="Check for updates"] {
               [/TTFT|tok\/s/i, "speeds"],
               [/cache/i, "cache"],
               [/tok/i, "tokens"],
+              [/[$\u20bd\u20ac\u00a3]/i, "cost"],
             ];
             for (const span of stats.querySelectorAll(":scope > span:not(.FJxK0a_sep)")) {
               const text = span.textContent || "";
@@ -1625,11 +1665,115 @@ button[aria-label="Check for updates"] {
               if (kind !== "" && span.getAttribute("data-stat") !== kind) span.setAttribute("data-stat", kind);
             }
           };
+          // Importance order for the status row: the most useful readouts go
+          // left (turns/steps, LLM/tool time, tokens, cost), the least
+          // interesting right (cache share, TTFT).
+          const STAT_ORDER = ["counts", "durations", "tokens", "cost", "cache", "speeds"];
+          // Reorder the group spans into STAT_ORDER, keeping a slash
+          // separator between every pair. The stock render alternates
+          // group/sep/text; the appended cost group has no separator of its
+          // own, so any missing slash is cloned from the pool.
+          const reorderStats = (stats) => {
+            const units = [];
+            const seps = [];
+            let cur = null;
+            for (const node of stats.childNodes) {
+              if (node.nodeType === 1) {
+                if (node.classList?.contains("FJxK0a_sep")) {
+                  seps.push(node);
+                } else {
+                  cur = { group: node, text: null };
+                  units.push(cur);
+                }
+              } else if (node.nodeType === 3 && cur !== null) {
+                cur.text = node;
+              }
+            }
+            if (units.length < 2) return;
+            const rank = (u) => {
+              const i = STAT_ORDER.indexOf(u.group.getAttribute("data-stat"));
+              return i === -1 ? 99 : i;
+            };
+            const sorted = units.slice().sort((a, b) => rank(a) - rank(b));
+            const same = units.every((u, i) => u.group === sorted[i].group);
+            if (same) return;
+            const sepOf = (index) => {
+              const existing = seps[index];
+              if (existing !== void 0) return existing;
+              const fresh = document.createElement("span");
+              fresh.className = "FJxK0a_sep";
+              fresh.setAttribute("aria-hidden", "true");
+              fresh.textContent = "|";
+              seps[index] = fresh;
+              return fresh;
+            };
+            const frag = document.createDocumentFragment();
+            sorted.forEach((u, i) => {
+              frag.appendChild(u.group);
+              if (i < sorted.length - 1) {
+                frag.appendChild(sepOf(i));
+                if (u.text !== null) frag.appendChild(u.text);
+              }
+            });
+            stats.appendChild(frag);
+          };
+          // Self-implemented cost readout: fold the visible session figures
+          // (billed input/output tokens, cache-hit share) through the official
+          // DeepSeek per-1M-token prices. Only the pricing MATH is borrowed
+          // from the dsh-cost-meter plugin; this implementation is ours.
+          const PRICE_TABLE = {
+            "deepseek-v4-flash": { cacheHit: 0.0028, cacheMiss: 0.14, output: 0.28 },
+            "deepseek-v4-pro": { cacheHit: 0.003625, cacheMiss: 0.435, output: 0.87 },
+            default: { cacheHit: 0.0028, cacheMiss: 0.14, output: 0.28 },
+          };
+          const parseCount = (text) => {
+            const m = /([0-9]+(?:\.[0-9]+)?)([KM]?)/.exec(text ?? "");
+            if (m === null) return 0;
+            const n = Number(m[1]);
+            const mult = m[2] === "K" ? 1e3 : m[2] === "M" ? 1e6 : 1;
+            return Number.isFinite(n) ? n * mult : 0;
+          };
+          const formatCost = (usd) => {
+            if (!(usd > 0)) return "$0";
+            // adaptive decimals: show enough digits so a small cost is never 0
+            const decimals = usd >= 1 ? 2 : usd >= 0.01 ? 3 : 4;
+            return "$" + usd.toFixed(decimals).replace(/0+$/, "").replace(/\.$/, "");
+          };
+          const renderCost = (stats) => {
+            const tokensSpan = stats.querySelector('span[data-stat="tokens"]');
+            const cacheSpan = stats.querySelector('span[data-stat="cache"]');
+            let existing = stats.querySelector('span[data-stat="cost"]');
+            if (tokensSpan === null) return; // no tokens yet — nothing to price
+            const tokensText = tokensSpan.textContent || "";
+            const inTok = parseCount(/Input\s+([0-9.]+[KM]?)\s*tok/i.exec(tokensText)?.[1]);
+            const outTok = parseCount(/Output\s+([0-9.]+[KM]?)\s*tok/i.exec(tokensText)?.[1]);
+            const cachePct = /([0-9]+)%/.exec(cacheSpan?.textContent ?? "")?.[1];
+            const cacheShare = cachePct === void 0 ? 0 : Math.min(100, Math.max(0, Number(cachePct))) / 100;
+            const model = document.querySelector('.uV2eYG_trailing button[aria-haspopup="menu"]')?.getAttribute("aria-label") ?? "";
+            const modelId = /current\s+([a-z0-9._-]+)/i.exec(model)?.[1] ?? "";
+            const price = PRICE_TABLE[modelId] ?? PRICE_TABLE.default;
+            const billedInput = inTok; // "Input X tok" is the billed (uncached+cache) input
+            const uncached = billedInput * (1 - cacheShare);
+            const cached = billedInput * cacheShare;
+            const usd = (uncached * price.cacheMiss + cached * price.cacheHit + outTok * price.output) / 1e6;
+            const label = formatCost(usd);
+            if (existing !== null) {
+              if (existing.textContent !== label) existing.textContent = label;
+              return;
+            }
+            existing = document.createElement("span");
+            existing.setAttribute("data-stat", "cost");
+            existing.textContent = label;
+            // append after the tokens group (kept in the row by reorder)
+            stats.appendChild(existing);
+          };
           const dock = () => {
             const stats = document.querySelector(".FJxK0a_root");
             if (stats !== null) {
               stats.classList.add("tui-docked-stats");
               tagStats(stats);
+              renderCost(stats);
+              reorderStats(stats);
               const row = document.querySelector(".uV2eYG_row");
               if (row !== null && !row.contains(stats)) {
                 const tools = row.querySelector(".uV2eYG_tools");
