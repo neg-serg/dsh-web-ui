@@ -236,9 +236,19 @@ body[data-ds-dark-theme] {
 .tui-statusline.tui-empty {
   display: none;
 }
-/* group separators: plain " | " in kitty color25 (#005faf) */
-.tui-statusline .tui-sep {
+/* separators in kitty color25 (#005faf): "|" between groups, "·" inside a
+   group (e.g. "LLM 2m8s · Tool 0.3s"); the outer bars are bolder and get
+   breathing room, the inner dots stay tight */
+.tui-statusline .tui-sep,
+.tui-statusline .tui-sep-dot {
   color: #005faf;
+}
+.tui-statusline .tui-sep {
+  margin: 0 8px;
+  font-weight: 700;
+}
+.tui-statusline .tui-sep-dot {
+  margin: 0 5px;
 }
 /* prompt glyph: Material folder in kitty color25 (#005faf) */
 .tui-statusline::before {
@@ -1679,16 +1689,32 @@ button[aria-label="Check for updates"] {
             const joined = parts.join("|");
             if (line.dataset.last !== joined) {
               line.dataset.last = joined;
+              // One group can carry an inner "·" (e.g. "LLM 2m8s · Tool
+              // 0.3s"); split it so the dot gets its own colored span too.
+              const appendGroup = (frag, group) => {
+                const segs = group.split("·");
+                segs.forEach((seg, j) => {
+                  if (j > 0) {
+                    const dot = document.createElement("span");
+                    dot.className = "tui-sep-dot";
+                    dot.setAttribute("aria-hidden", "true");
+                    dot.textContent = "·";
+                    frag.appendChild(dot);
+                  }
+                  const t = seg.trim();
+                  if (t !== "") frag.appendChild(document.createTextNode(t));
+                });
+              };
               const frag = document.createDocumentFragment();
               parts.forEach((p, i) => {
                 if (i > 0) {
                   const sep = document.createElement("span");
                   sep.className = "tui-sep";
                   sep.setAttribute("aria-hidden", "true");
-                  sep.textContent = " | ";
+                  sep.textContent = "|";
                   frag.appendChild(sep);
                 }
-                frag.appendChild(document.createTextNode(p));
+                appendGroup(frag, p);
               });
               line.replaceChildren(frag);
               line.classList.toggle("tui-empty", parts.length === 0);
