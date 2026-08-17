@@ -1051,12 +1051,14 @@ button[aria-label="Check for updates"] {
 }
 
 /* ── tui-jsonfmt: syntax-highlighted JSON in tool-call IN/OUT cards ──
-   The JS feature rewrites .o3BgMG_ioText nodes whose text is valid JSON
-   into a highlighted, pretty-printed form: colored tokens (keys / strings /
-   numbers / booleans / null), two-space indent, and a collapse marker on
-   long payloads (click to expand, Nerd Font chevron). The block keeps the
-   base pre-wrap layout; only token colors are added. */
-.o3BgMG_ioText.tui-json {
+   The JS feature rewrites .o3BgMG_ioText / .CY-8Ka_ioText nodes whose text
+   is valid JSON into a highlighted form: colored tokens (keys / strings /
+   numbers / booleans / null), one line for short payloads (<= 160 chars),
+   two-space indent otherwise, and a collapse marker on long payloads (click
+   to expand, Nerd Font chevron). The block keeps the base pre-wrap layout;
+   only token colors are added. */
+.o3BgMG_ioText.tui-json,
+.CY-8Ka_ioText.tui-json {
   font-variant-ligatures: none;
 }
 .tui-json .tui-json-punct {
@@ -1079,13 +1081,15 @@ button[aria-label="Check for updates"] {
   font-style: italic;
 }
 /* collapsed long payloads: click to expand */
-.o3BgMG_ioText.tui-json.tui-json-collapsed {
+.o3BgMG_ioText.tui-json.tui-json-collapsed,
+.CY-8Ka_ioText.tui-json.tui-json-collapsed {
   cursor: pointer;
   max-height: 9em;
   overflow: hidden;
   position: relative;
 }
-.o3BgMG_ioText.tui-json.tui-json-collapsed::after {
+.o3BgMG_ioText.tui-json.tui-json-collapsed::after,
+.CY-8Ka_ioText.tui-json.tui-json-collapsed::after {
   content: "󰅂  … развернуть";
   position: sticky;
   bottom: 0;
@@ -2001,11 +2005,14 @@ button[aria-label="Check for updates"] {
             railMo.disconnect();
           });
         }
-        // ── feature: tui-jsonfmt — pretty-print + highlight JSON tool output ──
+        // ── feature: tui-jsonfmt — highlight JSON tool output, one line when short ──
         // Tool-call cards render IN/OUT payloads as a single pre-wrap text
-        // node (.o3BgMG_ioText inside .o3BgMG_ioCard). When that text parses
-        // as JSON, rewrite it into a highlighted, pretty-printed form:
-        //   - two-space indent (JSON.stringify(…, null, 2));
+        // node (.o3BgMG_ioText / .CY-8Ka_ioText inside their ioCards). When
+        // that text parses as JSON, rewrite it into a highlighted form:
+        //   - short payloads (<= 160 chars) stay on one line — small tool
+        //     args like {"job_id": "bash-9", ...} must not sprawl across the
+        //     chat (user preference);
+        //   - longer payloads get two-space indent (JSON.stringify(…, null, 2));
         //   - colored tokens: keys / strings / numbers / booleans / null
         //     (CSS classes tui-json-*);
         //   - long payloads (> 4000 chars) collapse to 9em, click to expand
@@ -2108,7 +2115,11 @@ button[aria-label="Check for updates"] {
             } catch {
               return; // not JSON — leave untouched
             }
-            const pretty = JSON.stringify(parsed, null, 2);
+            const oneLine = JSON.stringify(parsed);
+            const pretty =
+              oneLine !== undefined && oneLine.length <= 160
+                ? oneLine
+                : JSON.stringify(parsed, null, 2);
             if (pretty === undefined || pretty === "") return;
             const long = pretty.length > 4000;
             const body = highlight(pretty);
@@ -2135,7 +2146,7 @@ button[aria-label="Check for updates"] {
           document.addEventListener("click", onDocClick, true);
 
           const scan = () => {
-            document.querySelectorAll(".o3BgMG_ioText").forEach(apply);
+            document.querySelectorAll(".o3BgMG_ioText, .CY-8Ka_ioText").forEach(apply);
           };
           scan();
           const mo = new MutationObserver(() => {
