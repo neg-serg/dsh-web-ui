@@ -22,13 +22,21 @@
 //      (initial load, workspace selection, session switch), and when its
 //      readonly/disabled state clears. Focus is never yanked away from an
 //      open modal dialog or from another field the user is typing in.
+//   5) todo_write calls render as a todo list card: status glyphs per item
+//      (done / in progress / pending), counts, a thin progress bar and the
+//      tool's result line once the call settles — instead of the stock
+//      one-line "Completed 3/8" summary row with raw JSON below. Registered
+//      into the Tool-owned keyed `tool.call.toolview` slot at a lower
+//      priority than the built-in todo row, so this card wins the keyed hit.
 //
 // All selectors use stable data attributes stamped by the upstream
 // components, so they survive bundle upgrades (unlike CSS-module hashes).
 window.__ModuleLoader__.load({
   id: "dsh-gui-tweaks",
   factory: (require) => {
-    const inject = [];
+    // The todo-list card registers into the Tool-owned keyed toolview slot,
+    // so the slots service is required at apply time.
+    const inject = ["slots"];
 
     // ---- 1) digit keys answer numbered question dialogs ----
     // Ask-user questions render one option button per entry, numbered 1..N.
@@ -144,7 +152,264 @@ window.__ModuleLoader__.load({
       focusComposer();
     }
 
+    // ---- 5) todo_write calls render as a todo list card ----
+    // The stock UI shows todo_write as a one-line row ("Completed 3/8 · …")
+    // whose expanded body is raw JSON. This registers a keyed
+    // `tool.call.toolview` entry at a lower priority than the built-in todo
+    // row (priority 0), so the keyed slot elects this card instead. The card
+    // shows the whole plan at a glance: a status glyph per item, done/total
+    // counts, a thin progress bar, a running pulse while the call is in
+    // flight, and the tool's result line once it settles.
+    const React = require("react");
+    const h = React.createElement;
+
+    const TODO_STATUS_META = Object.freeze({
+      completed: { label: "Готово", cls: "gt-todo-done" },
+      in_progress: { label: "В работе", cls: "gt-todo-active" },
+      pending: { label: "Ожидает", cls: "gt-todo-pending" },
+    });
+
+    function todoStatus(item) {
+      return typeof item?.status === "string" && TODO_STATUS_META[item.status] !== undefined
+        ? item.status
+        : "pending";
+    }
+
+    function parseTodoArgs(argsRaw) {
+      if (typeof argsRaw !== "string" || argsRaw === "") return null;
+      try {
+        const parsed = JSON.parse(argsRaw);
+        if (parsed === null || typeof parsed !== "object" || !Array.isArray(parsed.todos)) return null;
+        return parsed.todos.filter(
+          (item) => item !== null && typeof item === "object" && typeof item.content === "string"
+        );
+      } catch {
+        return null;
+      }
+    }
+
+    function todoResultText(block) {
+      if (!("kind" in block) || !Array.isArray(block.content)) return null;
+      const text = block.content
+        .filter(
+          (b) => b !== null && typeof b === "object" && b.type === "text" && typeof b.text === "string"
+        )
+        .map((b) => b.text)
+        .join("\n")
+        .trim();
+      return text === "" ? null : text;
+    }
+
+    function TodoListCard({ block, inspect }) {
+      const done = "kind" in block;
+      const argsRaw = (done ? block.call?.argsRaw : block.argsRaw) ?? "";
+      const items = parseTodoArgs(argsRaw);
+
+      if (items === null) {
+        // Malformed/absent args: compact fallback so the row never goes blank.
+        return h(
+          "div",
+          { className: "gt-todo gt-todo-fallback", "data-state": done ? "ok" : "running" },
+          h("span", { className: "gt-todo-heading" }, "Список задач"),
+          argsRaw !== ""
+            ? h("code", null, argsRaw.slice(0, 80))
+            : h("span", { className: "gt-todo-empty" }, "Задач пока нет")
+        );
+      }
+
+      let doneCount = 0;
+      let activeCount = 0;
+      for (const item of items) {
+        const status = todoStatus(item);
+        if (status === "completed") doneCount += 1;
+        else if (status === "in_progress") activeCount += 1;
+      }
+      const total = items.length;
+      const pct = total === 0 ? 0 : Math.round((doneCount / total) * 100);
+      const result = todoResultText(block);
+
+      const rows = items.map((item, index) => {
+        const meta = TODO_STATUS_META[todoStatus(item)];
+        return h(
+          "div",
+          { key: index, className: `gt-todo-item ${meta.cls}`, title: meta.label },
+          h("span", { className: "gt-todo-glyph", "aria-hidden": "true" }),
+          h("span", { className: "gt-todo-text" }, item.content)
+        );
+      });
+
+      return h(
+        "div",
+        { className: "gt-todo", "data-state": done ? "ok" : "running" },
+        h(
+          "div",
+          { className: "gt-todo-header" },
+          h("span", { className: "gt-todo-heading" }, "Список задач"),
+          h("span", { className: "gt-todo-counts" }, `${doneCount}/${total}`),
+          h(
+            "span",
+            { className: "gt-todo-track" },
+            h("span", { className: "gt-todo-fill", style: { width: `${pct}%` } })
+          ),
+          !done ? h("span", { className: "gt-todo-running", title: "Выполняется…" }) : null,
+          activeCount > 0
+            ? h("span", { className: "gt-todo-active-hint", title: "В работе" })
+            : null,
+          typeof inspect === "function"
+            ? h("button", { className: "gt-todo-inspect", onClick: inspect, title: "Подробности" }, "ⓘ")
+            : null
+        ),
+        total === 0
+          ? h("div", { className: "gt-todo-empty" }, "Задач пока нет")
+          : h("div", { className: "gt-todo-items" }, rows),
+        result !== null ? h("div", { className: "gt-todo-result" }, result) : null
+      );
+    }
+
+    const TODO_CARD_CSS = `
+      .gt-todo {
+        border: 1px solid var(--dsw-alias-border-l1);
+        border-radius: 12px;
+        background: var(--dsw-alias-bg-layer-2);
+        margin: 4px 0;
+        overflow: hidden;
+        font: var(--dsw-font-xs-13);
+        color: var(--dsw-alias-label-primary);
+      }
+      .gt-todo-header {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 8px 12px;
+        border-bottom: 1px solid var(--dsw-alias-border-l1);
+      }
+      .gt-todo-heading { font-weight: 600; white-space: nowrap; }
+      .gt-todo-counts {
+        color: var(--dsw-alias-label-secondary);
+        font-variant-numeric: tabular-nums;
+        white-space: nowrap;
+      }
+      .gt-todo-track {
+        flex: 1;
+        min-width: 40px;
+        height: 4px;
+        border-radius: 999px;
+        background: var(--dsw-alias-bg-layer-3);
+        overflow: hidden;
+      }
+      .gt-todo-fill {
+        display: block;
+        height: 100%;
+        border-radius: 999px;
+        background: var(--dsw-alias-state-success-primary);
+        transition: width 0.3s ease;
+      }
+      .gt-todo-running {
+        flex: none;
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: var(--dsw-alias-state-warn-primary);
+        animation: gt-todo-pulse 1.2s ease-in-out infinite;
+      }
+      .gt-todo-active-hint {
+        flex: none;
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: var(--dsw-alias-state-warn-primary);
+        opacity: 0.7;
+      }
+      @keyframes gt-todo-pulse {
+        0%, 100% { opacity: 0.35; }
+        50% { opacity: 1; }
+      }
+      .gt-todo-inspect {
+        flex: none;
+        border: 0;
+        background: transparent;
+        cursor: pointer;
+        color: var(--dsw-alias-label-tertiary);
+        font-size: 13px;
+        line-height: 1;
+        padding: 2px 4px;
+        border-radius: 6px;
+      }
+      .gt-todo-inspect:hover { color: var(--dsw-alias-label-primary); background: var(--dsw-alias-bg-layer-3); }
+      .gt-todo-items {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        padding: 8px 12px 10px;
+      }
+      .gt-todo-item { display: flex; align-items: baseline; gap: 8px; line-height: 1.45; }
+      .gt-todo-text { overflow-wrap: anywhere; }
+      .gt-todo-glyph {
+        flex: none;
+        width: 14px;
+        height: 14px;
+        align-self: center;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      .gt-todo-done .gt-todo-text {
+        color: var(--dsw-alias-label-tertiary);
+        text-decoration: line-through;
+      }
+      .gt-todo-done .gt-todo-glyph {
+        border-radius: 50%;
+        background: var(--dsw-alias-state-success-primary);
+      }
+      .gt-todo-done .gt-todo-glyph::after {
+        content: "";
+        width: 4px;
+        height: 7px;
+        border: solid var(--dsw-alias-bg-base);
+        border-width: 0 2px 2px 0;
+        transform: rotate(45deg) translate(-1px, -1px);
+      }
+      .gt-todo-active .gt-todo-text { font-weight: 500; }
+      .gt-todo-active .gt-todo-glyph {
+        border-radius: 50%;
+        background: var(--dsw-alias-state-warn-primary);
+        box-shadow: 0 0 0 3px color-mix(in srgb, var(--dsw-alias-state-warn-primary) 22%, transparent);
+        animation: gt-todo-pulse 1.2s ease-in-out infinite;
+      }
+      .gt-todo-pending .gt-todo-glyph {
+        border: 1.5px solid var(--dsw-alias-label-tertiary);
+        border-radius: 50%;
+      }
+      .gt-todo-empty {
+        padding: 10px 12px;
+        color: var(--dsw-alias-label-tertiary);
+      }
+      .gt-todo-result {
+        padding: 7px 12px 9px;
+        color: var(--dsw-alias-label-secondary);
+        border-top: 1px solid var(--dsw-alias-border-l1);
+        overflow-wrap: anywhere;
+      }
+      .gt-todo-fallback { display: flex; align-items: center; gap: 8px; padding: 8px 12px; }
+      .gt-todo-fallback code {
+        font-family: var(--ds-font-family-code);
+        color: var(--dsw-alias-label-tertiary);
+        overflow-wrap: anywhere;
+      }
+    `;
+
     function apply(ctx) {
+      // Register the todo-list card into the Tool-owned keyed toolview slot.
+      // Lower priority than the built-in todo row (0) wins the keyed hit; the
+      // declaration callback defers until the slot exists, and slots.register
+      // rides ctx.effect for disposal on unmount/reload.
+      ctx.slots.inject("tool.call.toolview", () =>
+        ctx.slots.register(
+          { name: "tool.call.toolview", key: "todo_write", priority: -10 },
+          TodoListCard
+        )
+      );
+
       ctx.effect(() => {
         window.addEventListener("keydown", onQuestionKeyDown, true);
 
@@ -170,7 +435,7 @@ window.__ModuleLoader__.load({
 
         const style = document.createElement("style");
         style.setAttribute("data-plugin", "dsh-gui-tweaks");
-        style.textContent = BASH_OUTPUT_CAP_CSS;
+        style.textContent = BASH_OUTPUT_CAP_CSS + TODO_CARD_CSS;
         document.head.appendChild(style);
 
         return () => {
