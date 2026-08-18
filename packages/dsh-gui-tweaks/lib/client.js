@@ -28,6 +28,11 @@
 //      one-line "Completed 3/8" summary row with raw JSON below. Registered
 //      into the Tool-owned keyed `tool.call.toolview` slot at a lower
 //      priority than the built-in todo row, so this card wins the keyed hit.
+//   6) ask_user_question calls render as a question card: every question
+//      with its header, text and options; once the call settles, the chosen
+//      options are highlighted (✓) and unanswered questions are marked —
+//      instead of the stock one-line row whose body is the raw JSON result.
+//      Same keyed-slot shadowing as the todo card (priority -10).
 //
 // All selectors use stable data attributes stamped by the upstream
 // components, so they survive bundle upgrades (unlike CSS-module hashes).
@@ -398,17 +403,281 @@ window.__ModuleLoader__.load({
       }
     `;
 
+    // ---- 6) ask_user_question calls render as a question card ----
+    // Same idea as the todo card: the stock UI shows ask_user_question as a
+    // one-line row ("Question · Waiting for answer…") whose expanded body is
+    // the raw JSON result. This card shows every question with its options;
+    // once the call settles, the chosen options are highlighted, custom
+    // answers are shown, and unanswered questions are marked "Без ответа".
+    // The tool's result text is JSON.stringify({answers: [...]}), so answers
+    // are recovered by parsing it back.
+    function parseAskArgs(argsRaw) {
+      if (typeof argsRaw !== "string" || argsRaw === "") return null;
+      try {
+        const parsed = JSON.parse(argsRaw);
+        if (parsed === null || typeof parsed !== "object" || !Array.isArray(parsed.questions)) return null;
+        return parsed.questions.filter(
+          (q) => q !== null && typeof q === "object" && typeof q.question === "string"
+        );
+      } catch {
+        return null;
+      }
+    }
+
+    function parseAskAnswers(block) {
+      if (!("kind" in block) || !Array.isArray(block.content)) return null;
+      const text = block.content
+        .filter(
+          (b) => b !== null && typeof b === "object" && b.type === "text" && typeof b.text === "string"
+        )
+        .map((b) => b.text)
+        .join("\n")
+        .trim();
+      if (text === "") return null;
+      try {
+        const parsed = JSON.parse(text);
+        if (parsed !== null && typeof parsed === "object" && Array.isArray(parsed.answers)) {
+          return parsed.answers.filter(
+            (a) => a !== null && typeof a === "object" && typeof a.id === "string"
+          );
+        }
+      } catch {
+        /* malformed result — fall through */
+      }
+      return null;
+    }
+
+    function AskQuestionCard({ block, inspect }) {
+      const done = "kind" in block;
+      const argsRaw = (done ? block.call?.argsRaw : block.argsRaw) ?? "";
+      const questions = parseAskArgs(argsRaw);
+
+      if (questions === null) {
+        // Malformed/absent args: compact fallback so the row never goes blank.
+        return h(
+          "div",
+          { className: "gt-ask gt-ask-fallback", "data-state": done ? "ok" : "running" },
+          h("span", { className: "gt-ask-heading" }, "Вопрос"),
+          argsRaw !== ""
+            ? h("code", null, argsRaw.slice(0, 80))
+            : h("span", { className: "gt-ask-empty" }, "Вопросов нет")
+        );
+      }
+
+      const answers = done ? parseAskAnswers(block) : null;
+      const answerMap = new Map();
+      if (answers !== null) for (const answer of answers) answerMap.set(answer.id, answer);
+      let answeredCount = 0;
+      for (const q of questions) if (answerMap.has(q.id)) answeredCount += 1;
+      const total = questions.length;
+      const pct = total === 0 ? 0 : Math.round((answeredCount / total) * 100);
+
+      const blocks = questions.map((q, qi) => {
+        const answer = answerMap.get(q.id);
+        const opts = Array.isArray(q.options)
+          ? q.options.filter((o) => o !== null && typeof o === "object" && typeof o.label === "string")
+          : [];
+        const selected = answer !== undefined && Array.isArray(answer.selected) ? answer.selected : [];
+        const custom = answer !== undefined && typeof answer.custom === "string" ? answer.custom : null;
+        const multi = q.multi_select === true;
+
+        const optionRows = opts.map((o, oi) => {
+          const chosen = selected.includes(o.label);
+          return h(
+            "div",
+            { key: oi, className: `gt-ask-option${chosen ? " gt-ask-chosen" : ""}` },
+            h("span", { className: `gt-ask-glyph${multi ? " gt-ask-multi" : ""}`, "aria-hidden": "true" }),
+            h("span", { className: "gt-ask-opt-label" }, o.label),
+            typeof o.description === "string" && o.description !== ""
+              ? h("span", { className: "gt-ask-opt-desc" }, o.description)
+              : null
+          );
+        });
+
+        return h(
+          "div",
+          { key: q.id ?? qi, className: "gt-ask-question" },
+          typeof q.header === "string" && q.header !== ""
+            ? h("div", { className: "gt-ask-qheader" }, q.header)
+            : null,
+          h("div", { className: "gt-ask-qtext" }, q.question),
+          optionRows.length > 0
+            ? h("div", { className: "gt-ask-options" }, optionRows)
+            : h("div", { className: "gt-ask-qanswer" }, custom !== null ? custom : (done ? "—" : null)),
+          done && custom !== null && opts.length > 0
+            ? h("div", { className: "gt-ask-custom" }, `Свой ответ: ${custom}`)
+            : null,
+          done && answer === undefined
+            ? h("div", { className: "gt-ask-unanswered" }, "Без ответа")
+            : null
+        );
+      });
+
+      return h(
+        "div",
+        { className: "gt-ask", "data-state": done ? "ok" : "running" },
+        h(
+          "div",
+          { className: "gt-ask-header" },
+          h("span", { className: "gt-ask-heading" }, "Вопрос"),
+          h("span", { className: "gt-ask-counts" }, `${answeredCount}/${total}`),
+          h(
+            "span",
+            { className: "gt-ask-track" },
+            h("span", { className: "gt-ask-fill", style: { width: `${pct}%` } })
+          ),
+          !done ? h("span", { className: "gt-ask-waiting" }, "Ожидает ответа…") : null,
+          typeof inspect === "function"
+            ? h("button", { className: "gt-ask-inspect", onClick: inspect, title: "Подробности" }, "ⓘ")
+            : null
+        ),
+        h("div", { className: "gt-ask-body" }, blocks)
+      );
+    }
+
+    const ASK_CARD_CSS = `
+      .gt-ask {
+        border: 1px solid var(--dsw-alias-border-l1);
+        border-radius: 12px;
+        background: var(--dsw-alias-bg-layer-2);
+        margin: 4px 0;
+        overflow: hidden;
+        font: var(--dsw-font-xs-13);
+        color: var(--dsw-alias-label-primary);
+      }
+      .gt-ask-header {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 8px 12px;
+        border-bottom: 1px solid var(--dsw-alias-border-l1);
+      }
+      .gt-ask-heading { font-weight: 600; white-space: nowrap; }
+      .gt-ask-counts {
+        color: var(--dsw-alias-label-secondary);
+        font-variant-numeric: tabular-nums;
+        white-space: nowrap;
+      }
+      .gt-ask-track {
+        flex: 1;
+        min-width: 40px;
+        height: 4px;
+        border-radius: 999px;
+        background: var(--dsw-alias-bg-layer-3);
+        overflow: hidden;
+      }
+      .gt-ask-fill {
+        display: block;
+        height: 100%;
+        border-radius: 999px;
+        background: var(--dsw-alias-state-success-primary);
+        transition: width 0.3s ease;
+      }
+      .gt-ask-waiting {
+        color: var(--dsw-alias-state-warn-primary);
+        white-space: nowrap;
+        animation: gt-ask-pulse 1.2s ease-in-out infinite;
+      }
+      @keyframes gt-ask-pulse {
+        0%, 100% { opacity: 0.4; }
+        50% { opacity: 1; }
+      }
+      .gt-ask-inspect {
+        flex: none;
+        border: 0;
+        background: transparent;
+        cursor: pointer;
+        color: var(--dsw-alias-label-tertiary);
+        font-size: 13px;
+        line-height: 1;
+        padding: 2px 4px;
+        border-radius: 6px;
+      }
+      .gt-ask-inspect:hover { color: var(--dsw-alias-label-primary); background: var(--dsw-alias-bg-layer-3); }
+      .gt-ask-body {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        padding: 8px 12px 10px;
+      }
+      .gt-ask-qheader {
+        color: var(--dsw-alias-label-caption);
+        font-size: 11px;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+        margin-bottom: 2px;
+      }
+      .gt-ask-qtext { font-weight: 500; line-height: 1.45; margin-bottom: 6px; overflow-wrap: anywhere; }
+      .gt-ask-options { display: flex; flex-direction: column; gap: 4px; }
+      .gt-ask-option {
+        display: flex;
+        align-items: baseline;
+        gap: 8px;
+        padding: 3px 6px;
+        border-radius: 6px;
+        line-height: 1.4;
+      }
+      .gt-ask-option.gt-ask-chosen {
+        background: color-mix(in srgb, var(--dsw-alias-state-success-primary) 12%, transparent);
+      }
+      .gt-ask-glyph {
+        flex: none;
+        width: 13px;
+        height: 13px;
+        align-self: center;
+        border: 1.5px solid var(--dsw-alias-label-tertiary);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      .gt-ask-glyph.gt-ask-multi { border-radius: 4px; }
+      .gt-ask-chosen .gt-ask-glyph {
+        border-color: var(--dsw-alias-state-success-primary);
+        background: var(--dsw-alias-state-success-primary);
+      }
+      .gt-ask-chosen .gt-ask-glyph::after {
+        content: "";
+        width: 4px;
+        height: 7px;
+        border: solid var(--dsw-alias-bg-base);
+        border-width: 0 2px 2px 0;
+        transform: rotate(45deg) translate(-1px, -1px);
+      }
+      .gt-ask-opt-label { overflow-wrap: anywhere; }
+      .gt-ask-opt-desc { color: var(--dsw-alias-label-secondary); overflow-wrap: anywhere; }
+      .gt-ask-qanswer, .gt-ask-custom, .gt-ask-unanswered {
+        color: var(--dsw-alias-label-secondary);
+        overflow-wrap: anywhere;
+      }
+      .gt-ask-unanswered { color: var(--dsw-alias-label-tertiary); }
+      .gt-ask-empty {
+        padding: 8px 12px;
+        color: var(--dsw-alias-label-tertiary);
+      }
+      .gt-ask-fallback { display: flex; align-items: center; gap: 8px; padding: 8px 12px; }
+      .gt-ask-fallback code {
+        font-family: var(--ds-font-family-code);
+        color: var(--dsw-alias-label-tertiary);
+        overflow-wrap: anywhere;
+      }
+    `;
+
     function apply(ctx) {
-      // Register the todo-list card into the Tool-owned keyed toolview slot.
-      // Lower priority than the built-in todo row (0) wins the keyed hit; the
-      // declaration callback defers until the slot exists, and slots.register
-      // rides ctx.effect for disposal on unmount/reload.
-      ctx.slots.inject("tool.call.toolview", () =>
-        ctx.slots.register(
+      // Register the todo-list and question cards into the Tool-owned keyed
+      // toolview slot. Lower priority than the built-in rows (0) wins each
+      // keyed hit; the declaration callback defers until the slot exists, and
+      // slots.register rides ctx.effect for disposal on unmount/reload.
+      ctx.slots.inject("tool.call.toolview", function* () {
+        yield ctx.slots.register(
           { name: "tool.call.toolview", key: "todo_write", priority: -10 },
           TodoListCard
-        )
-      );
+        );
+        yield ctx.slots.register(
+          { name: "tool.call.toolview", key: "ask_user_question", priority: -10 },
+          AskQuestionCard
+        );
+      });
 
       ctx.effect(() => {
         window.addEventListener("keydown", onQuestionKeyDown, true);
@@ -435,7 +704,7 @@ window.__ModuleLoader__.load({
 
         const style = document.createElement("style");
         style.setAttribute("data-plugin", "dsh-gui-tweaks");
-        style.textContent = BASH_OUTPUT_CAP_CSS + TODO_CARD_CSS;
+        style.textContent = BASH_OUTPUT_CAP_CSS + TODO_CARD_CSS + ASK_CARD_CSS;
         document.head.appendChild(style);
 
         return () => {
