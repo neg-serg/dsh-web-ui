@@ -33,6 +33,9 @@
 //      options are highlighted (✓) and unanswered questions are marked —
 //      instead of the stock one-line row whose body is the raw JSON result.
 //      Same keyed-slot shadowing as the todo card (priority -10).
+//   7) Long expanded content stops eating the viewport: assistant "Think"
+//      rows are collapsed by default (expand on click), and markdown code
+//      blocks (pre.shiki) are height-capped with an internal scrollbar.
 //
 // All selectors use stable data attributes stamped by the upstream
 // components, so they survive bundle upgrades (unlike CSS-module hashes).
@@ -156,6 +159,62 @@ window.__ModuleLoader__.load({
       seenComposers.add(composer);
       focusComposer();
     }
+
+    // ---- 7) thoughts collapsed by default, code blocks height-capped ----
+    // Long expanded sections eat the whole viewport: the assistant's "Think"
+    // disclosure rows arrive expanded (a single thought body can be thousands
+    // of px) and markdown code blocks (pre.shiki) render at full height. Each
+    // Think row is collapsed once on first sight — later manual expansions are
+    // left alone, the same WeakSet pattern as bash rows. Code blocks get a
+    // bounded height with an internal scrollbar, so a long listing never
+    // pushes the whole message out of view (scroll inside the block instead).
+    const handledThinkRows = new WeakSet();
+
+    function isThinkRow(row) {
+      // The thought body is the row's next sibling (CSS-module local name
+      // "thinkBody" survives upstream re-hashes); fall back to the title text.
+      const body = row.nextElementSibling;
+      if (body !== null && typeof body.className === "string" && body.className.includes("thinkBody")) {
+        return true;
+      }
+      const title = row.querySelector("[class*=title]");
+      return title !== null && title.textContent.trim() === "Think";
+    }
+
+    function manageThoughtRows() {
+      for (const row of document.querySelectorAll("[data-disclosure-row][data-expandable]")) {
+        if (handledThinkRows.has(row)) continue;
+        if (!isThinkRow(row)) continue;
+        if (row.getAttribute("aria-expanded") !== "true") continue;
+        // The toggle is async (the aria attribute flips a tick later), so mark
+        // the row only after the collapse is confirmed; a click that missed
+        // (handler not attached yet at mount time) is retried on a later pass.
+        handledThinkRows.add(row);
+        row.click();
+        setTimeout(() => {
+          if (row.isConnected && row.getAttribute("aria-expanded") === "true") {
+            handledThinkRows.delete(row);
+          }
+        }, 250);
+      }
+    }
+
+    // User-initiated toggles (real pointer events) take over the row forever —
+    // the auto-collapse never re-folds a thought the user opened by hand.
+    function onThinkRowClick(event) {
+      if (!event.isTrusted) return;
+      const target = event.target;
+      if (!(target instanceof Element)) return;
+      const row = target.closest("[data-disclosure-row]");
+      if (row !== null && isThinkRow(row)) handledThinkRows.add(row);
+    }
+
+    const CODE_CAP_CSS = `
+      pre.shiki {
+        max-height: 400px;
+        overflow-y: auto;
+      }
+    `;
 
     // ---- 5) todo_write calls render as a todo list card ----
     // The stock UI shows todo_write as a one-line row ("Completed 3/8 · …")
@@ -681,18 +740,21 @@ window.__ModuleLoader__.load({
 
       ctx.effect(() => {
         window.addEventListener("keydown", onQuestionKeyDown, true);
+        document.addEventListener("click", onThinkRowClick, true);
 
         const observer = new MutationObserver(() => {
           expandBashRows();
+          manageThoughtRows();
           focusFreshComposer();
         });
         observer.observe(document.body, {
           childList: true,
           subtree: true,
           attributes: true,
-          attributeFilter: ["readonly", "disabled"],
+          attributeFilter: ["readonly", "disabled", "aria-expanded"],
         });
         expandBashRows(); // catch rows already mounted before the observer
+        manageThoughtRows(); // collapse Think rows already mounted
         focusFreshComposer(); // focus a composer mounted before the observer
 
         const onVisibilityChange = () => {
@@ -704,11 +766,13 @@ window.__ModuleLoader__.load({
 
         const style = document.createElement("style");
         style.setAttribute("data-plugin", "dsh-gui-tweaks");
-        style.textContent = BASH_OUTPUT_CAP_CSS + TODO_CARD_CSS + ASK_CARD_CSS;
+        style.textContent =
+          BASH_OUTPUT_CAP_CSS + TODO_CARD_CSS + ASK_CARD_CSS + CODE_CAP_CSS;
         document.head.appendChild(style);
 
         return () => {
           window.removeEventListener("keydown", onQuestionKeyDown, true);
+          document.removeEventListener("click", onThinkRowClick, true);
           observer.disconnect();
           document.removeEventListener("visibilitychange", onVisibilityChange);
           window.removeEventListener("focus", onWindowFocus);
