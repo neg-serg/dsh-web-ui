@@ -28,3 +28,5 @@ REVIEW-PROMPT.md
 
 # локальные отладочные инструменты GUI (playwright + nixos env)
 .dsh/debug/
+*.orig
+*.web-en.json
