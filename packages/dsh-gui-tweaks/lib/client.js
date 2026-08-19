@@ -36,9 +36,17 @@
 //   7) Long expanded content stops eating the viewport: assistant "Think"
 //      rows are collapsed by default (expand on click), and markdown code
 //      blocks (pre.shiki) are height-capped with an internal scrollbar.
+//   8) The sidebar logo row (brand wordmark + collapse toggle) is hidden in
+//      every state, wide and rail, so the column starts straight at New
+//      Session — the rail can still be expanded by clicking search/a session
+//      (expandSidebar), only the row itself is gone. The selector matches the
+//      CSS-module local name suffix ("_logoRow"), which survives upstream
+//      re-hashes.
 //
 // All selectors use stable data attributes stamped by the upstream
-// components, so they survive bundle upgrades (unlike CSS-module hashes).
+// components, so they survive bundle upgrades (unlike CSS-module hashes);
+// the one exception is the logo-row rule below, which rides the stable
+// "_logoRow" local-name suffix for the same reason.
 window.__ModuleLoader__.load({
   id: "dsh-gui-tweaks",
   factory: (require) => {
@@ -213,6 +221,20 @@ window.__ModuleLoader__.load({
       pre.shiki {
         max-height: 400px;
         overflow-y: auto;
+      }
+    `;
+
+    // ---- 8) sidebar logo row hidden ----
+    // The sidebar column's top row (brand wordmark + fold toggle) eats ~68px
+    // of vertical space for pure branding. It is hidden in every state: wide
+    // and rail. The rail keeps working — expanding it is still possible by
+    // clicking the search button or a session (expandSidebar). The selector
+    // uses the CSS-module local name suffix "_logoRow" (the hashed prefix
+    // changes on rebuilds, the local name does not), scoped to the sidebar
+    // root's own "_root" suffix so it cannot hit unrelated rows elsewhere.
+    const SIDEBAR_LOGO_HIDE_CSS = `
+      [class*="_root"] > [class*="_logoRow"] {
+        display: none !important;
       }
     `;
 
@@ -767,7 +789,7 @@ window.__ModuleLoader__.load({
         const style = document.createElement("style");
         style.setAttribute("data-plugin", "dsh-gui-tweaks");
         style.textContent =
-          BASH_OUTPUT_CAP_CSS + TODO_CARD_CSS + ASK_CARD_CSS + CODE_CAP_CSS;
+          BASH_OUTPUT_CAP_CSS + TODO_CARD_CSS + ASK_CARD_CSS + CODE_CAP_CSS + SIDEBAR_LOGO_HIDE_CSS;
         document.head.appendChild(style);
 
         return () => {
